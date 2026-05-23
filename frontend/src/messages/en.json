@@ -1,0 +1,64 @@
+{
+  "App": {
+    "name": "Agri-Control",
+    "subtitle": "Agricultural management · Production · Profitability"
+  },
+  "Auth": {
+    "loginTitle": "Login",
+    "loginSubtitle": "Sign in to access your workspace",
+    "email": "Email",
+    "password": "Password",
+    "submit": "Sign in",
+    "loading": "Signing in...",
+    "invalidCredentials": "Invalid email or password.",
+    "genericError": "Something went wrong."
+  },
+  "Navigation": {
+    "dashboard": "Dashboard",
+    "referential": "Referential",
+    "groups": "Groups",
+    "companies": "Companies",
+    "farms": "Farms",
+    "plots": "Plots",
+    "factories": "Factories",
+    "products": "Products",
+    "agriculture": "Agricultural production",
+    "projects": "Agricultural projects",
+    "plantations": "Plantations",
+    "harvests": "Harvests",
+    "charges": "Charges",
+    "factoryFlow": "Factory flow",
+    "shipments": "Shipments",
+    "receptions": "Receptions",
+    "conditioning": "Conditioning",
+    "commercial": "Commercial",
+    "clients": "Clients",
+    "orders": "Orders",
+    "invoices": "Invoices",
+    "payments": "Payments",
+    "logistics": "Logistics",
+    "reports": "Reporting",
+    "admin": "Administration",
+    "users": "Users",
+    "roles": "Roles",
+    "settings": "Settings"
+  },
+  "Dashboard": {
+    "date": "05/23/2026",
+    "title": "Dashboard",
+    "empty": "Dashboard is empty for now.",
+    "production": "Total production",
+    "cost": "Total cost",
+    "margin": "Margin",
+    "quality": "Quality score",
+    "activeModules": "Active modules",
+    "incidents": "Alerts"
+  },
+  "Common": {
+    "logout": "Logout",
+    "language": "Language",
+    "french": "French",
+    "english": "English",
+    "spanish": "Spanish"
+  }
+}

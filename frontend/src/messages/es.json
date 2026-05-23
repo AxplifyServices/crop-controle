@@ -1,0 +1,64 @@
+{
+  "App": {
+    "name": "Agri-Control",
+    "subtitle": "Gestión agrícola · Producción · Rentabilidad"
+  },
+  "Auth": {
+    "loginTitle": "Conexión",
+    "loginSubtitle": "Inicie sesión para acceder a su espacio",
+    "email": "Email",
+    "password": "Contraseña",
+    "submit": "Iniciar sesión",
+    "loading": "Conectando...",
+    "invalidCredentials": "Email o contraseña incorrectos.",
+    "genericError": "Ha ocurrido un error."
+  },
+  "Navigation": {
+    "dashboard": "Panel de control",
+    "referential": "Referencial",
+    "groups": "Grupos",
+    "companies": "Empresas",
+    "farms": "Fincas",
+    "plots": "Parcelas",
+    "factories": "Fábricas",
+    "products": "Productos",
+    "agriculture": "Producción agrícola",
+    "projects": "Proyectos agrícolas",
+    "plantations": "Plantaciones",
+    "harvests": "Cosechas",
+    "charges": "Costes",
+    "factoryFlow": "Flujo de fábrica",
+    "shipments": "Envíos",
+    "receptions": "Recepciones",
+    "conditioning": "Acondicionamiento",
+    "commercial": "Comercial",
+    "clients": "Clientes",
+    "orders": "Pedidos",
+    "invoices": "Facturas",
+    "payments": "Pagos",
+    "logistics": "Logística",
+    "reports": "Reporting",
+    "admin": "Administración",
+    "users": "Usuarios",
+    "roles": "Roles",
+    "settings": "Parámetros"
+  },
+  "Dashboard": {
+    "date": "23/05/2026",
+    "title": "Panel de control",
+    "empty": "El panel está vacío por ahora.",
+    "production": "Producción total",
+    "cost": "Coste total",
+    "margin": "Margen",
+    "quality": "Puntuación de calidad",
+    "activeModules": "Módulos activos",
+    "incidents": "Alertas"
+  },
+  "Common": {
+    "logout": "Cerrar sesión",
+    "language": "Idioma",
+    "french": "Francés",
+    "english": "Inglés",
+    "spanish": "Español"
+  }
+}

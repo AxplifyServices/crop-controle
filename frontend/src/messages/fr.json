@@ -1,0 +1,64 @@
+{
+  "App": {
+    "name": "Agri-Control",
+    "subtitle": "Pilotage agricole · Production · Rentabilité"
+  },
+  "Auth": {
+    "loginTitle": "Connexion",
+    "loginSubtitle": "Connectez-vous pour accéder à votre espace",
+    "email": "Email",
+    "password": "Mot de passe",
+    "submit": "Se connecter",
+    "loading": "Connexion...",
+    "invalidCredentials": "Email ou mot de passe incorrect.",
+    "genericError": "Une erreur est survenue."
+  },
+  "Navigation": {
+    "dashboard": "Tableau de bord",
+    "referential": "Référentiel",
+    "groups": "Groupes",
+    "companies": "Entreprises",
+    "farms": "Fermes",
+    "plots": "Parcelles",
+    "factories": "Usines",
+    "products": "Produits",
+    "agriculture": "Production agricole",
+    "projects": "Projets agricoles",
+    "plantations": "Plantations",
+    "harvests": "Récoltes",
+    "charges": "Charges",
+    "factoryFlow": "Flux usine",
+    "shipments": "Expéditions",
+    "receptions": "Réceptions",
+    "conditioning": "Conditionnement",
+    "commercial": "Commercial",
+    "clients": "Clients",
+    "orders": "Commandes",
+    "invoices": "Factures",
+    "payments": "Paiements",
+    "logistics": "Logistique",
+    "reports": "Reporting",
+    "admin": "Administration",
+    "users": "Utilisateurs",
+    "roles": "Rôles",
+    "settings": "Paramètres"
+  },
+  "Dashboard": {
+    "date": "23/05/2026",
+    "title": "Tableau de bord",
+    "empty": "Dashboard vide pour le moment.",
+    "production": "Production totale",
+    "cost": "Coût total",
+    "margin": "Marge",
+    "quality": "Score qualité",
+    "activeModules": "Modules actifs",
+    "incidents": "Alertes"
+  },
+  "Common": {
+    "logout": "Déconnexion",
+    "language": "Langue",
+    "french": "Français",
+    "english": "Anglais",
+    "spanish": "Espagnol"
+  }
+}

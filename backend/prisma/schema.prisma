@@ -1,0 +1,1498 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model agricultural_projects {
+  id                 String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  farm_id            String              @db.Uuid
+  plot_id            String?             @db.Uuid
+  product_id         String              @db.Uuid
+  variety_id         String?             @db.Uuid
+  name               String              @db.VarChar(150)
+  season             String?             @db.VarChar(100)
+  plant_count        Int                 @default(0)
+  active_plant_count Int?
+  surface_ha         Decimal?            @db.Decimal(12, 2)
+  start_date         DateTime?           @db.Date
+  expected_end_date  DateTime?           @db.Date
+  end_date           DateTime?           @db.Date
+  responsible_id     String?             @db.Uuid
+  status             project_status_enum @default(PREPARATION)
+  created_at         DateTime            @default(now()) @db.Timestamp(6)
+  updated_at         DateTime            @default(now()) @db.Timestamp(6)
+  deleted_at         DateTime?           @db.Timestamp(6)
+  farms              farms               @relation(fields: [farm_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_agricultural_projects_farm")
+  plots              plots?              @relation(fields: [plot_id], references: [id], onUpdate: NoAction, map: "fk_agricultural_projects_plot")
+  products           products            @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_agricultural_projects_product")
+  users              users?              @relation(fields: [responsible_id], references: [id], onUpdate: NoAction, map: "fk_agricultural_projects_responsible")
+  product_varieties  product_varieties?  @relation(fields: [variety_id], references: [id], onUpdate: NoAction, map: "fk_agricultural_projects_variety")
+  charges            charges[]
+  farm_shipments     farm_shipments[]
+  harvests           harvests[]
+  plantations        plantations[]
+  productions        productions[]
+  treatments         treatments[]
+
+  @@index([farm_id], map: "idx_agricultural_projects_farm_id")
+  @@index([plot_id], map: "idx_agricultural_projects_plot_id")
+  @@index([product_id], map: "idx_agricultural_projects_product_id")
+  @@index([status], map: "idx_agricultural_projects_status")
+}
+
+model alerts {
+  id             String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title          String            @db.VarChar(200)
+  message        String
+  level          alert_level_enum  @default(INFO)
+  entity_type    entity_type_enum?
+  entity_id      String?           @db.Uuid
+  assigned_to_id String?           @db.Uuid
+  is_resolved    Boolean           @default(false)
+  resolved_at    DateTime?         @db.Timestamp(6)
+  created_at     DateTime          @default(now()) @db.Timestamp(6)
+  users          users?            @relation(fields: [assigned_to_id], references: [id], onUpdate: NoAction, map: "fk_alerts_assigned_to")
+
+  @@index([assigned_to_id], map: "idx_alerts_assigned_to")
+  @@index([is_resolved], map: "idx_alerts_is_resolved")
+  @@index([level], map: "idx_alerts_level")
+}
+
+model audit_logs {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id     String?  @db.Uuid
+  action      String   @db.VarChar(150)
+  entity_type String   @db.VarChar(150)
+  entity_id   String?  @db.Uuid
+  old_value   Json?
+  new_value   Json?
+  ip_address  String?  @db.VarChar(100)
+  user_agent  String?
+  created_at  DateTime @default(now()) @db.Timestamp(6)
+  users       users?   @relation(fields: [user_id], references: [id], onUpdate: NoAction, map: "fk_audit_logs_user")
+
+  @@index([created_at], map: "idx_audit_logs_created_at")
+  @@index([entity_type, entity_id], map: "idx_audit_logs_entity")
+  @@index([user_id], map: "idx_audit_logs_user_id")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model charges {
+  id                    String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  company_id            String?                @db.Uuid
+  farm_id               String                 @db.Uuid
+  project_id            String?                @db.Uuid
+  plot_id               String?                @db.Uuid
+  type                  charge_type_enum
+  label                 String                 @db.VarChar(150)
+  quantity              Decimal?               @db.Decimal(14, 3)
+  unit                  String?                @db.VarChar(50)
+  unit_cost             Decimal?               @db.Decimal(14, 4)
+  total_cost            Decimal                @db.Decimal(14, 2)
+  currency              String                 @default("MAD") @db.VarChar(10)
+  supplier              String?                @db.VarChar(150)
+  charge_date           DateTime               @db.Date
+  description           String?
+  created_by_id         String?                @db.Uuid
+  created_at            DateTime               @default(now()) @db.Timestamp(6)
+  updated_at            DateTime               @default(now()) @db.Timestamp(6)
+  companies             companies?             @relation(fields: [company_id], references: [id], onUpdate: NoAction, map: "fk_charges_company")
+  users                 users?                 @relation(fields: [created_by_id], references: [id], onUpdate: NoAction, map: "fk_charges_created_by")
+  farms                 farms                  @relation(fields: [farm_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_charges_farm")
+  plots                 plots?                 @relation(fields: [plot_id], references: [id], onUpdate: NoAction, map: "fk_charges_plot")
+  agricultural_projects agricultural_projects? @relation(fields: [project_id], references: [id], onUpdate: NoAction, map: "fk_charges_project")
+  documents             documents[]
+
+  @@index([company_id], map: "idx_charges_company_id")
+  @@index([charge_date], map: "idx_charges_date")
+  @@index([farm_id], map: "idx_charges_farm_id")
+  @@index([project_id], map: "idx_charges_project_id")
+  @@index([type], map: "idx_charges_type")
+}
+
+model clients {
+  id              String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name            String             @db.VarChar(150)
+  legal_name      String?            @db.VarChar(200)
+  country         String?            @db.VarChar(100)
+  city            String?            @db.VarChar(100)
+  address         String?
+  email           String?            @db.Citext
+  phone           String?            @db.VarChar(50)
+  tax_id          String?            @db.VarChar(80)
+  client_type     String?            @db.VarChar(80)
+  payment_terms   String?
+  credit_limit    Decimal?           @db.Decimal(14, 2)
+  currency        String             @default("EUR") @db.VarChar(10)
+  status          entity_status_enum @default(ACTIVE)
+  created_at      DateTime           @default(now()) @db.Timestamp(6)
+  updated_at      DateTime           @default(now()) @db.Timestamp(6)
+  deleted_at      DateTime?          @db.Timestamp(6)
+  customer_orders customer_orders[]
+  exportations    exportations[]
+  invoices        invoices[]
+
+  @@index([country], map: "idx_clients_country")
+  @@index([status], map: "idx_clients_status")
+}
+
+model companies {
+  id              String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  group_id        String              @db.Uuid
+  parent_id       String?             @db.Uuid
+  name            String              @db.VarChar(150)
+  legal_name      String?             @db.VarChar(200)
+  code            String?             @unique @db.VarChar(50)
+  ice             String?             @db.VarChar(50)
+  tax_id          String?             @db.VarChar(50)
+  rc              String?             @db.VarChar(50)
+  cnss            String?             @db.VarChar(50)
+  patente         String?             @db.VarChar(50)
+  address         String?
+  city            String?             @db.VarChar(100)
+  region          String?             @db.VarChar(100)
+  country         String?             @default("Maroc") @db.VarChar(100)
+  latitude        Decimal?            @db.Decimal(10, 7)
+  longitude       Decimal?            @db.Decimal(10, 7)
+  responsible_id  String?             @db.Uuid
+  status          company_status_enum @default(ACTIVE)
+  created_at      DateTime            @default(now()) @db.Timestamp(6)
+  updated_at      DateTime            @default(now()) @db.Timestamp(6)
+  deleted_at      DateTime?           @db.Timestamp(6)
+  charges         charges[]
+  groups          groups              @relation(fields: [group_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_companies_group")
+  companies       companies?          @relation("companiesTocompanies", fields: [parent_id], references: [id], onUpdate: NoAction, map: "fk_companies_parent")
+  other_companies companies[]         @relation("companiesTocompanies")
+  users           users?              @relation(fields: [responsible_id], references: [id], onUpdate: NoAction, map: "fk_companies_responsible")
+  factories       factories[]
+  farms           farms[]
+  personnel       personnel[]
+  stations        stations[]
+  vehicles        vehicles[]
+
+  @@index([group_id], map: "idx_companies_group_id")
+  @@index([parent_id], map: "idx_companies_parent_id")
+  @@index([status], map: "idx_companies_status")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model conditioning_inputs {
+  id                    String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  session_id            String                @db.Uuid
+  lot_id                String?               @db.Uuid
+  product_id            String                @db.Uuid
+  variety_id            String?               @db.Uuid
+  lot_number            String?               @db.VarChar(100)
+  input_qty_kg          Decimal               @db.Decimal(14, 3)
+  created_at            DateTime              @default(now()) @db.Timestamp(6)
+  lots                  lots?                 @relation(fields: [lot_id], references: [id], onUpdate: NoAction, map: "fk_conditioning_inputs_lot")
+  products              products              @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_conditioning_inputs_product")
+  conditioning_sessions conditioning_sessions @relation(fields: [session_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_conditioning_inputs_session")
+  product_varieties     product_varieties?    @relation(fields: [variety_id], references: [id], onUpdate: NoAction, map: "fk_conditioning_inputs_variety")
+
+  @@index([session_id], map: "idx_conditioning_inputs_session_id")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model conditioning_outputs {
+  id                    String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  session_id            String                 @db.Uuid
+  product_id            String                 @db.Uuid
+  variety_id            String?                @db.Uuid
+  category              output_category_enum
+  output_qty_kg         Decimal                @db.Decimal(14, 3)
+  estimated_unit_cost   Decimal?               @db.Decimal(14, 4)
+  created_at            DateTime               @default(now()) @db.Timestamp(6)
+  products              products               @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_conditioning_outputs_product")
+  conditioning_sessions conditioning_sessions  @relation(fields: [session_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_conditioning_outputs_session")
+  product_varieties     product_varieties?     @relation(fields: [variety_id], references: [id], onUpdate: NoAction, map: "fk_conditioning_outputs_variety")
+  customer_order_items  customer_order_items[]
+
+  @@index([category], map: "idx_conditioning_outputs_category")
+  @@index([session_id], map: "idx_conditioning_outputs_session_id")
+}
+
+model conditioning_sessions {
+  id                                                String                   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  session_number                                    String                   @unique @db.VarChar(80)
+  factory_id                                        String                   @db.Uuid
+  station_id                                        String?                  @db.Uuid
+  status                                            conditioning_status_enum @default(DRAFT)
+  conditioning_date                                 DateTime                 @db.Date
+  responsible_id                                    String?                  @db.Uuid
+  labor_cost                                        Decimal?                 @db.Decimal(14, 2)
+  packaging_cost                                    Decimal?                 @db.Decimal(14, 2)
+  other_cost                                        Decimal?                 @db.Decimal(14, 2)
+  total_cost                                        Decimal?                 @db.Decimal(14, 2)
+  currency                                          String                   @default("MAD") @db.VarChar(10)
+  observations                                      String?
+  created_by_id                                     String?                  @db.Uuid
+  created_at                                        DateTime                 @default(now()) @db.Timestamp(6)
+  updated_at                                        DateTime                 @default(now()) @db.Timestamp(6)
+  conditioning_inputs                               conditioning_inputs[]
+  conditioning_outputs                              conditioning_outputs[]
+  users_conditioning_sessions_created_by_idTousers  users?                   @relation("conditioning_sessions_created_by_idTousers", fields: [created_by_id], references: [id], onUpdate: NoAction, map: "fk_conditioning_sessions_created_by")
+  factories                                         factories                @relation(fields: [factory_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_conditioning_sessions_factory")
+  users_conditioning_sessions_responsible_idTousers users?                   @relation("conditioning_sessions_responsible_idTousers", fields: [responsible_id], references: [id], onUpdate: NoAction, map: "fk_conditioning_sessions_responsible")
+  stations                                          stations?                @relation(fields: [station_id], references: [id], onUpdate: NoAction, map: "fk_conditioning_sessions_station")
+  documents                                         documents[]
+
+  @@index([conditioning_date], map: "idx_conditioning_sessions_date")
+  @@index([factory_id], map: "idx_conditioning_sessions_factory_id")
+  @@index([status], map: "idx_conditioning_sessions_status")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model customer_order_items {
+  id                     String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  order_id               String                @db.Uuid
+  conditioning_output_id String?               @db.Uuid
+  product_id             String                @db.Uuid
+  variety_id             String?               @db.Uuid
+  category               output_category_enum?
+  quantity_sent_kg       Decimal               @db.Decimal(14, 3)
+  unit_price             Decimal               @db.Decimal(14, 4)
+  theoretical_amount     Decimal?              @default(dbgenerated("(quantity_sent_kg * unit_price)")) @db.Decimal(14, 2)
+  created_at             DateTime              @default(now()) @db.Timestamp(6)
+  conditioning_outputs   conditioning_outputs? @relation(fields: [conditioning_output_id], references: [id], onUpdate: NoAction, map: "fk_customer_order_items_conditioning_output")
+  customer_orders        customer_orders       @relation(fields: [order_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_customer_order_items_order")
+  products               products              @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_customer_order_items_product")
+  product_varieties      product_varieties?    @relation(fields: [variety_id], references: [id], onUpdate: NoAction, map: "fk_customer_order_items_variety")
+  invoice_items          invoice_items[]
+
+  @@index([order_id], map: "idx_customer_order_items_order_id")
+  @@index([product_id], map: "idx_customer_order_items_product_id")
+}
+
+model customer_orders {
+  id                   String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  order_number         String                 @unique @db.VarChar(80)
+  client_id            String                 @db.Uuid
+  factory_id           String                 @db.Uuid
+  status               order_status_enum      @default(DRAFT)
+  order_date           DateTime               @db.Date
+  prepared_at          DateTime?              @db.Timestamp(6)
+  shipped_at           DateTime?              @db.Timestamp(6)
+  client_received_at   DateTime?              @db.Timestamp(6)
+  destination_country  String?                @db.VarChar(100)
+  destination_city     String?                @db.VarChar(100)
+  currency             String                 @default("EUR") @db.VarChar(10)
+  initial_amount       Decimal?               @db.Decimal(14, 2)
+  final_amount         Decimal?               @db.Decimal(14, 2)
+  created_by_id        String?                @db.Uuid
+  created_at           DateTime               @default(now()) @db.Timestamp(6)
+  updated_at           DateTime               @default(now()) @db.Timestamp(6)
+  customer_order_items customer_order_items[]
+  clients              clients                @relation(fields: [client_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_customer_orders_client")
+  users                users?                 @relation(fields: [created_by_id], references: [id], onUpdate: NoAction, map: "fk_customer_orders_created_by")
+  factories            factories              @relation(fields: [factory_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_customer_orders_factory")
+  documents            documents[]
+  exportations         exportations[]
+  invoices             invoices?
+  quality_returns      quality_returns?
+  transports           transports[]
+
+  @@index([client_id], map: "idx_customer_orders_client_id")
+  @@index([factory_id], map: "idx_customer_orders_factory_id")
+  @@index([order_date], map: "idx_customer_orders_order_date")
+  @@index([status], map: "idx_customer_orders_status")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model documents {
+  id                      String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  type                    document_type_enum
+  file_name               String                 @db.VarChar(255)
+  file_url                String
+  mime_type               String?                @db.VarChar(150)
+  size_bytes              Int?
+  entity_type             entity_type_enum
+  entity_id               String                 @db.Uuid
+  charge_id               String?                @db.Uuid
+  shipment_id             String?                @db.Uuid
+  reception_id            String?                @db.Uuid
+  conditioning_session_id String?                @db.Uuid
+  order_id                String?                @db.Uuid
+  quality_return_id       String?                @db.Uuid
+  invoice_id              String?                @db.Uuid
+  payment_id              String?                @db.Uuid
+  transport_id            String?                @db.Uuid
+  lot_id                  String?                @db.Uuid
+  task_id                 String?                @db.Uuid
+  issue_id                String?                @db.Uuid
+  uploaded_by_id          String?                @db.Uuid
+  created_at              DateTime               @default(now()) @db.Timestamp(6)
+  charges                 charges?               @relation(fields: [charge_id], references: [id], onUpdate: NoAction, map: "fk_documents_charge")
+  conditioning_sessions   conditioning_sessions? @relation(fields: [conditioning_session_id], references: [id], onUpdate: NoAction, map: "fk_documents_conditioning_session")
+  invoices                invoices?              @relation(fields: [invoice_id], references: [id], onUpdate: NoAction, map: "fk_documents_invoice")
+  issues                  issues?                @relation(fields: [issue_id], references: [id], onUpdate: NoAction, map: "fk_documents_issue")
+  lots                    lots?                  @relation(fields: [lot_id], references: [id], onUpdate: NoAction, map: "fk_documents_lot")
+  customer_orders         customer_orders?       @relation(fields: [order_id], references: [id], onUpdate: NoAction, map: "fk_documents_order")
+  payments                payments?              @relation(fields: [payment_id], references: [id], onUpdate: NoAction, map: "fk_documents_payment")
+  quality_returns         quality_returns?       @relation(fields: [quality_return_id], references: [id], onUpdate: NoAction, map: "fk_documents_quality_return")
+  factory_receptions      factory_receptions?    @relation(fields: [reception_id], references: [id], onUpdate: NoAction, map: "fk_documents_reception")
+  farm_shipments          farm_shipments?        @relation(fields: [shipment_id], references: [id], onUpdate: NoAction, map: "fk_documents_shipment")
+  tasks                   tasks?                 @relation(fields: [task_id], references: [id], onUpdate: NoAction, map: "fk_documents_task")
+  transports              transports?            @relation(fields: [transport_id], references: [id], onUpdate: NoAction, map: "fk_documents_transport")
+  users                   users?                 @relation(fields: [uploaded_by_id], references: [id], onUpdate: NoAction, map: "fk_documents_uploaded_by")
+
+  @@index([entity_type, entity_id], map: "idx_documents_entity")
+  @@index([type], map: "idx_documents_type")
+  @@index([uploaded_by_id], map: "idx_documents_uploaded_by")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model exportations {
+  id                String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  export_number     String                  @unique @db.VarChar(80)
+  order_id          String?                 @db.Uuid
+  lot_id            String?                 @db.Uuid
+  client_id         String                  @db.Uuid
+  expedition_date   DateTime                @db.Date
+  weight_kg         Decimal                 @db.Decimal(14, 3)
+  provisional_price Decimal?                @db.Decimal(14, 4)
+  incoterm          String?                 @db.VarChar(20)
+  status            exportation_status_enum @default(DRAFT)
+  created_by_id     String?                 @db.Uuid
+  created_at        DateTime                @default(now()) @db.Timestamp(6)
+  updated_at        DateTime                @default(now()) @db.Timestamp(6)
+  clients           clients                 @relation(fields: [client_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_exportations_client")
+  users             users?                  @relation(fields: [created_by_id], references: [id], onUpdate: NoAction, map: "fk_exportations_created_by")
+  lots              lots?                   @relation(fields: [lot_id], references: [id], onUpdate: NoAction, map: "fk_exportations_lot")
+  customer_orders   customer_orders?        @relation(fields: [order_id], references: [id], onUpdate: NoAction, map: "fk_exportations_order")
+  liquidations      liquidations?
+
+  @@index([client_id], map: "idx_exportations_client_id")
+  @@index([order_id], map: "idx_exportations_order_id")
+  @@index([status], map: "idx_exportations_status")
+}
+
+model factories {
+  id                    String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  company_id            String                  @db.Uuid
+  name                  String                  @db.VarChar(150)
+  code                  String?                 @unique @db.VarChar(50)
+  address               String?
+  city                  String?                 @db.VarChar(100)
+  region                String?                 @db.VarChar(100)
+  latitude              Decimal?                @db.Decimal(10, 7)
+  longitude             Decimal?                @db.Decimal(10, 7)
+  daily_capacity_kg     Decimal?                @db.Decimal(14, 3)
+  responsible_id        String?                 @db.Uuid
+  status                entity_status_enum      @default(ACTIVE)
+  created_at            DateTime                @default(now()) @db.Timestamp(6)
+  updated_at            DateTime                @default(now()) @db.Timestamp(6)
+  deleted_at            DateTime?               @db.Timestamp(6)
+  conditioning_sessions conditioning_sessions[]
+  customer_orders       customer_orders[]
+  companies             companies               @relation(fields: [company_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_factories_company")
+  users                 users?                  @relation(fields: [responsible_id], references: [id], onUpdate: NoAction, map: "fk_factories_responsible")
+  factory_receptions    factory_receptions[]
+  farm_shipments        farm_shipments[]
+  lots                  lots[]
+  personnel             personnel[]
+  stations              stations[]
+  stock_movements       stock_movements[]
+  storage_locations     storage_locations[]
+
+  @@index([company_id], map: "idx_factories_company_id")
+  @@index([status], map: "idx_factories_status")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model factory_reception_items {
+  id                  String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  reception_id        String               @db.Uuid
+  shipment_item_id    String?              @db.Uuid
+  product_id          String               @db.Uuid
+  variety_id          String?              @db.Uuid
+  lot_number          String?              @db.VarChar(100)
+  declared_qty_kg     Decimal              @db.Decimal(14, 3)
+  received_qty_kg     Decimal              @db.Decimal(14, 3)
+  discrepancy_kg      Decimal?             @default(dbgenerated("(received_qty_kg - declared_qty_kg)")) @db.Decimal(14, 3)
+  quality_grade       quality_grade_enum?
+  rejection_reason    String?
+  created_at          DateTime             @default(now()) @db.Timestamp(6)
+  products            products             @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_factory_reception_items_product")
+  factory_receptions  factory_receptions   @relation(fields: [reception_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_factory_reception_items_reception")
+  farm_shipment_items farm_shipment_items? @relation(fields: [shipment_item_id], references: [id], onUpdate: NoAction, map: "fk_factory_reception_items_shipment_item")
+  product_varieties   product_varieties?   @relation(fields: [variety_id], references: [id], onUpdate: NoAction, map: "fk_factory_reception_items_variety")
+  lots                lots[]
+
+  @@index([product_id], map: "idx_factory_reception_items_product_id")
+  @@index([reception_id], map: "idx_factory_reception_items_reception_id")
+}
+
+model factory_receptions {
+  id                      String                    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  reception_number        String                    @unique @db.VarChar(80)
+  shipment_id             String                    @unique @db.Uuid
+  factory_id              String                    @db.Uuid
+  status                  reception_status_enum     @default(PENDING)
+  received_at             DateTime?                 @db.Timestamp(6)
+  receiver_id             String?                   @db.Uuid
+  observations            String?
+  created_at              DateTime                  @default(now()) @db.Timestamp(6)
+  updated_at              DateTime                  @default(now()) @db.Timestamp(6)
+  documents               documents[]
+  factory_reception_items factory_reception_items[]
+  factories               factories                 @relation(fields: [factory_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_factory_receptions_factory")
+  users                   users?                    @relation(fields: [receiver_id], references: [id], onUpdate: NoAction, map: "fk_factory_receptions_receiver")
+  farm_shipments          farm_shipments            @relation(fields: [shipment_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_factory_receptions_shipment")
+
+  @@index([factory_id], map: "idx_factory_receptions_factory_id")
+  @@index([received_at], map: "idx_factory_receptions_received_at")
+  @@index([status], map: "idx_factory_receptions_status")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model farm_shipment_items {
+  id                      String                    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  shipment_id             String                    @db.Uuid
+  product_id              String                    @db.Uuid
+  variety_id              String?                   @db.Uuid
+  lot_number              String?                   @db.VarChar(100)
+  declared_qty_kg         Decimal                   @db.Decimal(14, 3)
+  quality_grade           quality_grade_enum?
+  created_at              DateTime                  @default(now()) @db.Timestamp(6)
+  factory_reception_items factory_reception_items[]
+  products                products                  @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_farm_shipment_items_product")
+  farm_shipments          farm_shipments            @relation(fields: [shipment_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_farm_shipment_items_shipment")
+  product_varieties       product_varieties?        @relation(fields: [variety_id], references: [id], onUpdate: NoAction, map: "fk_farm_shipment_items_variety")
+
+  @@index([product_id], map: "idx_farm_shipment_items_product_id")
+  @@index([shipment_id], map: "idx_farm_shipment_items_shipment_id")
+}
+
+model farm_shipments {
+  id                    String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  shipment_number       String                 @unique @db.VarChar(80)
+  farm_id               String                 @db.Uuid
+  project_id            String?                @db.Uuid
+  factory_id            String                 @db.Uuid
+  status                shipment_status_enum   @default(DRAFT)
+  planned_date          DateTime?              @db.Timestamp(6)
+  sent_at               DateTime?              @db.Timestamp(6)
+  transport_mode        String?                @db.VarChar(100)
+  transporter_name      String?                @db.VarChar(150)
+  driver_name           String?                @db.VarChar(150)
+  vehicle_plate         String?                @db.VarChar(50)
+  observations          String?
+  created_by_id         String?                @db.Uuid
+  created_at            DateTime               @default(now()) @db.Timestamp(6)
+  updated_at            DateTime               @default(now()) @db.Timestamp(6)
+  documents             documents[]
+  factory_receptions    factory_receptions?
+  farm_shipment_items   farm_shipment_items[]
+  users                 users?                 @relation(fields: [created_by_id], references: [id], onUpdate: NoAction, map: "fk_farm_shipments_created_by")
+  factories             factories              @relation(fields: [factory_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_farm_shipments_factory")
+  farms                 farms                  @relation(fields: [farm_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_farm_shipments_farm")
+  agricultural_projects agricultural_projects? @relation(fields: [project_id], references: [id], onUpdate: NoAction, map: "fk_farm_shipments_project")
+  transports            transports[]
+
+  @@index([factory_id], map: "idx_farm_shipments_factory_id")
+  @@index([farm_id], map: "idx_farm_shipments_farm_id")
+  @@index([sent_at], map: "idx_farm_shipments_sent_at")
+  @@index([status], map: "idx_farm_shipments_status")
+}
+
+model farms {
+  id                    String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  company_id            String                  @db.Uuid
+  name                  String                  @db.VarChar(150)
+  code                  String?                 @unique @db.VarChar(50)
+  category              farm_category_enum      @default(OWNED)
+  address               String?
+  city                  String?                 @db.VarChar(100)
+  region                String?                 @db.VarChar(100)
+  latitude              Decimal?                @db.Decimal(10, 7)
+  longitude             Decimal?                @db.Decimal(10, 7)
+  surface_ha            Decimal?                @db.Decimal(12, 2)
+  rent_monthly          Decimal?                @db.Decimal(14, 2)
+  responsible_id        String?                 @db.Uuid
+  status                entity_status_enum      @default(ACTIVE)
+  created_at            DateTime                @default(now()) @db.Timestamp(6)
+  updated_at            DateTime                @default(now()) @db.Timestamp(6)
+  deleted_at            DateTime?               @db.Timestamp(6)
+  agricultural_projects agricultural_projects[]
+  charges               charges[]
+  farm_shipments        farm_shipments[]
+  companies             companies               @relation(fields: [company_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_farms_company")
+  users                 users?                  @relation(fields: [responsible_id], references: [id], onUpdate: NoAction, map: "fk_farms_responsible")
+  harvests              harvests[]
+  personnel             personnel[]
+  plots                 plots[]
+  productions           productions[]
+
+  @@index([category], map: "idx_farms_category")
+  @@index([company_id], map: "idx_farms_company_id")
+  @@index([status], map: "idx_farms_status")
+}
+
+model groups {
+  id          String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name        String      @db.VarChar(150)
+  description String?
+  created_at  DateTime    @default(now()) @db.Timestamp(6)
+  updated_at  DateTime    @default(now()) @db.Timestamp(6)
+  companies   companies[]
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model harvests {
+  id                    String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  project_id            String                @db.Uuid
+  farm_id               String                @db.Uuid
+  plot_id               String?               @db.Uuid
+  product_id            String                @db.Uuid
+  variety_id            String?               @db.Uuid
+  harvest_date          DateTime              @db.Date
+  weight_total_kg       Decimal               @db.Decimal(14, 3)
+  team                  String?               @db.VarChar(150)
+  quality_grade         quality_grade_enum?
+  observations          String?
+  created_by_id         String?               @db.Uuid
+  created_at            DateTime              @default(now()) @db.Timestamp(6)
+  updated_at            DateTime              @default(now()) @db.Timestamp(6)
+  users                 users?                @relation(fields: [created_by_id], references: [id], onUpdate: NoAction, map: "fk_harvests_created_by")
+  farms                 farms                 @relation(fields: [farm_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_harvests_farm")
+  plots                 plots?                @relation(fields: [plot_id], references: [id], onUpdate: NoAction, map: "fk_harvests_plot")
+  products              products              @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_harvests_product")
+  agricultural_projects agricultural_projects @relation(fields: [project_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_harvests_project")
+  product_varieties     product_varieties?    @relation(fields: [variety_id], references: [id], onUpdate: NoAction, map: "fk_harvests_variety")
+  lots                  lots[]
+  productions           productions[]
+
+  @@index([harvest_date], map: "idx_harvests_date")
+  @@index([farm_id], map: "idx_harvests_farm_id")
+  @@index([project_id], map: "idx_harvests_project_id")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model invoice_items {
+  id                   String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  invoice_id           String                @db.Uuid
+  order_item_id        String?               @db.Uuid
+  product_id           String                @db.Uuid
+  description          String?
+  category             output_category_enum?
+  quantity_kg          Decimal               @db.Decimal(14, 3)
+  unit_price           Decimal               @db.Decimal(14, 4)
+  amount               Decimal?              @default(dbgenerated("(quantity_kg * unit_price)")) @db.Decimal(14, 2)
+  created_at           DateTime              @default(now()) @db.Timestamp(6)
+  invoices             invoices              @relation(fields: [invoice_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_invoice_items_invoice")
+  customer_order_items customer_order_items? @relation(fields: [order_item_id], references: [id], onUpdate: NoAction, map: "fk_invoice_items_order_item")
+  products             products              @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_invoice_items_product")
+
+  @@index([invoice_id], map: "idx_invoice_items_invoice_id")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model invoices {
+  id               String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  invoice_number   String              @unique @db.VarChar(80)
+  order_id         String?             @unique @db.Uuid
+  liquidation_id   String?             @unique @db.Uuid
+  client_id        String              @db.Uuid
+  status           invoice_status_enum @default(DRAFT)
+  issue_date       DateTime            @db.Date
+  due_date         DateTime?           @db.Date
+  currency         String              @default("EUR") @db.VarChar(10)
+  subtotal         Decimal             @default(0) @db.Decimal(14, 2)
+  tax_rate         Decimal?            @default(0) @db.Decimal(5, 2)
+  tax_amount       Decimal?            @default(0) @db.Decimal(14, 2)
+  total_amount     Decimal             @default(0) @db.Decimal(14, 2)
+  paid_amount      Decimal             @default(0) @db.Decimal(14, 2)
+  remaining_amount Decimal             @default(0) @db.Decimal(14, 2)
+  pdf_url          String?
+  python_job_id    String?             @db.VarChar(150)
+  created_at       DateTime            @default(now()) @db.Timestamp(6)
+  updated_at       DateTime            @default(now()) @db.Timestamp(6)
+  documents        documents[]
+  invoice_items    invoice_items[]
+  clients          clients             @relation(fields: [client_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_invoices_client")
+  liquidations     liquidations?       @relation(fields: [liquidation_id], references: [id], onUpdate: NoAction, map: "fk_invoices_liquidation")
+  customer_orders  customer_orders?    @relation(fields: [order_id], references: [id], onUpdate: NoAction, map: "fk_invoices_order")
+  payments         payments[]
+
+  @@index([client_id], map: "idx_invoices_client_id")
+  @@index([due_date], map: "idx_invoices_due_date")
+  @@index([issue_date], map: "idx_invoices_issue_date")
+  @@index([status], map: "idx_invoices_status")
+}
+
+model issues {
+  id                                 String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title                              String              @db.VarChar(200)
+  description                        String?
+  status                             issue_status_enum   @default(NEW)
+  severity                           issue_severity_enum @default(MEDIUM)
+  assigned_to_id                     String?             @db.Uuid
+  entity_type                        entity_type_enum?
+  entity_id                          String?             @db.Uuid
+  reported_by_id                     String?             @db.Uuid
+  resolved_at                        DateTime?           @db.Timestamp(6)
+  created_at                         DateTime            @default(now()) @db.Timestamp(6)
+  updated_at                         DateTime            @default(now()) @db.Timestamp(6)
+  documents                          documents[]
+  users_issues_assigned_to_idTousers users?              @relation("issues_assigned_to_idTousers", fields: [assigned_to_id], references: [id], onUpdate: NoAction, map: "fk_issues_assigned_to")
+  users_issues_reported_by_idTousers users?              @relation("issues_reported_by_idTousers", fields: [reported_by_id], references: [id], onUpdate: NoAction, map: "fk_issues_reported_by")
+
+  @@index([assigned_to_id], map: "idx_issues_assigned_to")
+  @@index([entity_type, entity_id], map: "idx_issues_entity")
+  @@index([severity], map: "idx_issues_severity")
+  @@index([status], map: "idx_issues_status")
+}
+
+model liquidations {
+  id               String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  exportation_id   String                  @unique @db.Uuid
+  liquidation_date DateTime                @db.Date
+  final_price      Decimal                 @db.Decimal(14, 4)
+  bonus_malus      Decimal?                @db.Decimal(14, 2)
+  net_amount       Decimal?                @db.Decimal(14, 2)
+  status           liquidation_status_enum @default(PENDING)
+  created_by_id    String?                 @db.Uuid
+  created_at       DateTime                @default(now()) @db.Timestamp(6)
+  updated_at       DateTime                @default(now()) @db.Timestamp(6)
+  invoices         invoices?
+  users            users?                  @relation(fields: [created_by_id], references: [id], onUpdate: NoAction, map: "fk_liquidations_created_by")
+  exportations     exportations            @relation(fields: [exportation_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_liquidations_exportation")
+
+  @@index([exportation_id], map: "idx_liquidations_exportation_id")
+  @@index([status], map: "idx_liquidations_status")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model lots {
+  id                      String                   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  lot_number              String                   @unique @db.VarChar(100)
+  reception_item_id       String?                  @db.Uuid
+  harvest_id              String?                  @db.Uuid
+  factory_id              String?                  @db.Uuid
+  station_id              String?                  @db.Uuid
+  product_id              String                   @db.Uuid
+  variety_id              String?                  @db.Uuid
+  weight_kg               Decimal                  @db.Decimal(14, 3)
+  quality_grade           quality_grade_enum?      @default(A)
+  status                  lot_status_enum          @default(IN_PROGRESS)
+  agricultural_cost_kg    Decimal?                 @db.Decimal(14, 4)
+  factory_cost_kg         Decimal?                 @db.Decimal(14, 4)
+  transport_cost_kg       Decimal?                 @db.Decimal(14, 4)
+  margin_kg               Decimal?                 @db.Decimal(14, 4)
+  created_at              DateTime                 @default(now()) @db.Timestamp(6)
+  updated_at              DateTime                 @default(now()) @db.Timestamp(6)
+  conditioning_inputs     conditioning_inputs[]
+  documents               documents[]
+  exportations            exportations[]
+  factories               factories?               @relation(fields: [factory_id], references: [id], onUpdate: NoAction, map: "fk_lots_factory")
+  harvests                harvests?                @relation(fields: [harvest_id], references: [id], onUpdate: NoAction, map: "fk_lots_harvest")
+  products                products                 @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_lots_product")
+  factory_reception_items factory_reception_items? @relation(fields: [reception_item_id], references: [id], onUpdate: NoAction, map: "fk_lots_reception_item")
+  stations                stations?                @relation(fields: [station_id], references: [id], onUpdate: NoAction, map: "fk_lots_station")
+  product_varieties       product_varieties?       @relation(fields: [variety_id], references: [id], onUpdate: NoAction, map: "fk_lots_variety")
+  stock_movements         stock_movements[]
+
+  @@index([factory_id], map: "idx_lots_factory_id")
+  @@index([product_id], map: "idx_lots_product_id")
+  @@index([station_id], map: "idx_lots_station_id")
+  @@index([status], map: "idx_lots_status")
+}
+
+model notifications {
+  id          String                   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id     String                   @db.Uuid
+  title       String                   @db.VarChar(200)
+  message     String
+  status      notification_status_enum @default(UNREAD)
+  entity_type entity_type_enum?
+  entity_id   String?                  @db.Uuid
+  created_at  DateTime                 @default(now()) @db.Timestamp(6)
+  read_at     DateTime?                @db.Timestamp(6)
+  users       users                    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_notifications_user")
+
+  @@index([status], map: "idx_notifications_status")
+  @@index([user_id], map: "idx_notifications_user_id")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model payments {
+  id            String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  invoice_id    String               @db.Uuid
+  payment_date  DateTime             @db.Date
+  amount        Decimal              @db.Decimal(14, 2)
+  currency      String               @default("EUR") @db.VarChar(10)
+  method        payment_method_enum? @default(BANK_TRANSFER)
+  reference     String?              @db.VarChar(150)
+  status        payment_status_enum  @default(PAID)
+  created_by_id String?              @db.Uuid
+  created_at    DateTime             @default(now()) @db.Timestamp(6)
+  documents     documents[]
+  users         users?               @relation(fields: [created_by_id], references: [id], onUpdate: NoAction, map: "fk_payments_created_by")
+  invoices      invoices             @relation(fields: [invoice_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_payments_invoice")
+
+  @@index([invoice_id], map: "idx_payments_invoice_id")
+  @@index([payment_date], map: "idx_payments_payment_date")
+}
+
+model permissions {
+  id               String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  module           String                 @db.VarChar(100)
+  action           permission_action_enum
+  description      String?
+  created_at       DateTime               @default(now()) @db.Timestamp(6)
+  role_permissions role_permissions[]
+
+  @@unique([module, action], map: "uq_permissions_module_action")
+}
+
+model personnel {
+  id            String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id       String?            @db.Uuid
+  company_id    String?            @db.Uuid
+  farm_id       String?            @db.Uuid
+  factory_id    String?            @db.Uuid
+  station_id    String?            @db.Uuid
+  full_name     String             @db.VarChar(150)
+  grade         String?            @db.VarChar(100)
+  contract_type String?            @db.VarChar(100)
+  salary        Decimal?           @db.Decimal(14, 2)
+  status        entity_status_enum @default(ACTIVE)
+  created_at    DateTime           @default(now()) @db.Timestamp(6)
+  updated_at    DateTime           @default(now()) @db.Timestamp(6)
+  deleted_at    DateTime?          @db.Timestamp(6)
+  companies     companies?         @relation(fields: [company_id], references: [id], onUpdate: NoAction, map: "fk_personnel_company")
+  factories     factories?         @relation(fields: [factory_id], references: [id], onUpdate: NoAction, map: "fk_personnel_factory")
+  farms         farms?             @relation(fields: [farm_id], references: [id], onUpdate: NoAction, map: "fk_personnel_farm")
+  stations      stations?          @relation(fields: [station_id], references: [id], onUpdate: NoAction, map: "fk_personnel_station")
+  users         users?             @relation(fields: [user_id], references: [id], onUpdate: NoAction, map: "fk_personnel_user")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model plantations {
+  id                    String                    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  project_id            String                    @db.Uuid
+  plot_id               String                    @db.Uuid
+  product_id            String                    @db.Uuid
+  variety_id            String?                   @db.Uuid
+  planting_date         DateTime                  @db.Date
+  plant_quantity        Int
+  density               Int?
+  category              plantation_category_enum? @default(OTHER)
+  total_cost            Decimal?                  @db.Decimal(14, 2)
+  currency              String                    @default("MAD") @db.VarChar(10)
+  observations          String?
+  created_by_id         String?                   @db.Uuid
+  created_at            DateTime                  @default(now()) @db.Timestamp(6)
+  updated_at            DateTime                  @default(now()) @db.Timestamp(6)
+  users                 users?                    @relation(fields: [created_by_id], references: [id], onUpdate: NoAction, map: "fk_plantations_created_by")
+  plots                 plots                     @relation(fields: [plot_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_plantations_plot")
+  products              products                  @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_plantations_product")
+  agricultural_projects agricultural_projects     @relation(fields: [project_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_plantations_project")
+  product_varieties     product_varieties?        @relation(fields: [variety_id], references: [id], onUpdate: NoAction, map: "fk_plantations_variety")
+
+  @@index([planting_date], map: "idx_plantations_planting_date")
+  @@index([plot_id], map: "idx_plantations_plot_id")
+  @@index([project_id], map: "idx_plantations_project_id")
+}
+
+model plots {
+  id                    String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  farm_id               String                  @db.Uuid
+  code                  String                  @unique @db.VarChar(50)
+  name                  String?                 @db.VarChar(150)
+  surface_ha            Decimal                 @db.Decimal(12, 2)
+  culture               culture_type_enum?
+  variety               String?                 @db.VarChar(100)
+  status                plot_status_enum        @default(PRODUCTION)
+  latitude              Decimal?                @db.Decimal(10, 7)
+  longitude             Decimal?                @db.Decimal(10, 7)
+  created_at            DateTime                @default(now()) @db.Timestamp(6)
+  updated_at            DateTime                @default(now()) @db.Timestamp(6)
+  deleted_at            DateTime?               @db.Timestamp(6)
+  agricultural_projects agricultural_projects[]
+  charges               charges[]
+  harvests              harvests[]
+  plantations           plantations[]
+  farms                 farms                   @relation(fields: [farm_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_plots_farm")
+  productions           productions[]
+  treatments            treatments[]
+
+  @@index([farm_id], map: "idx_plots_farm_id")
+  @@index([status], map: "idx_plots_status")
+}
+
+model product_varieties {
+  id                      String                    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  product_id              String                    @db.Uuid
+  name                    String                    @db.VarChar(150)
+  code                    String?                   @db.VarChar(50)
+  description             String?
+  status                  entity_status_enum        @default(ACTIVE)
+  created_at              DateTime                  @default(now()) @db.Timestamp(6)
+  updated_at              DateTime                  @default(now()) @db.Timestamp(6)
+  agricultural_projects   agricultural_projects[]
+  conditioning_inputs     conditioning_inputs[]
+  conditioning_outputs    conditioning_outputs[]
+  customer_order_items    customer_order_items[]
+  factory_reception_items factory_reception_items[]
+  farm_shipment_items     farm_shipment_items[]
+  harvests                harvests[]
+  lots                    lots[]
+  plantations             plantations[]
+  products                products                  @relation(fields: [product_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_product_varieties_product")
+  productions             productions[]
+  stock_movements         stock_movements[]
+
+  @@unique([product_id, name], map: "uq_product_variety")
+  @@index([product_id], map: "idx_product_varieties_product_id")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model productions {
+  id                    String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  harvest_id            String?               @db.Uuid
+  farm_id               String                @db.Uuid
+  project_id            String                @db.Uuid
+  plot_id               String?               @db.Uuid
+  product_id            String                @db.Uuid
+  variety_id            String?               @db.Uuid
+  production_date       DateTime              @db.Date
+  quantity_kg           Decimal               @db.Decimal(14, 3)
+  quality_grade         quality_grade_enum?
+  active_plant_count    Int?
+  production_per_plant  Decimal?              @db.Decimal(14, 6)
+  source                String?               @db.VarChar(100)
+  observations          String?
+  created_by_id         String?               @db.Uuid
+  created_at            DateTime              @default(now()) @db.Timestamp(6)
+  updated_at            DateTime              @default(now()) @db.Timestamp(6)
+  users                 users?                @relation(fields: [created_by_id], references: [id], onUpdate: NoAction, map: "fk_productions_created_by")
+  farms                 farms                 @relation(fields: [farm_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_productions_farm")
+  harvests              harvests?             @relation(fields: [harvest_id], references: [id], onUpdate: NoAction, map: "fk_productions_harvest")
+  plots                 plots?                @relation(fields: [plot_id], references: [id], onUpdate: NoAction, map: "fk_productions_plot")
+  products              products              @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_productions_product")
+  agricultural_projects agricultural_projects @relation(fields: [project_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_productions_project")
+  product_varieties     product_varieties?    @relation(fields: [variety_id], references: [id], onUpdate: NoAction, map: "fk_productions_variety")
+
+  @@index([production_date], map: "idx_productions_date")
+  @@index([farm_id], map: "idx_productions_farm_id")
+  @@index([product_id], map: "idx_productions_product_id")
+  @@index([project_id], map: "idx_productions_project_id")
+}
+
+model products {
+  id                      String                    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name                    String                    @db.VarChar(150)
+  code                    String?                   @unique @db.VarChar(50)
+  culture                 culture_type_enum?
+  description             String?
+  default_unit            String                    @default("KG") @db.VarChar(20)
+  status                  entity_status_enum        @default(ACTIVE)
+  created_at              DateTime                  @default(now()) @db.Timestamp(6)
+  updated_at              DateTime                  @default(now()) @db.Timestamp(6)
+  agricultural_projects   agricultural_projects[]
+  conditioning_inputs     conditioning_inputs[]
+  conditioning_outputs    conditioning_outputs[]
+  customer_order_items    customer_order_items[]
+  factory_reception_items factory_reception_items[]
+  farm_shipment_items     farm_shipment_items[]
+  harvests                harvests[]
+  invoice_items           invoice_items[]
+  lots                    lots[]
+  plantations             plantations[]
+  product_varieties       product_varieties[]
+  productions             productions[]
+  stock_movements         stock_movements[]
+
+  @@index([status], map: "idx_products_status")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model quality_returns {
+  id               String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  order_id         String          @unique @db.Uuid
+  return_date      DateTime        @db.Date
+  quantity_sent_kg Decimal         @db.Decimal(14, 3)
+  accepted_qty_kg  Decimal         @db.Decimal(14, 3)
+  rejected_qty_kg  Decimal         @db.Decimal(14, 3)
+  rejection_reason String?
+  comment          String?
+  created_by_id    String?         @db.Uuid
+  created_at       DateTime        @default(now()) @db.Timestamp(6)
+  updated_at       DateTime        @default(now()) @db.Timestamp(6)
+  documents        documents[]
+  users            users?          @relation(fields: [created_by_id], references: [id], onUpdate: NoAction, map: "fk_quality_returns_created_by")
+  customer_orders  customer_orders @relation(fields: [order_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_quality_returns_order")
+}
+
+model refresh_tokens {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id    String    @db.Uuid
+  token_hash String
+  expires_at DateTime  @db.Timestamp(6)
+  revoked_at DateTime? @db.Timestamp(6)
+  created_at DateTime  @default(now()) @db.Timestamp(6)
+  users      users     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_refresh_tokens_user")
+}
+
+model role_permissions {
+  id            String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  role_id       String      @db.Uuid
+  permission_id String      @db.Uuid
+  created_at    DateTime    @default(now()) @db.Timestamp(6)
+  permissions   permissions @relation(fields: [permission_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_role_permissions_permission")
+  roles         roles       @relation(fields: [role_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_role_permissions_role")
+
+  @@unique([role_id, permission_id], map: "uq_role_permissions")
+}
+
+model roles {
+  id               String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name             String             @unique @db.VarChar(100)
+  description      String?
+  is_system_role   Boolean            @default(false)
+  created_at       DateTime           @default(now()) @db.Timestamp(6)
+  updated_at       DateTime           @default(now()) @db.Timestamp(6)
+  role_permissions role_permissions[]
+  users            users[]
+}
+
+model stations {
+  id                    String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  company_id            String?                 @db.Uuid
+  factory_id            String?                 @db.Uuid
+  name                  String                  @db.VarChar(150)
+  code                  String?                 @unique @db.VarChar(50)
+  daily_capacity_kg     Decimal?                @db.Decimal(14, 3)
+  location              String?
+  latitude              Decimal?                @db.Decimal(10, 7)
+  longitude             Decimal?                @db.Decimal(10, 7)
+  status                entity_status_enum      @default(ACTIVE)
+  created_at            DateTime                @default(now()) @db.Timestamp(6)
+  updated_at            DateTime                @default(now()) @db.Timestamp(6)
+  deleted_at            DateTime?               @db.Timestamp(6)
+  conditioning_sessions conditioning_sessions[]
+  lots                  lots[]
+  personnel             personnel[]
+  companies             companies?              @relation(fields: [company_id], references: [id], onUpdate: NoAction, map: "fk_stations_company")
+  factories             factories?              @relation(fields: [factory_id], references: [id], onUpdate: NoAction, map: "fk_stations_factory")
+  stock_movements       stock_movements[]
+  storage_locations     storage_locations[]
+
+  @@index([company_id], map: "idx_stations_company_id")
+  @@index([factory_id], map: "idx_stations_factory_id")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model stock_movements {
+  id                String                   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  movement_type     stock_movement_type_enum
+  entity_type       entity_type_enum
+  entity_id         String                   @db.Uuid
+  factory_id        String?                  @db.Uuid
+  station_id        String?                  @db.Uuid
+  product_id        String                   @db.Uuid
+  variety_id        String?                  @db.Uuid
+  lot_id            String?                  @db.Uuid
+  quantity_kg       Decimal                  @db.Decimal(14, 3)
+  movement_date     DateTime                 @default(now()) @db.Timestamp(6)
+  reason            String?
+  created_by_id     String?                  @db.Uuid
+  created_at        DateTime                 @default(now()) @db.Timestamp(6)
+  users             users?                   @relation(fields: [created_by_id], references: [id], onUpdate: NoAction, map: "fk_stock_movements_created_by")
+  factories         factories?               @relation(fields: [factory_id], references: [id], onUpdate: NoAction, map: "fk_stock_movements_factory")
+  lots              lots?                    @relation(fields: [lot_id], references: [id], onUpdate: NoAction, map: "fk_stock_movements_lot")
+  products          products                 @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_stock_movements_product")
+  stations          stations?                @relation(fields: [station_id], references: [id], onUpdate: NoAction, map: "fk_stock_movements_station")
+  product_varieties product_varieties?       @relation(fields: [variety_id], references: [id], onUpdate: NoAction, map: "fk_stock_movements_variety")
+
+  @@index([movement_date], map: "idx_stock_movements_date")
+  @@index([entity_type, entity_id], map: "idx_stock_movements_entity")
+  @@index([product_id], map: "idx_stock_movements_product_id")
+}
+
+model storage_locations {
+  id          String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  factory_id  String?            @db.Uuid
+  station_id  String?            @db.Uuid
+  name        String             @db.VarChar(150)
+  code        String?            @db.VarChar(50)
+  description String?
+  capacity_kg Decimal?           @db.Decimal(14, 3)
+  status      entity_status_enum @default(ACTIVE)
+  created_at  DateTime           @default(now()) @db.Timestamp(6)
+  updated_at  DateTime           @default(now()) @db.Timestamp(6)
+  factories   factories?         @relation(fields: [factory_id], references: [id], onUpdate: NoAction, map: "fk_storage_locations_factory")
+  stations    stations?          @relation(fields: [station_id], references: [id], onUpdate: NoAction, map: "fk_storage_locations_station")
+}
+
+model task_comments {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  task_id    String   @db.Uuid
+  user_id    String?  @db.Uuid
+  comment    String
+  created_at DateTime @default(now()) @db.Timestamp(6)
+  tasks      tasks    @relation(fields: [task_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_task_comments_task")
+  users      users?   @relation(fields: [user_id], references: [id], onUpdate: NoAction, map: "fk_task_comments_user")
+}
+
+model tasks {
+  id                                String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title                             String            @db.VarChar(200)
+  description                       String?
+  status                            task_status_enum  @default(NEW)
+  assigned_to_id                    String?           @db.Uuid
+  entity_type                       entity_type_enum?
+  entity_id                         String?           @db.Uuid
+  deadline                          DateTime?         @db.Date
+  created_by_id                     String?           @db.Uuid
+  started_at                        DateTime?         @db.Timestamp(6)
+  completed_at                      DateTime?         @db.Timestamp(6)
+  created_at                        DateTime          @default(now()) @db.Timestamp(6)
+  updated_at                        DateTime          @default(now()) @db.Timestamp(6)
+  documents                         documents[]
+  task_comments                     task_comments[]
+  users_tasks_assigned_to_idTousers users?            @relation("tasks_assigned_to_idTousers", fields: [assigned_to_id], references: [id], onUpdate: NoAction, map: "fk_tasks_assigned_to")
+  users_tasks_created_by_idTousers  users?            @relation("tasks_created_by_idTousers", fields: [created_by_id], references: [id], onUpdate: NoAction, map: "fk_tasks_created_by")
+
+  @@index([assigned_to_id], map: "idx_tasks_assigned_to")
+  @@index([deadline], map: "idx_tasks_deadline")
+  @@index([entity_type, entity_id], map: "idx_tasks_entity")
+  @@index([status], map: "idx_tasks_status")
+}
+
+model transports {
+  id               String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  reference        String?          @unique @db.VarChar(100)
+  from_type        entity_type_enum
+  from_entity_id   String           @db.Uuid
+  to_type          entity_type_enum
+  to_entity_id     String           @db.Uuid
+  shipment_id      String?          @db.Uuid
+  order_id         String?          @db.Uuid
+  vehicle_id       String?          @db.Uuid
+  transporter_name String?          @db.VarChar(150)
+  driver_name      String?          @db.VarChar(150)
+  vehicle_plate    String?          @db.VarChar(50)
+  departure_date   DateTime?        @db.Timestamp(6)
+  arrival_date     DateTime?        @db.Timestamp(6)
+  cost             Decimal?         @db.Decimal(14, 2)
+  currency         String           @default("MAD") @db.VarChar(10)
+  temperature      Decimal?         @db.Decimal(6, 2)
+  observations     String?
+  created_at       DateTime         @default(now()) @db.Timestamp(6)
+  updated_at       DateTime         @default(now()) @db.Timestamp(6)
+  documents        documents[]
+  customer_orders  customer_orders? @relation(fields: [order_id], references: [id], onUpdate: NoAction, map: "fk_transports_order")
+  farm_shipments   farm_shipments?  @relation(fields: [shipment_id], references: [id], onUpdate: NoAction, map: "fk_transports_shipment")
+  vehicles         vehicles?        @relation(fields: [vehicle_id], references: [id], onUpdate: NoAction, map: "fk_transports_vehicle")
+
+  @@index([departure_date, arrival_date], map: "idx_transports_dates")
+  @@index([order_id], map: "idx_transports_order_id")
+  @@index([shipment_id], map: "idx_transports_shipment_id")
+}
+
+model treatments {
+  id                    String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  project_id            String?                @db.Uuid
+  plot_id               String                 @db.Uuid
+  treatment_date        DateTime               @db.Date
+  product_type          String?                @db.VarChar(100)
+  product_name          String?                @db.VarChar(150)
+  dose                  String?                @db.VarChar(100)
+  treated_surface_ha    Decimal?               @db.Decimal(12, 2)
+  cost                  Decimal?               @db.Decimal(14, 2)
+  currency              String                 @default("MAD") @db.VarChar(10)
+  observations          String?
+  created_by_id         String?                @db.Uuid
+  created_at            DateTime               @default(now()) @db.Timestamp(6)
+  updated_at            DateTime               @default(now()) @db.Timestamp(6)
+  users                 users?                 @relation(fields: [created_by_id], references: [id], onUpdate: NoAction, map: "fk_treatments_created_by")
+  plots                 plots                  @relation(fields: [plot_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_treatments_plot")
+  agricultural_projects agricultural_projects? @relation(fields: [project_id], references: [id], onUpdate: NoAction, map: "fk_treatments_project")
+
+  @@index([treatment_date], map: "idx_treatments_date")
+  @@index([plot_id], map: "idx_treatments_plot_id")
+  @@index([project_id], map: "idx_treatments_project_id")
+}
+
+model user_scopes {
+  id          String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id     String           @db.Uuid
+  entity_type entity_type_enum
+  entity_id   String           @db.Uuid
+  created_at  DateTime         @default(now()) @db.Timestamp(6)
+  users       users            @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_user_scopes_user")
+
+  @@unique([user_id, entity_type, entity_id], map: "uq_user_scope")
+  @@index([entity_type, entity_id], map: "idx_user_scopes_entity")
+  @@index([user_id], map: "idx_user_scopes_user_id")
+}
+
+model users {
+  id                                                                String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email                                                             String                  @unique @db.Citext
+  password_hash                                                     String
+  first_name                                                        String                  @db.VarChar(100)
+  last_name                                                         String                  @db.VarChar(100)
+  phone                                                             String?                 @db.VarChar(50)
+  status                                                            user_status_enum        @default(ACTIVE)
+  role_id                                                           String                  @db.Uuid
+  manager_id                                                        String?                 @db.Uuid
+  last_login_at                                                     DateTime?               @db.Timestamp(6)
+  created_at                                                        DateTime                @default(now()) @db.Timestamp(6)
+  updated_at                                                        DateTime                @default(now()) @db.Timestamp(6)
+  deleted_at                                                        DateTime?               @db.Timestamp(6)
+  agricultural_projects                                             agricultural_projects[]
+  alerts                                                            alerts[]
+  audit_logs                                                        audit_logs[]
+  charges                                                           charges[]
+  companies                                                         companies[]
+  conditioning_sessions_conditioning_sessions_created_by_idTousers  conditioning_sessions[] @relation("conditioning_sessions_created_by_idTousers")
+  conditioning_sessions_conditioning_sessions_responsible_idTousers conditioning_sessions[] @relation("conditioning_sessions_responsible_idTousers")
+  customer_orders                                                   customer_orders[]
+  documents                                                         documents[]
+  exportations                                                      exportations[]
+  factories                                                         factories[]
+  factory_receptions                                                factory_receptions[]
+  farm_shipments                                                    farm_shipments[]
+  farms                                                             farms[]
+  harvests                                                          harvests[]
+  issues_issues_assigned_to_idTousers                               issues[]                @relation("issues_assigned_to_idTousers")
+  issues_issues_reported_by_idTousers                               issues[]                @relation("issues_reported_by_idTousers")
+  liquidations                                                      liquidations[]
+  notifications                                                     notifications[]
+  payments                                                          payments[]
+  personnel                                                         personnel[]
+  plantations                                                       plantations[]
+  productions                                                       productions[]
+  quality_returns                                                   quality_returns[]
+  refresh_tokens                                                    refresh_tokens[]
+  stock_movements                                                   stock_movements[]
+  task_comments                                                     task_comments[]
+  tasks_tasks_assigned_to_idTousers                                 tasks[]                 @relation("tasks_assigned_to_idTousers")
+  tasks_tasks_created_by_idTousers                                  tasks[]                 @relation("tasks_created_by_idTousers")
+  treatments                                                        treatments[]
+  user_scopes                                                       user_scopes[]
+  users                                                             users?                  @relation("usersTousers", fields: [manager_id], references: [id], onUpdate: NoAction, map: "fk_users_manager")
+  other_users                                                       users[]                 @relation("usersTousers")
+  roles                                                             roles                   @relation(fields: [role_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_users_role")
+
+  @@index([manager_id], map: "idx_users_manager_id")
+  @@index([role_id], map: "idx_users_role_id")
+  @@index([status], map: "idx_users_status")
+}
+
+model vehicles {
+  id                  String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  company_id          String?            @db.Uuid
+  type                vehicle_type_enum  @default(OTHER)
+  brand               String?            @db.VarChar(100)
+  model               String?            @db.VarChar(100)
+  registration_number String?            @unique @db.VarChar(50)
+  acquisition_mode    String?            @db.VarChar(50)
+  rent_monthly        Decimal?           @db.Decimal(14, 2)
+  capacity_kg         Decimal?           @db.Decimal(14, 3)
+  status              entity_status_enum @default(ACTIVE)
+  created_at          DateTime           @default(now()) @db.Timestamp(6)
+  updated_at          DateTime           @default(now()) @db.Timestamp(6)
+  deleted_at          DateTime?          @db.Timestamp(6)
+  transports          transports[]
+  companies           companies?         @relation(fields: [company_id], references: [id], onUpdate: NoAction, map: "fk_vehicles_company")
+}
+
+enum alert_level_enum {
+  INFO
+  WARNING
+  CRITICAL
+}
+
+enum charge_type_enum {
+  WATER
+  FERTILIZER
+  SEEDS
+  PLANTS
+  PHYTOSANITARY
+  LABOR
+  ENERGY
+  MATERIAL
+  PACKAGING
+  INTERNAL_TRANSPORT
+  MAINTENANCE
+  RENT
+  LOGISTICS
+  OTHER
+}
+
+enum company_status_enum {
+  ACTIVE
+  INACTIVE
+}
+
+enum conditioning_status_enum {
+  DRAFT
+  IN_PROGRESS
+  VALIDATED
+  CANCELLED
+}
+
+enum culture_type_enum {
+  FRAISE
+  MYRTILLE
+  FRAMBOISE
+  MURE
+  MIXTE
+  AUTRE
+}
+
+enum document_type_enum {
+  CHARGE_PROOF
+  SHIPMENT_NOTE
+  RECEPTION_NOTE
+  QUALITY_PHOTO
+  TRANSPORT_DOCUMENT
+  CONDITIONING_REPORT
+  DELIVERY_NOTE
+  CLIENT_RETURN
+  INVOICE_PDF
+  PAYMENT_PROOF
+  CONTRACT
+  OTHER
+}
+
+enum entity_status_enum {
+  ACTIVE
+  INACTIVE
+  ARCHIVED
+}
+
+enum entity_type_enum {
+  GROUP
+  COMPANY
+  FARM
+  PLOT
+  AGRICULTURAL_PROJECT
+  FACTORY
+  STATION
+  PRODUCT
+  CLIENT
+  ORDER
+  INVOICE
+  DASHBOARD
+  SHIPMENT
+  RECEPTION
+  CONDITIONING_SESSION
+  LOT
+  EXPORTATION
+  LIQUIDATION
+  TRANSPORT
+  TASK
+  ISSUE
+  ALERT
+}
+
+enum exportation_status_enum {
+  DRAFT
+  SENT
+  RECEIVED
+  LIQUIDATED
+  CANCELLED
+}
+
+enum farm_category_enum {
+  OWNED
+  TPG
+  THIRD_PARTY
+}
+
+enum invoice_status_enum {
+  DRAFT
+  GENERATED
+  SENT
+  PARTIALLY_PAID
+  PAID
+  OVERDUE
+  DISPUTED
+  CANCELLED
+}
+
+enum issue_severity_enum {
+  CRITICAL
+  HIGH
+  MEDIUM
+  LOW
+}
+
+enum issue_status_enum {
+  NEW
+  OPEN
+  IN_PROGRESS
+  POSTPONED
+  CLOSED
+  CANCELLED
+}
+
+enum liquidation_status_enum {
+  PENDING
+  CALCULATED
+  VALIDATED
+  INVOICED
+  CANCELLED
+}
+
+enum lot_status_enum {
+  IN_PROGRESS
+  AVAILABLE
+  RESERVED
+  SHIPPED
+  LIQUIDATED
+  CANCELLED
+}
+
+enum notification_status_enum {
+  UNREAD
+  READ
+  ARCHIVED
+}
+
+enum order_status_enum {
+  DRAFT
+  PREPARED
+  SHIPPED
+  RECEIVED_BY_CLIENT
+  QUALITY_RETURN_RECEIVED
+  INVOICED
+  PARTIALLY_PAID
+  FULLY_PAID
+  CLOSED
+  CANCELLED
+}
+
+enum output_category_enum {
+  EXPORT
+  LOCAL_MARKET
+  FROZEN
+  LOSS
+  PREMIUM
+  STANDARD
+  DOWNGRADED
+  WASTE
+  TRANSFORMATION
+}
+
+enum payment_method_enum {
+  BANK_TRANSFER
+  CHECK
+  CASH
+  CARD
+  OTHER
+}
+
+enum payment_status_enum {
+  PENDING
+  PARTIAL
+  PAID
+  LATE
+  CANCELLED
+}
+
+enum permission_action_enum {
+  VIEW
+  CREATE
+  UPDATE
+  DELETE
+  VALIDATE
+  EXPORT
+  ADMIN
+}
+
+enum plantation_category_enum {
+  ANNUAL
+  MULTI_YEAR
+  RENEWAL
+  OTHER
+}
+
+enum plot_status_enum {
+  PRODUCTION
+  JEUNE
+  REPOS
+  EN_FRICHE
+  ARCHIVED
+}
+
+enum project_status_enum {
+  PREPARATION
+  IN_PRODUCTION
+  FINISHED
+  SUSPENDED
+  CANCELLED
+}
+
+enum quality_grade_enum {
+  A
+  B
+  C
+  PREMIUM
+  STANDARD
+  DOWNGRADED
+  REFUSED
+}
+
+enum reception_status_enum {
+  PENDING
+  IN_PROGRESS
+  VALIDATED
+  DISCREPANCY_TO_JUSTIFY
+  PARTIALLY_REJECTED
+  FULLY_REJECTED
+  CANCELLED
+}
+
+enum shipment_status_enum {
+  DRAFT
+  READY_TO_SEND
+  SENT
+  PARTIALLY_RECEIVED
+  FULLY_RECEIVED
+  DISCREPANCY
+  CANCELLED
+}
+
+enum stock_movement_type_enum {
+  IN
+  OUT
+  TRANSFER
+  ADJUSTMENT
+  LOSS
+}
+
+enum task_status_enum {
+  NEW
+  OPEN
+  IN_PROGRESS
+  POSTPONED
+  CLOSED
+  CANCELLED
+}
+
+enum user_status_enum {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
+enum vehicle_type_enum {
+  REFRIGERATED
+  UTILITY
+  AGRICULTURAL
+  FUNCTION_CAR
+  TRUCK
+  OTHER
+}
