@@ -1,272 +1,262 @@
 export type FieldType = 'text' | 'number' | 'select';
 
+export type ResourceOption = {
+  labelKey: string;
+  value: string;
+};
+
 export type ResourceField = {
   key: string;
-  label: string;
+  labelKey: string;
   type: FieldType;
   required?: boolean;
-  options?: {label: string; value: string}[];
+  options?: ResourceOption[];
 };
 
 export type ResourceConfig = {
   module: string;
-  title: string;
-  description: string;
+  titleKey: string;
+  descriptionKey: string;
   endpoint: string;
   listFields: string[];
   fields: ResourceField[];
 };
 
 const statusOptions = [
-  {label: 'Actif', value: 'ACTIVE'},
-  {label: 'Inactif', value: 'INACTIVE'},
-  {label: 'Archivé', value: 'ARCHIVED'}
+  {labelKey: 'options.status.ACTIVE', value: 'ACTIVE'},
+  {labelKey: 'options.status.INACTIVE', value: 'INACTIVE'},
+  {labelKey: 'options.status.ARCHIVED', value: 'ARCHIVED'}
+];
+
+const cultureOptions = [
+  {labelKey: 'options.culture.STRAWBERRY', value: 'STRAWBERRY'},
+  {labelKey: 'options.culture.BLUEBERRY', value: 'BLUEBERRY'},
+  {labelKey: 'options.culture.RASPBERRY', value: 'RASPBERRY'},
+  {labelKey: 'options.culture.BLACKBERRY', value: 'BLACKBERRY'},
+  {labelKey: 'options.culture.MIXED', value: 'MIXED'},
+  {labelKey: 'options.culture.OTHER', value: 'OTHER'}
 ];
 
 export const phase2Resources: Record<string, ResourceConfig> = {
   groups: {
     module: 'groups',
-    title: 'Groupes',
-    description: 'Structure principale du groupe agricole.',
+    titleKey: 'resources.groups.title',
+    descriptionKey: 'resources.groups.description',
     endpoint: '/groups',
     listFields: ['name', 'description'],
     fields: [
-      {key: 'name', label: 'Nom', type: 'text', required: true},
-      {key: 'description', label: 'Description', type: 'text'}
+      {key: 'name', labelKey: 'fields.name', type: 'text', required: true},
+      {key: 'description', labelKey: 'fields.description', type: 'text'}
     ]
   },
 
   companies: {
     module: 'companies',
-    title: 'Entreprises',
-    description: 'Entreprises, filiales et hiérarchie juridique du groupe.',
+    titleKey: 'resources.companies.title',
+    descriptionKey: 'resources.companies.description',
     endpoint: '/companies',
     listFields: ['name', 'code', 'city', 'region', 'status'],
     fields: [
-      {key: 'group_id', label: 'ID groupe', type: 'text', required: true},
-      {key: 'parent_id', label: 'ID entreprise mère', type: 'text'},
-      {key: 'name', label: 'Nom', type: 'text', required: true},
-      {key: 'legal_name', label: 'Raison sociale', type: 'text'},
-      {key: 'code', label: 'Code', type: 'text'},
-      {key: 'ice', label: 'ICE', type: 'text'},
-      {key: 'tax_id', label: 'Identifiant fiscal', type: 'text'},
-      {key: 'rc', label: 'RC', type: 'text'},
-      {key: 'cnss', label: 'CNSS', type: 'text'},
-      {key: 'patente', label: 'Patente', type: 'text'},
-      {key: 'address', label: 'Adresse', type: 'text'},
-      {key: 'city', label: 'Ville', type: 'text'},
-      {key: 'region', label: 'Région', type: 'text'},
-      {key: 'country', label: 'Pays', type: 'text'},
-      {key: 'latitude', label: 'Latitude', type: 'number'},
-      {key: 'longitude', label: 'Longitude', type: 'number'},
-      {key: 'responsible_id', label: 'ID responsable', type: 'text'},
-      {key: 'status', label: 'Statut', type: 'select', options: statusOptions}
+      {key: 'group_id', labelKey: 'fields.groupId', type: 'text', required: true},
+      {key: 'parent_id', labelKey: 'fields.parentCompanyId', type: 'text'},
+      {key: 'name', labelKey: 'fields.name', type: 'text', required: true},
+      {key: 'legal_name', labelKey: 'fields.legalName', type: 'text'},
+      {key: 'code', labelKey: 'fields.code', type: 'text'},
+      {key: 'ice', labelKey: 'fields.ice', type: 'text'},
+      {key: 'tax_id', labelKey: 'fields.taxId', type: 'text'},
+      {key: 'rc', labelKey: 'fields.rc', type: 'text'},
+      {key: 'cnss', labelKey: 'fields.cnss', type: 'text'},
+      {key: 'patente', labelKey: 'fields.patente', type: 'text'},
+      {key: 'address', labelKey: 'fields.address', type: 'text'},
+      {key: 'city', labelKey: 'fields.city', type: 'text'},
+      {key: 'region', labelKey: 'fields.region', type: 'text'},
+      {key: 'country', labelKey: 'fields.country', type: 'text'},
+      {key: 'latitude', labelKey: 'fields.latitude', type: 'number'},
+      {key: 'longitude', labelKey: 'fields.longitude', type: 'number'},
+      {key: 'responsible_id', labelKey: 'fields.responsibleId', type: 'text'},
+      {key: 'status', labelKey: 'fields.status', type: 'select', options: statusOptions}
     ]
   },
 
   farms: {
     module: 'farms',
-    title: 'Fermes',
-    description: 'Fermes propres, TPG et tiers partenaires.',
+    titleKey: 'resources.farms.title',
+    descriptionKey: 'resources.farms.description',
     endpoint: '/farms',
     listFields: ['name', 'code', 'category', 'city', 'surface_ha', 'status'],
     fields: [
-      {key: 'company_id', label: 'ID entreprise', type: 'text', required: true},
-      {key: 'name', label: 'Nom', type: 'text', required: true},
-      {key: 'code', label: 'Code', type: 'text'},
+      {key: 'company_id', labelKey: 'fields.companyId', type: 'text', required: true},
+      {key: 'name', labelKey: 'fields.name', type: 'text', required: true},
+      {key: 'code', labelKey: 'fields.code', type: 'text'},
       {
         key: 'category',
-        label: 'Catégorie',
+        labelKey: 'fields.category',
         type: 'select',
         options: [
-          {label: 'Ferme propre', value: 'OWNED'},
-          {label: 'TPG', value: 'TPG'},
-          {label: 'Tiers', value: 'THIRD_PARTY'}
+          {labelKey: 'options.farmCategory.OWNED', value: 'OWNED'},
+          {labelKey: 'options.farmCategory.TPG', value: 'TPG'},
+          {labelKey: 'options.farmCategory.THIRD_PARTY', value: 'THIRD_PARTY'}
         ]
       },
-      {key: 'address', label: 'Adresse', type: 'text'},
-      {key: 'city', label: 'Ville', type: 'text'},
-      {key: 'region', label: 'Région', type: 'text'},
-      {key: 'latitude', label: 'Latitude', type: 'number'},
-      {key: 'longitude', label: 'Longitude', type: 'number'},
-      {key: 'surface_ha', label: 'Surface HA', type: 'number'},
-      {key: 'rent_monthly', label: 'Loyer mensuel', type: 'number'},
-      {key: 'responsible_id', label: 'ID responsable', type: 'text'},
-      {key: 'status', label: 'Statut', type: 'select', options: statusOptions}
+      {key: 'address', labelKey: 'fields.address', type: 'text'},
+      {key: 'city', labelKey: 'fields.city', type: 'text'},
+      {key: 'region', labelKey: 'fields.region', type: 'text'},
+      {key: 'latitude', labelKey: 'fields.latitude', type: 'number'},
+      {key: 'longitude', labelKey: 'fields.longitude', type: 'number'},
+      {key: 'surface_ha', labelKey: 'fields.surfaceHa', type: 'number'},
+      {key: 'rent_monthly', labelKey: 'fields.rentMonthly', type: 'number'},
+      {key: 'responsible_id', labelKey: 'fields.responsibleId', type: 'text'},
+      {key: 'status', labelKey: 'fields.status', type: 'select', options: statusOptions}
     ]
   },
 
   plots: {
     module: 'plots',
-    title: 'Parcelles',
-    description: 'Parcelles cultivées rattachées aux fermes.',
+    titleKey: 'resources.plots.title',
+    descriptionKey: 'resources.plots.description',
     endpoint: '/plots',
     listFields: ['code', 'name', 'surface_ha', 'culture', 'variety', 'status'],
     fields: [
-      {key: 'farm_id', label: 'ID ferme', type: 'text', required: true},
-      {key: 'code', label: 'Code', type: 'text', required: true},
-      {key: 'name', label: 'Nom', type: 'text'},
-      {key: 'surface_ha', label: 'Surface HA', type: 'number', required: true},
-      {
-        key: 'culture',
-        label: 'Culture',
-        type: 'select',
-        options: [
-          {label: 'Fraise', value: 'STRAWBERRY'},
-          {label: 'Myrtille', value: 'BLUEBERRY'},
-          {label: 'Framboise', value: 'RASPBERRY'},
-          {label: 'Mûre', value: 'BLACKBERRY'},
-          {label: 'Mixte', value: 'MIXED'},
-          {label: 'Autre', value: 'OTHER'}
-        ]
-      },
-      {key: 'variety', label: 'Variété', type: 'text'},
+      {key: 'farm_id', labelKey: 'fields.farmId', type: 'text', required: true},
+      {key: 'code', labelKey: 'fields.code', type: 'text', required: true},
+      {key: 'name', labelKey: 'fields.name', type: 'text'},
+      {key: 'surface_ha', labelKey: 'fields.surfaceHa', type: 'number', required: true},
+      {key: 'culture', labelKey: 'fields.culture', type: 'select', options: cultureOptions},
+      {key: 'variety', labelKey: 'fields.variety', type: 'text'},
       {
         key: 'status',
-        label: 'Statut',
+        labelKey: 'fields.status',
         type: 'select',
         options: [
-          {label: 'Production', value: 'PRODUCTION'},
-          {label: 'Jeune', value: 'YOUNG'},
-          {label: 'Repos', value: 'RESTING'},
-          {label: 'En friche', value: 'ABANDONED'}
+          {labelKey: 'options.plotStatus.PRODUCTION', value: 'PRODUCTION'},
+          {labelKey: 'options.plotStatus.YOUNG', value: 'YOUNG'},
+          {labelKey: 'options.plotStatus.RESTING', value: 'RESTING'},
+          {labelKey: 'options.plotStatus.ABANDONED', value: 'ABANDONED'}
         ]
       },
-      {key: 'latitude', label: 'Latitude', type: 'number'},
-      {key: 'longitude', label: 'Longitude', type: 'number'}
+      {key: 'latitude', labelKey: 'fields.latitude', type: 'number'},
+      {key: 'longitude', labelKey: 'fields.longitude', type: 'number'}
     ]
   },
 
   factories: {
     module: 'factories',
-    title: 'Usines',
-    description: 'Usines de réception, traitement et conditionnement.',
+    titleKey: 'resources.factories.title',
+    descriptionKey: 'resources.factories.description',
     endpoint: '/factories',
     listFields: ['name', 'code', 'city', 'daily_capacity_kg', 'status'],
     fields: [
-      {key: 'company_id', label: 'ID entreprise', type: 'text', required: true},
-      {key: 'name', label: 'Nom', type: 'text', required: true},
-      {key: 'code', label: 'Code', type: 'text'},
-      {key: 'address', label: 'Adresse', type: 'text'},
-      {key: 'city', label: 'Ville', type: 'text'},
-      {key: 'region', label: 'Région', type: 'text'},
-      {key: 'latitude', label: 'Latitude', type: 'number'},
-      {key: 'longitude', label: 'Longitude', type: 'number'},
-      {key: 'daily_capacity_kg', label: 'Capacité journalière KG', type: 'number'},
-      {key: 'responsible_id', label: 'ID responsable', type: 'text'},
-      {key: 'status', label: 'Statut', type: 'select', options: statusOptions}
+      {key: 'company_id', labelKey: 'fields.companyId', type: 'text', required: true},
+      {key: 'name', labelKey: 'fields.name', type: 'text', required: true},
+      {key: 'code', labelKey: 'fields.code', type: 'text'},
+      {key: 'address', labelKey: 'fields.address', type: 'text'},
+      {key: 'city', labelKey: 'fields.city', type: 'text'},
+      {key: 'region', labelKey: 'fields.region', type: 'text'},
+      {key: 'latitude', labelKey: 'fields.latitude', type: 'number'},
+      {key: 'longitude', labelKey: 'fields.longitude', type: 'number'},
+      {key: 'daily_capacity_kg', labelKey: 'fields.dailyCapacityKg', type: 'number'},
+      {key: 'responsible_id', labelKey: 'fields.responsibleId', type: 'text'},
+      {key: 'status', labelKey: 'fields.status', type: 'select', options: statusOptions}
     ]
   },
 
   stations: {
     module: 'stations',
-    title: 'Stations UC',
-    description: 'Stations et unités de conditionnement.',
+    titleKey: 'resources.stations.title',
+    descriptionKey: 'resources.stations.description',
     endpoint: '/stations',
     listFields: ['name', 'code', 'daily_capacity_kg', 'location', 'status'],
     fields: [
-      {key: 'company_id', label: 'ID entreprise', type: 'text'},
-      {key: 'factory_id', label: 'ID usine', type: 'text'},
-      {key: 'name', label: 'Nom', type: 'text', required: true},
-      {key: 'code', label: 'Code', type: 'text'},
-      {key: 'daily_capacity_kg', label: 'Capacité journalière KG', type: 'number'},
-      {key: 'location', label: 'Localisation', type: 'text'},
-      {key: 'latitude', label: 'Latitude', type: 'number'},
-      {key: 'longitude', label: 'Longitude', type: 'number'},
-      {key: 'status', label: 'Statut', type: 'select', options: statusOptions}
+      {key: 'company_id', labelKey: 'fields.companyId', type: 'text'},
+      {key: 'factory_id', labelKey: 'fields.factoryId', type: 'text'},
+      {key: 'name', labelKey: 'fields.name', type: 'text', required: true},
+      {key: 'code', labelKey: 'fields.code', type: 'text'},
+      {key: 'daily_capacity_kg', labelKey: 'fields.dailyCapacityKg', type: 'number'},
+      {key: 'location', labelKey: 'fields.location', type: 'text'},
+      {key: 'latitude', labelKey: 'fields.latitude', type: 'number'},
+      {key: 'longitude', labelKey: 'fields.longitude', type: 'number'},
+      {key: 'status', labelKey: 'fields.status', type: 'select', options: statusOptions}
     ]
   },
 
   products: {
     module: 'products',
-    title: 'Produits',
-    description: 'Produits agricoles suivis dans la plateforme.',
+    titleKey: 'resources.products.title',
+    descriptionKey: 'resources.products.description',
     endpoint: '/products',
     listFields: ['name', 'code', 'culture', 'default_unit', 'status'],
     fields: [
-      {key: 'name', label: 'Nom', type: 'text', required: true},
-      {key: 'code', label: 'Code', type: 'text'},
-      {
-        key: 'culture',
-        label: 'Culture',
-        type: 'select',
-        options: [
-          {label: 'Fraise', value: 'STRAWBERRY'},
-          {label: 'Myrtille', value: 'BLUEBERRY'},
-          {label: 'Framboise', value: 'RASPBERRY'},
-          {label: 'Mûre', value: 'BLACKBERRY'},
-          {label: 'Mixte', value: 'MIXED'},
-          {label: 'Autre', value: 'OTHER'}
-        ]
-      },
-      {key: 'description', label: 'Description', type: 'text'},
-      {key: 'default_unit', label: 'Unité par défaut', type: 'text'},
-      {key: 'status', label: 'Statut', type: 'select', options: statusOptions}
+      {key: 'name', labelKey: 'fields.name', type: 'text', required: true},
+      {key: 'code', labelKey: 'fields.code', type: 'text'},
+      {key: 'culture', labelKey: 'fields.culture', type: 'select', options: cultureOptions},
+      {key: 'description', labelKey: 'fields.description', type: 'text'},
+      {key: 'default_unit', labelKey: 'fields.defaultUnit', type: 'text'},
+      {key: 'status', labelKey: 'fields.status', type: 'select', options: statusOptions}
     ]
   },
 
   'product-varieties': {
     module: 'product-varieties',
-    title: 'Variétés',
-    description: 'Variétés rattachées aux produits agricoles.',
+    titleKey: 'resources.productVarieties.title',
+    descriptionKey: 'resources.productVarieties.description',
     endpoint: '/product-varieties',
     listFields: ['name', 'code', 'description', 'status'],
     fields: [
-      {key: 'product_id', label: 'ID produit', type: 'text', required: true},
-      {key: 'name', label: 'Nom', type: 'text', required: true},
-      {key: 'code', label: 'Code', type: 'text'},
-      {key: 'description', label: 'Description', type: 'text'},
-      {key: 'status', label: 'Statut', type: 'select', options: statusOptions}
+      {key: 'product_id', labelKey: 'fields.productId', type: 'text', required: true},
+      {key: 'name', labelKey: 'fields.name', type: 'text', required: true},
+      {key: 'code', labelKey: 'fields.code', type: 'text'},
+      {key: 'description', labelKey: 'fields.description', type: 'text'},
+      {key: 'status', labelKey: 'fields.status', type: 'select', options: statusOptions}
     ]
   },
 
   vehicles: {
     module: 'vehicles',
-    title: 'Véhicules',
-    description: 'Véhicules agricoles, logistiques ou frigorifiques.',
+    titleKey: 'resources.vehicles.title',
+    descriptionKey: 'resources.vehicles.description',
     endpoint: '/vehicles',
     listFields: ['registration_number', 'type', 'brand', 'model', 'capacity_kg', 'status'],
     fields: [
-      {key: 'company_id', label: 'ID entreprise', type: 'text'},
+      {key: 'company_id', labelKey: 'fields.companyId', type: 'text'},
       {
         key: 'type',
-        label: 'Type',
+        labelKey: 'fields.type',
         type: 'select',
         options: [
-          {label: 'Frigorifique', value: 'REFRIGERATED'},
-          {label: 'Utilitaire', value: 'UTILITY'},
-          {label: 'Agricole', value: 'AGRICULTURAL'},
-          {label: 'Voiture fonction', value: 'COMPANY_CAR'},
-          {label: 'Autre', value: 'OTHER'}
+          {labelKey: 'options.vehicleType.REFRIGERATED', value: 'REFRIGERATED'},
+          {labelKey: 'options.vehicleType.UTILITY', value: 'UTILITY'},
+          {labelKey: 'options.vehicleType.AGRICULTURAL', value: 'AGRICULTURAL'},
+          {labelKey: 'options.vehicleType.COMPANY_CAR', value: 'COMPANY_CAR'},
+          {labelKey: 'options.vehicleType.OTHER', value: 'OTHER'}
         ]
       },
-      {key: 'brand', label: 'Marque', type: 'text'},
-      {key: 'model', label: 'Modèle', type: 'text'},
-      {key: 'registration_number', label: 'Immatriculation', type: 'text'},
-      {key: 'acquisition_mode', label: 'Mode acquisition', type: 'text'},
-      {key: 'rent_monthly', label: 'Loyer mensuel', type: 'number'},
-      {key: 'capacity_kg', label: 'Capacité KG', type: 'number'},
-      {key: 'status', label: 'Statut', type: 'select', options: statusOptions}
+      {key: 'brand', labelKey: 'fields.brand', type: 'text'},
+      {key: 'model', labelKey: 'fields.model', type: 'text'},
+      {key: 'registration_number', labelKey: 'fields.registrationNumber', type: 'text'},
+      {key: 'acquisition_mode', labelKey: 'fields.acquisitionMode', type: 'text'},
+      {key: 'rent_monthly', labelKey: 'fields.rentMonthly', type: 'number'},
+      {key: 'capacity_kg', labelKey: 'fields.capacityKg', type: 'number'},
+      {key: 'status', labelKey: 'fields.status', type: 'select', options: statusOptions}
     ]
   },
 
   personnel: {
     module: 'personnel',
-    title: 'Personnel',
-    description: 'Personnel opérationnel rattaché aux entités.',
+    titleKey: 'resources.personnel.title',
+    descriptionKey: 'resources.personnel.description',
     endpoint: '/personnel',
     listFields: ['full_name', 'grade', 'contract_type', 'salary', 'status'],
     fields: [
-      {key: 'user_id', label: 'ID utilisateur', type: 'text'},
-      {key: 'company_id', label: 'ID entreprise', type: 'text'},
-      {key: 'farm_id', label: 'ID ferme', type: 'text'},
-      {key: 'factory_id', label: 'ID usine', type: 'text'},
-      {key: 'station_id', label: 'ID station', type: 'text'},
-      {key: 'full_name', label: 'Nom complet', type: 'text', required: true},
-      {key: 'grade', label: 'Grade', type: 'text'},
-      {key: 'contract_type', label: 'Type contrat', type: 'text'},
-      {key: 'salary', label: 'Salaire', type: 'number'},
-      {key: 'status', label: 'Statut', type: 'select', options: statusOptions}
+      {key: 'user_id', labelKey: 'fields.userId', type: 'text'},
+      {key: 'company_id', labelKey: 'fields.companyId', type: 'text'},
+      {key: 'farm_id', labelKey: 'fields.farmId', type: 'text'},
+      {key: 'factory_id', labelKey: 'fields.factoryId', type: 'text'},
+      {key: 'station_id', labelKey: 'fields.stationId', type: 'text'},
+      {key: 'full_name', labelKey: 'fields.fullName', type: 'text', required: true},
+      {key: 'grade', labelKey: 'fields.grade', type: 'text'},
+      {key: 'contract_type', labelKey: 'fields.contractType', type: 'text'},
+      {key: 'salary', labelKey: 'fields.salary', type: 'number'},
+      {key: 'status', labelKey: 'fields.status', type: 'select', options: statusOptions}
     ]
   }
 };

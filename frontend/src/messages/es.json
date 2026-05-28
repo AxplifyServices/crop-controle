@@ -58,11 +58,162 @@
     "activeModules": "Módulos activos",
     "incidents": "Alertas"
   },
-  "Common": {
-    "logout": "Cerrar sesión",
-    "language": "Idioma",
-    "french": "Francés",
-    "english": "Inglés",
-    "spanish": "Español"
+"Common": {
+  "logout": "Cerrar sesión",
+  "language": "Idioma",
+  "french": "Francés",
+  "english": "Inglés",
+  "spanish": "Español",
+  "menu": "Menú",
+  "openMenu": "Abrir menú",
+  "closeMenu": "Cerrar menú",
+  "notifications": "Notificaciones"
+}, 
+  "Referential": {
+    "phaseTitle": "Phase 2 · Référentiel organisationnel",
+    "actions": {
+      "title": "Actions",
+      "refresh": "Actualiser",
+      "add": "Ajouter",
+      "edit": "Modifier",
+      "delete": "Supprimer",
+      "save": "Enregistrer",
+      "cancel": "Annuler",
+      "select": "Sélectionner"
+    },
+    "list": {
+      "title": "Liste",
+      "count": "{count} enregistrement(s)"
+    },
+    "messages": {
+      "loading": "Chargement...",
+      "saving": "Enregistrement...",
+      "empty": "Aucun enregistrement.",
+      "readOnly": "Lecture seule",
+      "confirmDelete": "Confirmer la suppression / désactivation ?",
+      "loadError": "Erreur de chargement",
+      "saveError": "Erreur d'enregistrement",
+      "deleteError": "Erreur de suppression"
+    },
+    "resources": {
+      "groups": {
+        "title": "Groupes",
+        "description": "Structure principale du groupe agricole."
+      },
+      "companies": {
+        "title": "Entreprises",
+        "description": "Entreprises, filiales et hiérarchie juridique du groupe."
+      },
+      "farms": {
+        "title": "Fermes",
+        "description": "Fermes propres, TPG et tiers partenaires."
+      },
+      "plots": {
+        "title": "Parcelles",
+        "description": "Parcelles cultivées rattachées aux fermes."
+      },
+      "factories": {
+        "title": "Usines",
+        "description": "Usines de réception, traitement et conditionnement."
+      },
+      "stations": {
+        "title": "Stations UC",
+        "description": "Stations et unités de conditionnement."
+      },
+      "products": {
+        "title": "Produits",
+        "description": "Produits agricoles suivis dans la plateforme."
+      },
+      "productVarieties": {
+        "title": "Variétés",
+        "description": "Variétés rattachées aux produits agricoles."
+      },
+      "vehicles": {
+        "title": "Véhicules",
+        "description": "Véhicules agricoles, logistiques ou frigorifiques."
+      },
+      "personnel": {
+        "title": "Personnel",
+        "description": "Personnel opérationnel rattaché aux entités."
+      }
+    },
+    "fields": {
+      "name": "Nom",
+      "description": "Description",
+      "groupId": "ID groupe",
+      "parentCompanyId": "ID entreprise mère",
+      "companyId": "ID entreprise",
+      "farmId": "ID ferme",
+      "factoryId": "ID usine",
+      "stationId": "ID station",
+      "productId": "ID produit",
+      "userId": "ID utilisateur",
+      "legalName": "Raison sociale",
+      "code": "Code",
+      "ice": "ICE",
+      "taxId": "Identifiant fiscal",
+      "rc": "RC",
+      "cnss": "CNSS",
+      "patente": "Patente",
+      "address": "Adresse",
+      "city": "Ville",
+      "region": "Région",
+      "country": "Pays",
+      "latitude": "Latitude",
+      "longitude": "Longitude",
+      "responsibleId": "ID responsable",
+      "status": "Statut",
+      "category": "Catégorie",
+      "surfaceHa": "Surface HA",
+      "rentMonthly": "Loyer mensuel",
+      "culture": "Culture",
+      "variety": "Variété",
+      "dailyCapacityKg": "Capacité journalière KG",
+      "location": "Localisation",
+      "defaultUnit": "Unité par défaut",
+      "type": "Type",
+      "brand": "Marque",
+      "model": "Modèle",
+      "registrationNumber": "Immatriculation",
+      "acquisitionMode": "Mode acquisition",
+      "capacityKg": "Capacité KG",
+      "fullName": "Nom complet",
+      "grade": "Grade",
+      "contractType": "Type contrat",
+      "salary": "Salaire"
+    },
+    "options": {
+      "status": {
+        "ACTIVE": "Actif",
+        "INACTIVE": "Inactif",
+        "ARCHIVED": "Archivé"
+      },
+      "culture": {
+        "STRAWBERRY": "Fraise",
+        "BLUEBERRY": "Myrtille",
+        "RASPBERRY": "Framboise",
+        "BLACKBERRY": "Mûre",
+        "MIXED": "Mixte",
+        "OTHER": "Autre"
+      },
+      "farmCategory": {
+        "OWNED": "Ferme propre",
+        "TPG": "TPG",
+        "THIRD_PARTY": "Tiers"
+      },
+      "plotStatus": {
+        "PRODUCTION": "Production",
+        "YOUNG": "Jeune",
+        "RESTING": "Repos",
+        "ABANDONED": "En friche"
+      },
+      "vehicleType": {
+        "REFRIGERATED": "Frigorifique",
+        "UTILITY": "Utilitaire",
+        "AGRICULTURAL": "Agricole",
+        "COMPANY_CAR": "Voiture de fonction",
+        "OTHER": "Autre"
+      }
+    }
   }
 }

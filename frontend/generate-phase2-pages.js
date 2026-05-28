@@ -21,14 +21,19 @@ for (const resource of resources) {
 
   fs.mkdirSync(dir, {recursive: true});
 
-  const content = `import {ReferentialCrudPage} from '@/components/referential/ReferentialCrudPage';
+  const content = `import {AppShell} from '@/components/layout/AppShell';
+import {ReferentialCrudPage} from '@/components/referential/ReferentialCrudPage';
 import {phase2Resources} from '@/lib/phase2-resources';
 
 export default function Page() {
-  return <ReferentialCrudPage config={phase2Resources['${resource}']} />;
+  return (
+    <AppShell>
+      <ReferentialCrudPage config={phase2Resources['${resource}']} />
+    </AppShell>
+  );
 }
 `;
 
   fs.writeFileSync(path.join(dir, 'page.tsx'), content);
-  console.log(\`Generated referentiel/\${resource}/page.tsx\`);
+  console.log(`Generated referentiel/${resource}/page.tsx`);
 }

@@ -2,6 +2,7 @@ import {Leaf, Sprout, Tractor} from 'lucide-react';
 import {useTranslations} from 'next-intl';
 import {LoginForm} from '@/components/auth/LoginForm';
 import {LanguageSwitcher} from '@/components/layout/LanguageSwitcher';
+import {LoginRedirect} from '@/components/auth/LoginRedirect';
 
 export default function LoginPage() {
   const tApp = useTranslations('App');
@@ -9,6 +10,7 @@ export default function LoginPage() {
 
   return (
     <main className="grid min-h-screen grid-cols-1 bg-slate-100 lg:grid-cols-2">
+      <LoginRedirect />
       <section className="relative hidden overflow-hidden bg-[#d8f0a7] p-12 lg:block">
         <div className="relative z-10 flex items-center gap-4">
           <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-700 text-white shadow-sm">
