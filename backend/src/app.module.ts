@@ -5,6 +5,17 @@ import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { RolesModule } from './roles/roles.module';
 
+import { GroupsModule } from './groups/groups.module';
+import { CompaniesModule } from './companies/companies.module';
+import { FarmsModule } from './farms/farms.module';
+import { PlotsModule } from './plots/plots.module';
+import { FactoriesModule } from './factories/factories.module';
+import { StationsModule } from './stations/stations.module';
+import { ProductsModule } from './products/products.module';
+import { ProductVarietiesModule } from './product-varieties/product-varieties.module';
+import { VehiclesModule } from './vehicles/vehicles.module';
+import { PersonnelModule } from './personnel/personnel.module';
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -14,6 +25,17 @@ import { RolesModule } from './roles/roles.module';
     AuthModule,
     UsersModule,
     RolesModule,
+
+    GroupsModule,
+    CompaniesModule,
+    FarmsModule,
+    PlotsModule,
+    FactoriesModule,
+    StationsModule,
+    ProductsModule,
+    ProductVarietiesModule,
+    VehiclesModule,
+    PersonnelModule,
   ],
 })
 export class AppModule {}

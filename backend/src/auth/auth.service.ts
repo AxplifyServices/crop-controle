@@ -11,13 +11,31 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
+  private formatPermissions(user: any) {
+    return (
+      user.roles?.role_permissions?.map((rolePermission: any) => ({
+        module: rolePermission.permissions.module,
+        action: rolePermission.permissions.action,
+      })) || []
+    );
+  }
+
   async login(dto: LoginDto) {
     const user = await this.prisma.users.findUnique({
       where: {
         email: dto.email,
       },
       include: {
-        roles: true,
+        roles: {
+          include: {
+            role_permissions: {
+              include: {
+                permissions: true,
+              },
+            },
+          },
+        },
+        user_scopes: true,
       },
     });
 
@@ -65,6 +83,12 @@ export class AuthService {
           name: user.roles.name,
           description: user.roles.description,
         },
+        permissions: this.formatPermissions(user),
+        scopes: user.user_scopes.map((scope) => ({
+          id: scope.id,
+          entityType: scope.entity_type,
+          entityId: scope.entity_id,
+        })),
       },
     };
   }
@@ -73,7 +97,15 @@ export class AuthService {
     const user = await this.prisma.users.findUnique({
       where: { id: userId },
       include: {
-        roles: true,
+        roles: {
+          include: {
+            role_permissions: {
+              include: {
+                permissions: true,
+              },
+            },
+          },
+        },
         user_scopes: true,
       },
     });
@@ -94,6 +126,7 @@ export class AuthService {
         name: user.roles.name,
         description: user.roles.description,
       },
+      permissions: this.formatPermissions(user),
       scopes: user.user_scopes.map((scope) => ({
         id: scope.id,
         entityType: scope.entity_type,

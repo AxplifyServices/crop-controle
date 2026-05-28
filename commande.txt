@@ -1,3 +1,6 @@
+serv :ssh ubuntu@51.75.252.139
+Code serveur : zitanezac
+
 ** Projet : 
 
 cd OneDrive\Bureau\Projet Dev\Plateforme de pilotage agriculture
@@ -23,3 +26,17 @@ npm run start:dev
 
 cd OneDrive\Bureau\Projet Dev\Plateforme de pilotage agriculture/frontend
 npm run dev
+
+** Pour Git :
+
+git status
+
+git add .
+git commit -m "message clair"
+git push origin main
+
+git commit --allow-empty -m "trigger deploy"
+
+MDP PostgreSQL serveur :
+
+22072001Zak

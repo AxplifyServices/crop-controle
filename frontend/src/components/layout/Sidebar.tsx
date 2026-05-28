@@ -1,6 +1,6 @@
 'use client';
 
-import {useState} from 'react';
+import {useEffect, useMemo, useState} from 'react';
 import {
   BarChart3,
   Building2,
@@ -15,16 +15,20 @@ import {
 } from 'lucide-react';
 import {useTranslations} from 'next-intl';
 import {Link, usePathname} from '@/i18n/navigation';
+import {getUser, type AuthUser} from '@/lib/auth';
+import {hasAnyPermission, hasPermission} from '@/lib/permissions';
 
 type MenuItem = {
   key: string;
   href: string;
+  module: string;
 };
 
 type MenuGroup = {
   key: string;
   icon: React.ComponentType<{size?: number; className?: string}>;
   href?: string;
+  module?: string;
   items?: MenuItem[];
 };
 
@@ -32,66 +36,77 @@ const menuGroups: MenuGroup[] = [
   {
     key: 'dashboard',
     icon: BarChart3,
-    href: '/dashboard'
+    href: '/dashboard',
+    module: 'dashboards'
   },
   {
     key: 'referential',
     icon: Building2,
     items: [
-      {key: 'groups', href: '/dashboard'},
-      {key: 'companies', href: '/dashboard'},
-      {key: 'farms', href: '/dashboard'},
-      {key: 'plots', href: '/dashboard'},
-      {key: 'factories', href: '/dashboard'},
-      {key: 'products', href: '/dashboard'}
+      {key: 'groups', href: '/referentiel/groups', module: 'groups'},
+      {key: 'companies', href: '/referentiel/companies', module: 'companies'},
+      {key: 'farms', href: '/referentiel/farms', module: 'farms'},
+      {key: 'plots', href: '/referentiel/plots', module: 'plots'},
+      {key: 'factories', href: '/referentiel/factories', module: 'factories'},
+      {key: 'stations', href: '/referentiel/stations', module: 'stations'},
+      {key: 'products', href: '/referentiel/products', module: 'products'},
+      {
+        key: 'productVarieties',
+        href: '/referentiel/product-varieties',
+        module: 'product-varieties'
+      },
+      {key: 'vehicles', href: '/referentiel/vehicles', module: 'vehicles'},
+      {key: 'personnel', href: '/referentiel/personnel', module: 'personnel'}
     ]
   },
   {
     key: 'agriculture',
     icon: Sprout,
     items: [
-      {key: 'projects', href: '/dashboard'},
-      {key: 'plantations', href: '/dashboard'},
-      {key: 'harvests', href: '/dashboard'},
-      {key: 'charges', href: '/dashboard'}
+      {key: 'projects', href: '/dashboard', module: 'agricultural-projects'},
+      {key: 'plantations', href: '/dashboard', module: 'plantations'},
+      {key: 'harvests', href: '/dashboard', module: 'harvests'},
+      {key: 'charges', href: '/dashboard', module: 'charges'}
     ]
   },
   {
     key: 'factoryFlow',
     icon: Factory,
     items: [
-      {key: 'shipments', href: '/dashboard'},
-      {key: 'receptions', href: '/dashboard'},
-      {key: 'conditioning', href: '/dashboard'}
+      {key: 'shipments', href: '/dashboard', module: 'shipments'},
+      {key: 'receptions', href: '/dashboard', module: 'receptions'},
+      {key: 'conditioning', href: '/dashboard', module: 'conditioning'}
     ]
   },
   {
     key: 'commercial',
     icon: Package,
     items: [
-      {key: 'clients', href: '/dashboard'},
-      {key: 'orders', href: '/dashboard'},
-      {key: 'invoices', href: '/dashboard'},
-      {key: 'payments', href: '/dashboard'}
+      {key: 'clients', href: '/dashboard', module: 'clients'},
+      {key: 'orders', href: '/dashboard', module: 'orders'},
+      {key: 'invoices', href: '/dashboard', module: 'invoices'},
+      {key: 'payments', href: '/dashboard', module: 'payments'}
     ]
   },
   {
     key: 'logistics',
     icon: Truck,
-    href: '/dashboard'
+    href: '/dashboard',
+    module: 'transports'
   },
   {
     key: 'reports',
     icon: FileText,
-    href: '/dashboard'
+    href: '/dashboard',
+    module: 'reports'
   },
   {
     key: 'admin',
     icon: Users,
     items: [
-      {key: 'users', href: '/dashboard'},
-      {key: 'roles', href: '/dashboard'},
-      {key: 'settings', href: '/dashboard'}
+      {key: 'users', href: '/dashboard', module: 'users'},
+      {key: 'roles', href: '/dashboard', module: 'roles'},
+      {key: 'settings', href: '/dashboard', module: 'permissions'}
     ]
   }
 ];
@@ -99,6 +114,44 @@ const menuGroups: MenuGroup[] = [
 export function Sidebar({collapsed}: {collapsed: boolean}) {
   const t = useTranslations('Navigation');
   const tApp = useTranslations('App');
+  const [user, setUser] = useState<AuthUser | null>(null);
+
+  useEffect(() => {
+    setUser(getUser());
+  }, []);
+
+  const visibleMenuGroups = useMemo(() => {
+    return menuGroups
+      .map((group) => {
+        if (group.items?.length) {
+          const visibleItems = group.items.filter((item) =>
+            hasPermission(user, item.module, 'VIEW')
+          );
+
+          return {
+            ...group,
+            items: visibleItems
+          };
+        }
+
+        return group;
+      })
+      .filter((group) => {
+        if (group.items?.length) {
+          return hasAnyPermission(
+            user,
+            group.items.map((item) => item.module),
+            'VIEW'
+          );
+        }
+
+        if (group.module) {
+          return hasPermission(user, group.module, 'VIEW');
+        }
+
+        return true;
+      });
+  }, [user]);
 
   return (
     <aside
@@ -134,7 +187,7 @@ export function Sidebar({collapsed}: {collapsed: boolean}) {
       ) : null}
 
       <nav className="space-y-1">
-        {menuGroups.map((group) => (
+        {visibleMenuGroups.map((group) => (
           <SidebarGroup
             key={group.key}
             group={group}
@@ -161,9 +214,16 @@ function SidebarGroup({
 
   const Icon = group.icon;
   const hasChildren = Boolean(group.items?.length);
-  const isDashboardActive = group.key === 'dashboard' && pathname === '/dashboard';
+  const activeByHref = group.href ? pathname === group.href : false;
+  const activeByChildren = group.items?.some((item) => pathname === item.href) || false;
 
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(activeByChildren);
+
+  useEffect(() => {
+    if (activeByChildren) {
+      setOpen(true);
+    }
+  }, [activeByChildren]);
 
   if (!hasChildren && group.href) {
     return (
@@ -173,7 +233,7 @@ function SidebarGroup({
         className={`flex h-11 items-center rounded-xl text-[14px] font-medium transition ${
           collapsed ? 'justify-center px-0' : 'gap-3 px-3'
         } ${
-          isDashboardActive
+          activeByHref
             ? 'bg-emerald-50 text-emerald-700'
             : 'text-slate-700 hover:bg-slate-50 hover:text-emerald-700'
         }`}
@@ -197,7 +257,7 @@ function SidebarGroup({
         className={`flex h-11 w-full items-center rounded-xl text-left text-[14px] font-medium transition ${
           collapsed ? 'justify-center px-0' : 'gap-3 px-3'
         } ${
-          open
+          open || activeByChildren
             ? 'bg-emerald-50 text-emerald-700'
             : 'text-slate-700 hover:bg-slate-50 hover:text-emerald-700'
         }`}
@@ -221,15 +281,23 @@ function SidebarGroup({
       {!collapsed && open ? (
         <div className="ml-[21px] border-l border-slate-200 py-1 pl-5">
           <div className="space-y-1">
-            {group.items?.map((item) => (
-              <Link
-                key={item.key}
-                href={item.href}
-                className="block rounded-lg px-2 py-1.5 text-[14px] text-slate-700 transition hover:bg-slate-50 hover:text-emerald-700"
-              >
-                {t(item.key)}
-              </Link>
-            ))}
+            {group.items?.map((item) => {
+              const active = pathname === item.href;
+
+              return (
+                <Link
+                  key={item.key}
+                  href={item.href}
+                  className={`block rounded-lg px-2 py-1.5 text-[14px] transition ${
+                    active
+                      ? 'bg-emerald-50 font-medium text-emerald-700'
+                      : 'text-slate-700 hover:bg-slate-50 hover:text-emerald-700'
+                  }`}
+                >
+                  {t(item.key)}
+                </Link>
+              );
+            })}
           </div>
         </div>
       ) : null}

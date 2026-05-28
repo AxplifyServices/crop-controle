@@ -41,7 +41,13 @@
     "admin": "Administration",
     "users": "Utilisateurs",
     "roles": "Rôles",
-    "settings": "Paramètres"
+    "settings": "Paramètres",
+"stations": "Stations UC",
+
+"productVarieties": "Variétés",
+"vehicles": "Véhicules",
+"personnel": "Personnel"
+
   },
   "Dashboard": {
     "date": "23/05/2026",
