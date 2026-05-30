@@ -6,7 +6,6 @@ import {
   TrendingUp
 } from 'lucide-react';
 import {useTranslations} from 'next-intl';
-import {AppShell} from '@/components/layout/AppShell';
 
 export default function DashboardPage() {
   const t = useTranslations('Dashboard');
@@ -35,7 +34,7 @@ export default function DashboardPage() {
   ];
 
   return (
-    <AppShell>
+    <>
       <div className="mb-7">
         <p className="text-[14px] font-medium text-slate-500">{t('date')}</p>
         <h1 className="mt-1 text-[34px] font-semibold tracking-tight text-slate-950">
@@ -112,6 +111,6 @@ export default function DashboardPage() {
           </div>
         </section>
       </div>
-    </AppShell>
+    </>
   );
 }

@@ -6,10 +6,11 @@ import {useTranslations} from 'next-intl';
 import {apiFetch} from '@/lib/api';
 import {getUser, type AuthUser} from '@/lib/auth';
 import {hasPermission} from '@/lib/permissions';
-import type {ResourceConfig, ResourceField} from '@/lib/phase2-resources';
+import type {ResourceConfig, ResourceField, ResourceOption} from '@/lib/phase2-resources';
 import {RequirePermission} from '@/components/auth/RequirePermission';
 
 type RecordItem = Record<string, any>;
+type LookupOptionsMap = Record<string, ResourceOption[]>;
 
 export function ReferentialCrudPage({config}: {config: ResourceConfig}) {
   return (
@@ -29,6 +30,7 @@ function ReferentialCrudContent({config}: {config: ResourceConfig}) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [user, setUser] = useState<AuthUser | null>(null);
+  const [lookupOptions, setLookupOptions] = useState<LookupOptionsMap>({});
 
   const canCreate = hasPermission(user, config.module, 'CREATE');
   const canUpdate = hasPermission(user, config.module, 'UPDATE');
@@ -36,13 +38,18 @@ function ReferentialCrudContent({config}: {config: ResourceConfig}) {
 
   const visibleFields = useMemo(() => config.listFields, [config.listFields]);
 
+  const visibleFormFields = useMemo(
+    () => config.fields.filter((field) => isFieldVisible(field, form)),
+    [config.fields, form]
+  );
+
   async function loadItems() {
     setLoading(true);
     setError('');
 
     try {
-      const data = await apiFetch<RecordItem[]>(config.endpoint);
-      setItems(Array.isArray(data) ? data : []);
+      const data = await apiFetch<unknown>(config.endpoint);
+      setItems(normalizeApiRows(data));
     } catch (err) {
       setError(err instanceof Error ? err.message : t('messages.loadError'));
     } finally {
@@ -50,9 +57,55 @@ function ReferentialCrudContent({config}: {config: ResourceConfig}) {
     }
   }
 
+  async function loadLookups(currentUser: AuthUser | null) {
+    const lookupFields = config.fields.filter((field) => field.type === 'lookup' && field.lookup);
+
+    if (lookupFields.length === 0) return;
+
+    const nextLookups: LookupOptionsMap = {};
+    const lookupErrors: string[] = [];
+
+    await Promise.all(
+      lookupFields.map(async (field) => {
+        if (!field.lookup) return;
+
+        try {
+          const data = await apiFetch<unknown>(field.lookup.endpoint);
+          const rows = normalizeApiRows(data);
+
+          const allowedRows = filterRowsByScope(rows, field, currentUser);
+
+          nextLookups[field.key] = allowedRows
+            .filter((row) => row[field.lookup!.valueKey] !== null && row[field.lookup!.valueKey] !== undefined)
+            .map((row) => ({
+              value: String(row[field.lookup!.valueKey]),
+              labelKey: buildLookupLabel(row, field.lookup!.labelKeys)
+            }));
+        } catch (err) {
+          nextLookups[field.key] = [];
+
+          lookupErrors.push(
+            `${field.key} (${field.lookup.endpoint}) : ${
+              err instanceof Error ? err.message : 'Erreur API'
+            }`
+          );
+        }
+      })
+    );
+
+    setLookupOptions(nextLookups);
+
+    if (lookupErrors.length > 0) {
+      setError(`Certaines listes déroulantes ne sont pas chargées : ${lookupErrors.join(' | ')}`);
+    }
+  }
+
   useEffect(() => {
-    setUser(getUser());
+    const currentUser = getUser();
+
+    setUser(currentUser);
     loadItems();
+    loadLookups(currentUser);
   }, []);
 
   function resetForm() {
@@ -73,25 +126,46 @@ function ReferentialCrudContent({config}: {config: ResourceConfig}) {
     setOpenForm(true);
   }
 
-  function setFieldValue(field: ResourceField, value: string) {
-    if (field.type === 'number') {
-      setForm((current) => ({
-        ...current,
-        [field.key]: value === '' ? null : Number(value)
-      }));
-      return;
-    }
+  function setFieldValue(field: ResourceField, value: string | string[]) {
+    setForm((current) => {
+      const nextValue =
+        field.type === 'number'
+          ? value === ''
+            ? null
+            : Number(value)
+          : value === ''
+            ? null
+            : value;
 
-    setForm((current) => ({
-      ...current,
-      [field.key]: value === '' ? null : value
-    }));
+      const next = {
+        ...current,
+        [field.key]: nextValue
+      };
+
+      for (const childField of config.fields) {
+        if (childField.dependsOn?.fieldKey === field.key) {
+          next[childField.key] = null;
+        }
+      }
+
+      for (const childField of config.fields) {
+        if (!isFieldVisible(childField, next)) {
+          next[childField.key] = null;
+        }
+      }
+
+      return next;
+    });
   }
 
   function cleanPayload(payload: RecordItem) {
     const cleaned: RecordItem = {};
 
     for (const field of config.fields) {
+      if (field.persist === false) {
+        continue;
+      }
+
       const value = payload[field.key];
 
       if (value !== undefined && value !== '') {
@@ -212,11 +286,14 @@ function ReferentialCrudContent({config}: {config: ResourceConfig}) {
           </div>
 
           <form onSubmit={submitForm} className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {config.fields.map((field) => (
+            {visibleFormFields.map((field) => (
               <FieldInput
                 key={field.key}
                 field={field}
                 value={form[field.key]}
+                form={form}
+                currentRecordId={editingId}
+                lookupOptions={lookupOptions}
                 onChange={(value) => setFieldValue(field, value)}
               />
             ))}
@@ -281,7 +358,7 @@ function ReferentialCrudContent({config}: {config: ResourceConfig}) {
                   <tr key={item.id} className="hover:bg-slate-50/70">
                     {visibleFields.map((field) => (
                       <td key={field} className="whitespace-nowrap px-4 py-3 text-slate-700">
-                        {formatValue(item[field])}
+                        {formatListValue(config, field, item[field], lookupOptions)}
                       </td>
                     ))}
 
@@ -330,25 +407,71 @@ function ReferentialCrudContent({config}: {config: ResourceConfig}) {
 function FieldInput({
   field,
   value,
+  form,
+  currentRecordId,
+  lookupOptions,
   onChange
 }: {
   field: ResourceField;
   value: any;
-  onChange: (value: string) => void;
+  form: RecordItem;
+  currentRecordId: string | null;
+  lookupOptions: LookupOptionsMap;
+  onChange: (value: string | string[]) => void;
 }) {
   const t = useTranslations('Referential');
 
   const inputClass =
     'mt-1 h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-800 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100';
 
+  const options = getFieldOptions(field, form, lookupOptions, currentRecordId);
+  const isSelectLike = field.type === 'select' || field.type === 'lookup';
+
+  if (field.type === 'multiselect') {
+    const selectedValues = Array.isArray(value) ? value : [];
+
+    return (
+      <label className="block">
+        <span className="text-sm font-medium text-slate-700">
+          {getInputLabel(field, form, t)}
+          {field.required ? <span className="text-red-600"> *</span> : null}
+        </span>
+
+        <select
+          multiple
+          value={selectedValues}
+          required={field.required}
+          onChange={(event) => {
+            const nextValues = Array.from(event.target.selectedOptions).map(
+              (option) => option.value
+            );
+
+            onChange(nextValues);
+          }}
+          className="mt-1 min-h-[110px] w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+        >
+          {options.map((option) => (
+            <option key={option.value} value={option.value}>
+              {getOptionLabel(option, t)}
+            </option>
+          ))}
+        </select>
+
+        <p className="mt-1 text-xs text-slate-400">
+          {t('messages.multiSelectHelp')}
+        </p>
+      </label>
+    );
+  }
+
   return (
     <label className="block">
       <span className="text-sm font-medium text-slate-700">
-        {t(field.labelKey)}
+        {getInputLabel(field, form, t)}
         {field.required ? <span className="text-red-600"> *</span> : null}
       </span>
 
-      {field.type === 'select' ? (
+      {isSelectLike ? (
         <select
           value={value ?? ''}
           required={field.required}
@@ -356,9 +479,9 @@ function FieldInput({
           className={inputClass}
         >
           <option value="">{t('actions.select')}</option>
-          {field.options?.map((option) => (
+          {options.map((option) => (
             <option key={option.value} value={option.value}>
-              {t(option.labelKey)}
+              {getOptionLabel(option, t)}
             </option>
           ))}
         </select>
@@ -375,6 +498,137 @@ function FieldInput({
   );
 }
 
+function isFieldVisible(field: ResourceField, form: RecordItem) {
+  if (!field.visibleWhen) {
+    return true;
+  }
+
+  const parentValue = form[field.visibleWhen.fieldKey];
+
+  if (!parentValue) {
+    return false;
+  }
+
+  return field.visibleWhen.values.includes(String(parentValue));
+}
+
+function getInputLabel(
+  field: ResourceField,
+  form: RecordItem,
+  t: ReturnType<typeof useTranslations>
+) {
+  if (field.labelKeyByValue) {
+    const parentValue = form[field.labelKeyByValue.fieldKey];
+
+    if (parentValue) {
+      const dynamicLabelKey = field.labelKeyByValue.labelsByValue[String(parentValue)];
+
+      if (dynamicLabelKey) {
+        return t(dynamicLabelKey);
+      }
+    }
+  }
+
+  return t(field.labelKey);
+}
+
+function getFieldOptions(
+  field: ResourceField,
+  form: RecordItem,
+  lookupOptions: LookupOptionsMap,
+  currentRecordId: string | null
+) {
+  if (field.type === 'lookup') {
+    const options = lookupOptions[field.key] || [];
+
+    if (!field.lookup?.excludeCurrentRecord || !currentRecordId) {
+      return options;
+    }
+
+    return options.filter((option) => option.value !== currentRecordId);
+  }
+
+  if (field.dependsOn) {
+    const parentValue = form[field.dependsOn.fieldKey];
+
+    if (!parentValue) return [];
+
+    return field.dependsOn.optionsByValue[String(parentValue)] || [];
+  }
+
+  return field.options || [];
+}
+
+function getOptionLabel(
+  option: ResourceOption,
+  t: ReturnType<typeof useTranslations>
+) {
+  if (option.labelKey.startsWith('options.')) {
+    return t(option.labelKey);
+  }
+
+  return option.labelKey;
+}
+
+function normalizeApiRows(data: unknown): RecordItem[] {
+  if (Array.isArray(data)) {
+    return data;
+  }
+
+  if (!data || typeof data !== 'object') {
+    return [];
+  }
+
+  const payload = data as Record<string, unknown>;
+
+  if (Array.isArray(payload.data)) {
+    return payload.data as RecordItem[];
+  }
+
+  if (Array.isArray(payload.items)) {
+    return payload.items as RecordItem[];
+  }
+
+  if (Array.isArray(payload.results)) {
+    return payload.results as RecordItem[];
+  }
+
+  if (Array.isArray(payload.records)) {
+    return payload.records as RecordItem[];
+  }
+
+  return [];
+}
+
+function buildLookupLabel(row: RecordItem, labelKeys: string[]) {
+  return labelKeys
+    .map((key) => row[key])
+    .filter((value) => value !== null && value !== undefined && value !== '')
+    .join(' · ');
+}
+
+function filterRowsByScope(
+  rows: RecordItem[],
+  field: ResourceField,
+  user: AuthUser | null
+) {
+  const scopeEntityType = field.lookup?.scopeEntityType;
+
+  if (!scopeEntityType || !user?.scopes?.length) {
+    return rows;
+  }
+
+  const allowedIds = user.scopes
+    .filter((scope) => scope.entityType === scopeEntityType)
+    .map((scope) => scope.entityId);
+
+  if (allowedIds.length === 0) {
+    return rows;
+  }
+
+  return rows.filter((row) => allowedIds.includes(String(row.id)));
+}
+
 function getFieldLabel(
   config: ResourceConfig,
   key: string,
@@ -387,8 +641,33 @@ function getFieldLabel(
   return t(field.labelKey);
 }
 
+function formatListValue(
+  config: ResourceConfig,
+  fieldKey: string,
+  value: any,
+  lookupOptions: LookupOptionsMap
+) {
+  const field = config.fields.find((item) => item.key === fieldKey);
+
+  if (field?.type === 'lookup') {
+    const option = lookupOptions[fieldKey]?.find(
+      (item) => item.value === String(value)
+    );
+
+    if (option) {
+      return option.labelKey;
+    }
+  }
+
+  return formatValue(value);
+}
+
 function formatValue(value: any) {
   if (value === null || value === undefined || value === '') return '-';
+
+  if (Array.isArray(value)) {
+    return value.length ? value.join(', ') : '-';
+  }
 
   if (typeof value === 'object') {
     return JSON.stringify(value);

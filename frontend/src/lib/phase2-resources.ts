@@ -1,4 +1,6 @@
-export type FieldType = 'text' | 'number' | 'select';
+import {cityOptionsByRegion, countryOptions, regionOptionsByCountry} from '@/lib/geo-options';
+
+export type FieldType = 'text' | 'number' | 'select' | 'lookup' | 'multiselect';
 
 export type ResourceOption = {
   labelKey: string;
@@ -10,7 +12,19 @@ export type ResourceField = {
   labelKey: string;
   type: FieldType;
   required?: boolean;
+  persist?: boolean;
   options?: ResourceOption[];
+  lookup?: {
+    endpoint: string;
+    valueKey: string;
+    labelKeys: string[];
+    scopeEntityType?: string;
+    excludeCurrentRecord?: boolean;
+  };
+  dependsOn?: {
+    fieldKey: string;
+    optionsByValue: Record<string, ResourceOption[]>;
+  };
 };
 
 export type ResourceConfig = {
@@ -37,6 +51,21 @@ const cultureOptions = [
   {labelKey: 'options.culture.OTHER', value: 'OTHER'}
 ];
 
+const stationFeatureOptions = [
+  {
+    labelKey: 'options.stationFeature.SORTING_CALIBRATION',
+    value: 'SORTING_CALIBRATION'
+  },
+  {
+    labelKey: 'options.stationFeature.PACKAGING',
+    value: 'PACKAGING'
+  },
+  {
+    labelKey: 'options.stationFeature.FREEZING',
+    value: 'FREEZING'
+  }
+];
+
 export const phase2Resources: Record<string, ResourceConfig> = {
   groups: {
     module: 'groups',
@@ -55,60 +84,237 @@ export const phase2Resources: Record<string, ResourceConfig> = {
     titleKey: 'resources.companies.title',
     descriptionKey: 'resources.companies.description',
     endpoint: '/companies',
-    listFields: ['name', 'code', 'city', 'region', 'status'],
+    listFields: ['name', 'code', 'country', 'region', 'city', 'status'],
     fields: [
-      {key: 'group_id', labelKey: 'fields.groupId', type: 'text', required: true},
-      {key: 'parent_id', labelKey: 'fields.parentCompanyId', type: 'text'},
+      {
+        key: 'group_id',
+        labelKey: 'fields.groupId',
+        type: 'lookup',
+        required: true,
+        lookup: {
+          endpoint: '/groups',
+          valueKey: 'id',
+          labelKeys: ['name'],
+          scopeEntityType: 'GROUP'
+        }
+      },
+      {
+        key: 'parent_id',
+        labelKey: 'fields.parentCompanyId',
+        type: 'lookup',
+        lookup: {
+          endpoint: '/companies',
+          valueKey: 'id',
+          labelKeys: ['name', 'code'],
+          scopeEntityType: 'COMPANY',
+          excludeCurrentRecord: true
+        }
+      },
+
       {key: 'name', labelKey: 'fields.name', type: 'text', required: true},
       {key: 'legal_name', labelKey: 'fields.legalName', type: 'text'},
-      {key: 'code', labelKey: 'fields.code', type: 'text'},
-      {key: 'ice', labelKey: 'fields.ice', type: 'text'},
-      {key: 'tax_id', labelKey: 'fields.taxId', type: 'text'},
-      {key: 'rc', labelKey: 'fields.rc', type: 'text'},
-      {key: 'cnss', labelKey: 'fields.cnss', type: 'text'},
-      {key: 'patente', labelKey: 'fields.patente', type: 'text'},
+      {key: 'code', labelKey: 'fields.codeInternal', type: 'text'},
+
+      {
+        key: 'country',
+        labelKey: 'fields.country',
+        type: 'select',
+        options: countryOptions,
+        required: true
+      },
+
+      {
+        key: 'ice',
+        labelKey: 'fields.ice',
+        type: 'text',
+        visibleWhen: {
+          fieldKey: 'country',
+          values: ['Maroc']
+        },
+        labelKeyByValue: {
+          fieldKey: 'country',
+          labelsByValue: {
+            Maroc: 'fields.iceMorocco'
+          }
+        }
+      },
+      {
+        key: 'tax_id',
+        labelKey: 'fields.taxId',
+        type: 'text',
+        visibleWhen: {
+          fieldKey: 'country',
+          values: ['Maroc', 'Espagne']
+        },
+        labelKeyByValue: {
+          fieldKey: 'country',
+          labelsByValue: {
+            Maroc: 'fields.taxIdMorocco',
+            Espagne: 'fields.taxIdSpain'
+          }
+        }
+      },
+      {
+        key: 'rc',
+        labelKey: 'fields.rc',
+        type: 'text',
+        visibleWhen: {
+          fieldKey: 'country',
+          values: ['Maroc', 'Espagne']
+        },
+        labelKeyByValue: {
+          fieldKey: 'country',
+          labelsByValue: {
+            Maroc: 'fields.rcMorocco',
+            Espagne: 'fields.rcSpain'
+          }
+        }
+      },
+      {
+        key: 'cnss',
+        labelKey: 'fields.cnss',
+        type: 'text',
+        visibleWhen: {
+          fieldKey: 'country',
+          values: ['Maroc', 'Espagne']
+        },
+        labelKeyByValue: {
+          fieldKey: 'country',
+          labelsByValue: {
+            Maroc: 'fields.cnssMorocco',
+            Espagne: 'fields.socialSecuritySpain'
+          }
+        }
+      },
+      {
+        key: 'patente',
+        labelKey: 'fields.patente',
+        type: 'text',
+        visibleWhen: {
+          fieldKey: 'country',
+          values: ['Maroc', 'Espagne']
+        },
+        labelKeyByValue: {
+          fieldKey: 'country',
+          labelsByValue: {
+            Maroc: 'fields.patenteMorocco',
+            Espagne: 'fields.iaeSpain'
+          }
+        }
+      },
+
       {key: 'address', labelKey: 'fields.address', type: 'text'},
-      {key: 'city', labelKey: 'fields.city', type: 'text'},
-      {key: 'region', labelKey: 'fields.region', type: 'text'},
-      {key: 'country', labelKey: 'fields.country', type: 'text'},
+
+      {
+        key: 'region',
+        labelKey: 'fields.region',
+        type: 'select',
+        dependsOn: {
+          fieldKey: 'country',
+          optionsByValue: regionOptionsByCountry
+        }
+      },
+      {
+        key: 'city',
+        labelKey: 'fields.city',
+        type: 'select',
+        dependsOn: {
+          fieldKey: 'region',
+          optionsByValue: cityOptionsByRegion
+        }
+      },
+
       {key: 'latitude', labelKey: 'fields.latitude', type: 'number'},
       {key: 'longitude', labelKey: 'fields.longitude', type: 'number'},
-      {key: 'responsible_id', labelKey: 'fields.responsibleId', type: 'text'},
+      {
+        key: 'responsible_id',
+        labelKey: 'fields.responsibleId',
+        type: 'lookup',
+        lookup: {
+          endpoint: '/users',
+          valueKey: 'id',
+          labelKeys: ['firstName', 'lastName', 'email']
+        }
+      },
       {key: 'status', labelKey: 'fields.status', type: 'select', options: statusOptions}
     ]
   },
 
-  farms: {
-    module: 'farms',
-    titleKey: 'resources.farms.title',
-    descriptionKey: 'resources.farms.description',
-    endpoint: '/farms',
-    listFields: ['name', 'code', 'category', 'city', 'surface_ha', 'status'],
-    fields: [
-      {key: 'company_id', labelKey: 'fields.companyId', type: 'text', required: true},
-      {key: 'name', labelKey: 'fields.name', type: 'text', required: true},
-      {key: 'code', labelKey: 'fields.code', type: 'text'},
-      {
-        key: 'category',
-        labelKey: 'fields.category',
-        type: 'select',
-        options: [
-          {labelKey: 'options.farmCategory.OWNED', value: 'OWNED'},
-          {labelKey: 'options.farmCategory.TPG', value: 'TPG'},
-          {labelKey: 'options.farmCategory.THIRD_PARTY', value: 'THIRD_PARTY'}
-        ]
-      },
-      {key: 'address', labelKey: 'fields.address', type: 'text'},
-      {key: 'city', labelKey: 'fields.city', type: 'text'},
-      {key: 'region', labelKey: 'fields.region', type: 'text'},
-      {key: 'latitude', labelKey: 'fields.latitude', type: 'number'},
-      {key: 'longitude', labelKey: 'fields.longitude', type: 'number'},
-      {key: 'surface_ha', labelKey: 'fields.surfaceHa', type: 'number'},
-      {key: 'rent_monthly', labelKey: 'fields.rentMonthly', type: 'number'},
-      {key: 'responsible_id', labelKey: 'fields.responsibleId', type: 'text'},
-      {key: 'status', labelKey: 'fields.status', type: 'select', options: statusOptions}
-    ]
-  },
+ farms: {
+  module: 'farms',
+  titleKey: 'resources.farms.title',
+  descriptionKey: 'resources.farms.description',
+  endpoint: '/farms',
+  listFields: ['name', 'code', 'company_id', 'region', 'city', 'surface_ha', 'status'],
+  fields: [
+    {
+      key: 'company_id',
+      labelKey: 'fields.companyId',
+      type: 'lookup',
+      required: true,
+      lookup: {
+        endpoint: '/companies',
+        valueKey: 'id',
+        labelKeys: ['name', 'code'],
+        scopeEntityType: 'COMPANY'
+      }
+    },
+    {key: 'name', labelKey: 'fields.name', type: 'text', required: true},
+    {key: 'code', labelKey: 'fields.code', type: 'text'},
+    {
+      key: 'category',
+      labelKey: 'fields.category',
+      type: 'select',
+      options: [
+        {labelKey: 'options.farmCategory.OWNED', value: 'OWNED'},
+        {labelKey: 'options.farmCategory.TPG', value: 'TPG'},
+        {labelKey: 'options.farmCategory.THIRD_PARTY', value: 'THIRD_PARTY'}
+      ]
+    },
+    {key: 'address', labelKey: 'fields.address', type: 'text'},
+{
+  key: 'country',
+  labelKey: 'fields.country',
+  type: 'select',
+  options: countryOptions,
+  required: true,
+  persist: false
+},
+    {
+      key: 'region',
+      labelKey: 'fields.region',
+      type: 'select',
+      dependsOn: {
+        fieldKey: 'country',
+        optionsByValue: regionOptionsByCountry
+      }
+    },
+    {
+      key: 'city',
+      labelKey: 'fields.city',
+      type: 'select',
+      dependsOn: {
+        fieldKey: 'region',
+        optionsByValue: cityOptionsByRegion
+      }
+    },
+    {key: 'latitude', labelKey: 'fields.latitude', type: 'number'},
+    {key: 'longitude', labelKey: 'fields.longitude', type: 'number'},
+    {key: 'surface_ha', labelKey: 'fields.surfaceHa', type: 'number'},
+    {key: 'rent_monthly', labelKey: 'fields.rentMonthly', type: 'number'},
+    {
+      key: 'responsible_id',
+      labelKey: 'fields.responsibleId',
+      type: 'lookup',
+      lookup: {
+        endpoint: '/users',
+        valueKey: 'id',
+        labelKeys: ['firstName', 'lastName', 'email']
+      }
+    },
+    {key: 'status', labelKey: 'fields.status', type: 'select', options: statusOptions}
+  ]
+},
 
   plots: {
     module: 'plots',
@@ -165,7 +371,7 @@ export const phase2Resources: Record<string, ResourceConfig> = {
     titleKey: 'resources.stations.title',
     descriptionKey: 'resources.stations.description',
     endpoint: '/stations',
-    listFields: ['name', 'code', 'daily_capacity_kg', 'location', 'status'],
+    listFields: ['name', 'code', 'daily_capacity_kg', 'location', 'features', 'status'],
     fields: [
       {key: 'company_id', labelKey: 'fields.companyId', type: 'text'},
       {key: 'factory_id', labelKey: 'fields.factoryId', type: 'text'},
@@ -175,6 +381,12 @@ export const phase2Resources: Record<string, ResourceConfig> = {
       {key: 'location', labelKey: 'fields.location', type: 'text'},
       {key: 'latitude', labelKey: 'fields.latitude', type: 'number'},
       {key: 'longitude', labelKey: 'fields.longitude', type: 'number'},
+      {
+        key: 'features',
+        labelKey: 'fields.features',
+        type: 'multiselect',
+        options: stationFeatureOptions
+      },
       {key: 'status', labelKey: 'fields.status', type: 'select', options: statusOptions}
     ]
   },

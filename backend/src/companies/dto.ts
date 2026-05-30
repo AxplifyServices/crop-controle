@@ -72,6 +72,22 @@ export class CreateCompaniesDto {
   @IsOptional()
   @Allow()
   status?: any;
+
+  @IsOptional()
+  @Allow()
+  country_id?: any;
+
+  @IsOptional()
+  @Allow()
+  region_id?: any;
+
+  @IsOptional()
+  @Allow()
+  city_id?: any;
+
+  @IsOptional()
+  @Allow()
+  legal_identifiers?: any;
 }
 
 export class UpdateCompaniesDto {
@@ -146,4 +162,20 @@ export class UpdateCompaniesDto {
   @IsOptional()
   @Allow()
   status?: any;
+
+  @IsOptional()
+  @Allow()
+  country_id?: any;
+
+  @IsOptional()
+  @Allow()
+  region_id?: any;
+
+  @IsOptional()
+  @Allow()
+  city_id?: any;
+
+  @IsOptional()
+  @Allow()
+  legal_identifiers?: any;
 }

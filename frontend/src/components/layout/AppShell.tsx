@@ -1,10 +1,12 @@
 'use client';
 
 import {useState} from 'react';
+import {usePathname} from '@/i18n/navigation';
 import {Sidebar} from './Sidebar';
 import {Topbar} from './Topbar';
 
 export function AppShell({children}: {children: React.ReactNode}) {
+  const pathname = usePathname();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
@@ -23,7 +25,11 @@ export function AppShell({children}: {children: React.ReactNode}) {
           onToggleMobileSidebar={() => setMobileSidebarOpen((value) => !value)}
         />
 
-        <main className="p-5 lg:p-7">{children}</main>
+        <main className="p-5 lg:p-7">
+          <div key={pathname} className="page-switch">
+            {children}
+          </div>
+        </main>
       </div>
     </div>
   );

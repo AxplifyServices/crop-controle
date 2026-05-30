@@ -142,42 +142,49 @@ model clients {
 }
 
 model companies {
-  id              String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  group_id        String              @db.Uuid
-  parent_id       String?             @db.Uuid
-  name            String              @db.VarChar(150)
-  legal_name      String?             @db.VarChar(200)
-  code            String?             @unique @db.VarChar(50)
-  ice             String?             @db.VarChar(50)
-  tax_id          String?             @db.VarChar(50)
-  rc              String?             @db.VarChar(50)
-  cnss            String?             @db.VarChar(50)
-  patente         String?             @db.VarChar(50)
-  address         String?
-  city            String?             @db.VarChar(100)
-  region          String?             @db.VarChar(100)
-  country         String?             @default("Maroc") @db.VarChar(100)
-  latitude        Decimal?            @db.Decimal(10, 7)
-  longitude       Decimal?            @db.Decimal(10, 7)
-  responsible_id  String?             @db.Uuid
-  status          company_status_enum @default(ACTIVE)
-  created_at      DateTime            @default(now()) @db.Timestamp(6)
-  updated_at      DateTime            @default(now()) @db.Timestamp(6)
-  deleted_at      DateTime?           @db.Timestamp(6)
-  charges         charges[]
-  groups          groups              @relation(fields: [group_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_companies_group")
-  companies       companies?          @relation("companiesTocompanies", fields: [parent_id], references: [id], onUpdate: NoAction, map: "fk_companies_parent")
-  other_companies companies[]         @relation("companiesTocompanies")
-  users           users?              @relation(fields: [responsible_id], references: [id], onUpdate: NoAction, map: "fk_companies_responsible")
-  factories       factories[]
-  farms           farms[]
-  personnel       personnel[]
-  stations        stations[]
-  vehicles        vehicles[]
+  id                        String                      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  group_id                  String                      @db.Uuid
+  parent_id                 String?                     @db.Uuid
+  name                      String                      @db.VarChar(150)
+  legal_name                String?                     @db.VarChar(200)
+  code                      String?                     @unique @db.VarChar(50)
+  ice                       String?                     @db.VarChar(50)
+  tax_id                    String?                     @db.VarChar(50)
+  rc                        String?                     @db.VarChar(50)
+  cnss                      String?                     @db.VarChar(50)
+  patente                   String?                     @db.VarChar(50)
+  address                   String?
+  city                      String?                     @db.VarChar(100)
+  region                    String?                     @db.VarChar(100)
+  country                   String?                     @default("Maroc") @db.VarChar(100)
+  latitude                  Decimal?                    @db.Decimal(10, 7)
+  longitude                 Decimal?                    @db.Decimal(10, 7)
+  responsible_id            String?                     @db.Uuid
+  status                    company_status_enum         @default(ACTIVE)
+  created_at                DateTime                    @default(now()) @db.Timestamp(6)
+  updated_at                DateTime                    @default(now()) @db.Timestamp(6)
+  deleted_at                DateTime?                   @db.Timestamp(6)
+  country_id                String?                     @db.VarChar(20)
+  region_id                 String?                     @db.VarChar(50)
+  city_id                   String?                     @db.VarChar(80)
+  charges                   charges[]
+  groups                    groups                      @relation(fields: [group_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_companies_group")
+  companies                 companies?                  @relation("companiesTocompanies", fields: [parent_id], references: [id], onUpdate: NoAction, map: "fk_companies_parent")
+  other_companies           companies[]                 @relation("companiesTocompanies")
+  users                     users?                      @relation(fields: [responsible_id], references: [id], onUpdate: NoAction, map: "fk_companies_responsible")
+  company_legal_identifiers company_legal_identifiers[]
+  factories                 factories[]
+  farms                     farms[]
+  personnel                 personnel[]
+  stations                  stations[]
+  vehicles                  vehicles[]
 
   @@index([group_id], map: "idx_companies_group_id")
   @@index([parent_id], map: "idx_companies_parent_id")
   @@index([status], map: "idx_companies_status")
+  @@index([city_id], map: "idx_companies_city_id")
+  @@index([country_id], map: "idx_companies_country_id")
+  @@index([region_id], map: "idx_companies_region_id")
 }
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
@@ -977,6 +984,7 @@ model stations {
   created_at            DateTime                @default(now()) @db.Timestamp(6)
   updated_at            DateTime                @default(now()) @db.Timestamp(6)
   deleted_at            DateTime?               @db.Timestamp(6)
+  features              String[]                @default([])
   conditioning_sessions conditioning_sessions[]
   lots                  lots[]
   personnel             personnel[]
@@ -987,6 +995,7 @@ model stations {
 
   @@index([company_id], map: "idx_stations_company_id")
   @@index([factory_id], map: "idx_stations_factory_id")
+  @@index([features], map: "idx_stations_features", type: Gin)
 }
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
@@ -1205,6 +1214,72 @@ model vehicles {
   deleted_at          DateTime?          @db.Timestamp(6)
   transports          transports[]
   companies           companies?         @relation(fields: [company_id], references: [id], onUpdate: NoAction, map: "fk_vehicles_company")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model geography_locations {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  country_id   String
+  country_code String
+  country_name String
+  region_id    String
+  region_code  String
+  region_name  String
+  city_id      String
+  city_name    String
+  is_active    Boolean  @default(true)
+  created_at   DateTime @default(now()) @db.Timestamptz(6)
+  updated_at   DateTime @default(now()) @db.Timestamptz(6)
+
+  @@unique([country_id, region_id, city_id], map: "geography_locations_unique_city")
+  @@index([city_name], map: "idx_geography_locations_city")
+  @@index([country_id], map: "idx_geography_locations_country")
+  @@index([country_id, region_id], map: "idx_geography_locations_region")
+  @@index([city_id], map: "idx_geography_locations_city_id")
+  @@index([country_code], map: "idx_geography_locations_country_code")
+  @@index([region_code], map: "idx_geography_locations_region_code")
+}
+
+model company_legal_identifiers {
+  id                             String                         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  company_id                     String                         @db.Uuid
+  country_code                   String                         @db.VarChar(10)
+  identifier_type                String                         @db.VarChar(80)
+  identifier_value               String?                        @db.VarChar(200)
+  created_at                     DateTime                       @default(now()) @db.Timestamp(6)
+  updated_at                     DateTime                       @default(now()) @db.Timestamp(6)
+  companies                      companies                      @relation(fields: [company_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_company_legal_identifiers_company")
+  country_legal_identifier_types country_legal_identifier_types @relation(fields: [country_code, identifier_type], references: [country_code, identifier_type], onUpdate: NoAction, map: "fk_company_legal_identifiers_type")
+
+  @@unique([company_id, country_code, identifier_type], map: "uq_company_legal_identifier")
+  @@index([company_id], map: "idx_company_legal_identifiers_company_id")
+  @@index([country_code, identifier_type], map: "idx_company_legal_identifiers_country_type")
+}
+
+model country_legal_identifier_types {
+  id                        String                      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  country_code              String                      @db.VarChar(10)
+  identifier_type           String                      @db.VarChar(80)
+  label_fr                  String                      @db.VarChar(150)
+  label_en                  String                      @db.VarChar(150)
+  label_es                  String                      @db.VarChar(150)
+  placeholder_fr            String?                     @db.VarChar(200)
+  placeholder_en            String?                     @db.VarChar(200)
+  placeholder_es            String?                     @db.VarChar(200)
+  description_fr            String?
+  description_en            String?
+  description_es            String?
+  is_required               Boolean                     @default(false)
+  display_order             Int                         @default(0)
+  validation_regex          String?
+  is_active                 Boolean                     @default(true)
+  created_at                DateTime                    @default(now()) @db.Timestamp(6)
+  updated_at                DateTime                    @default(now()) @db.Timestamp(6)
+  company_legal_identifiers company_legal_identifiers[]
+
+  @@unique([country_code, identifier_type], map: "uq_country_legal_identifier_type")
+  @@index([is_active], map: "idx_country_legal_identifier_types_active")
+  @@index([country_code], map: "idx_country_legal_identifier_types_country_code")
 }
 
 enum alert_level_enum {

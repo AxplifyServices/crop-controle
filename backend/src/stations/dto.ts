@@ -35,6 +35,10 @@ export class CreateStationsDto {
 
   @IsOptional()
   @Allow()
+  features?: any;
+
+  @IsOptional()
+  @Allow()
   status?: any;
 }
 
@@ -70,6 +74,10 @@ export class UpdateStationsDto {
   @IsOptional()
   @Allow()
   longitude?: any;
+
+  @IsOptional()
+  @Allow()
+  features?: any;
 
   @IsOptional()
   @Allow()

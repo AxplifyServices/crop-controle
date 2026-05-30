@@ -36,3 +36,25 @@ textarea::placeholder {
   color: #64748b;
   opacity: 0.9;
 }
+
+@keyframes pageSwitchIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.page-switch {
+  animation: pageSwitchIn 160ms ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-switch {
+    animation: none;
+  }
+}

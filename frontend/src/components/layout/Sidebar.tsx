@@ -284,10 +284,15 @@ function SidebarGroup({
   const activeByHref = group.href ? pathname === group.href : false;
 
   const activeByChildren =
-    group.items?.some((item) => item.href !== '/dashboard' && pathname === item.href) ||
-    false;
+    group.items?.some(
+      (item) =>
+        item.href !== '/dashboard' &&
+        (pathname === item.href || pathname.endsWith(item.href))
+    ) || false;
 
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(() => activeByChildren);
+
+  const isOpen = open;
 
   if (!hasChildren && group.href) {
     return (
@@ -336,18 +341,20 @@ function SidebarGroup({
             <ChevronRight
               size={16}
               className={`shrink-0 transition-transform ${
-                open ? 'rotate-90' : ''
+                isOpen ? 'rotate-90' : ''
               }`}
             />
           </>
         ) : null}
       </button>
 
-      {!collapsed && open ? (
+      {!collapsed && isOpen ? (
         <div className="ml-[21px] border-l border-slate-200 py-1 pl-5">
           <div className="space-y-1">
             {group.items?.map((item) => {
-              const active = item.href !== '/dashboard' && pathname === item.href;
+              const active =
+                item.href !== '/dashboard' &&
+                (pathname === item.href || pathname.endsWith(item.href));
 
               return (
                 <Link

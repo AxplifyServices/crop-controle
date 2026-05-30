@@ -15,6 +15,8 @@ import { ProductsModule } from './products/products.module';
 import { ProductVarietiesModule } from './product-varieties/product-varieties.module';
 import { VehiclesModule } from './vehicles/vehicles.module';
 import { PersonnelModule } from './personnel/personnel.module';
+import { GeographyModule } from './geography/geography.module';
+import { LegalIdentifierTypesModule } from './legal-identifier-types/legal-identifier-types.module';
 
 @Module({
   imports: [
@@ -36,6 +38,8 @@ import { PersonnelModule } from './personnel/personnel.module';
     ProductVarietiesModule,
     VehiclesModule,
     PersonnelModule,
+    GeographyModule,
+    LegalIdentifierTypesModule,
   ],
 })
 export class AppModule {}
