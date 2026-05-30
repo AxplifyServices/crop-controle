@@ -60,13 +60,15 @@ export class PermissionsGuard implements CanActivate {
     }
 
     const permissionCount = await (this.prisma as any).role_permissions.count({
-      where: {
+    where: {
         role_id: user.role_id,
         permissions: {
-          module: requiredPermission.module,
-          action: requiredPermission.action,
+        is: {
+            module: requiredPermission.module,
+            action: requiredPermission.action,
         },
-      },
+        },
+    },
     });
 
     if (permissionCount === 0) {
