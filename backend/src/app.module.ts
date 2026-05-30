@@ -17,6 +17,7 @@ import { VehiclesModule } from './vehicles/vehicles.module';
 import { PersonnelModule } from './personnel/personnel.module';
 import { GeographyModule } from './geography/geography.module';
 import { LegalIdentifierTypesModule } from './legal-identifier-types/legal-identifier-types.module';
+import { CulturesModule } from './cultures/cultures.module';
 
 @Module({
   imports: [
@@ -40,6 +41,7 @@ import { LegalIdentifierTypesModule } from './legal-identifier-types/legal-ident
     PersonnelModule,
     GeographyModule,
     LegalIdentifierTypesModule,
+    CulturesModule,
   ],
 })
 export class AppModule {}

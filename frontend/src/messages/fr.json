@@ -43,6 +43,7 @@
     "roles": "Rôles",
     "settings": "Paramètres",
     "stations": "Stations UC",
+    "cultures": "Cultures",
     "productVarieties": "Variétés",
     "vehicles": "Véhicules",
     "personnel": "Personnel"
@@ -83,11 +84,16 @@
       "info": "Infos",
 "close": "Fermer"
     },
-    "sections": {
+"sections": {
   "active": "Actifs",
   "inactive": "Inactifs",
   "archived": "Archivés",
-  "other": "Autres"
+  "other": "Autres",
+  "plotProduction": "Production",
+  "plotYoung": "Jeunes",
+  "plotResting": "Repos",
+  "plotFallow": "En friche",
+  "plotArchived": "Archivées"
 },
 "details": {
   "mainInfo": "Informations principales",
@@ -133,6 +139,10 @@
         "title": "Stations UC",
         "description": "Stations et unités de conditionnement."
       },
+      "cultures": {
+  "title": "Cultures",
+  "description": "Cultures agricoles personnalisables utilisées pour structurer les produits."
+},
       "products": {
         "title": "Produits",
         "description": "Produits agricoles suivis dans la plateforme."
@@ -161,6 +171,8 @@
       "stationId": "Station",
       "productId": "Produit",
       "userId": "Utilisateur",
+      "cultureId": "Culture",
+"varietyId": "Variété",
 "legalName": "Raison sociale",
 "code": "Code",
 "codeInternal": "Code interne",
@@ -211,6 +223,32 @@
   "ACTIVE": "Actif",
   "INACTIVE": "Inactif",
   "ARCHIVED": "Archivé"
+},
+"contractType": {
+  "PERMANENT": "CDI",
+  "FIXED_TERM": "CDD",
+  "SEASONAL": "Saisonnier",
+  "TEMPORARY": "Intérim",
+  "INTERNSHIP": "Stage",
+  "SERVICE_PROVIDER": "Prestataire",
+  "OTHER": "Autre"
+},
+"defaultUnit": {
+  "KG": "Kilogramme",
+  "TON": "Tonne",
+  "G": "Gramme",
+  "UNIT": "Unité",
+  "BOX": "Caisse",
+  "PALLET": "Palette",
+  "LITER": "Litre"
+},
+"acquisitionMode": {
+  "OWNED": "Propriété",
+  "LEASED": "Leasing",
+  "RENTED": "Location",
+  "CREDIT": "Crédit",
+  "SUBCONTRACTED": "Sous-traitance",
+  "OTHER": "Autre"
 },
 "stationFeature": {
   "SORTING_CALIBRATION": "Tri et calibrage",
@@ -406,12 +444,13 @@
         "TPG": "TPG",
         "THIRD_PARTY": "Tiers"
       },
-      "plotStatus": {
-        "PRODUCTION": "Production",
-        "YOUNG": "Jeune",
-        "RESTING": "Repos",
-        "ABANDONED": "En friche"
-      },
+"plotStatus": {
+  "PRODUCTION": "Production",
+  "JEUNE": "Jeune",
+  "REPOS": "Repos",
+  "EN_FRICHE": "En friche",
+  "ARCHIVED": "Archivée"
+},
       "vehicleType": {
         "REFRIGERATED": "Frigorifique",
         "UTILITY": "Utilitaire",

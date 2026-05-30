@@ -11,6 +11,10 @@ export class CreateProductsDto {
 
   @IsOptional()
   @Allow()
+  culture_id?: any;
+
+  @IsOptional()
+  @Allow()
   culture?: any;
 
   @IsOptional()
@@ -34,6 +38,10 @@ export class UpdateProductsDto {
   @IsOptional()
   @Allow()
   code?: any;
+
+  @IsOptional()
+  @Allow()
+  culture_id?: any;
 
   @IsOptional()
   @Allow()

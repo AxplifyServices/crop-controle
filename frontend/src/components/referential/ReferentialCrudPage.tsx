@@ -45,28 +45,49 @@ function ReferentialCrudContent({config}: {config: ResourceConfig}) {
     [config.fields, form]
   );
 
-  const activeItems = useMemo(
-    () => items.filter((item) => normalizeStatus(item.status) === 'ACTIVE'),
-    [items]
+  const defaultStatusSections = useMemo(
+    () => [
+      {
+        titleKey: 'sections.active',
+        values: ['ACTIVE'],
+        defaultOpen: true
+      },
+      {
+        titleKey: 'sections.inactive',
+        values: ['INACTIVE'],
+        defaultOpen: false
+      },
+      {
+        titleKey: 'sections.archived',
+        values: ['ARCHIVED'],
+        defaultOpen: false
+      }
+    ],
+    []
   );
 
-  const inactiveItems = useMemo(
-    () => items.filter((item) => normalizeStatus(item.status) === 'INACTIVE'),
-    [items]
+  const statusSections = config.statusSections || defaultStatusSections;
+
+  const sectionGroups = useMemo(
+    () =>
+      statusSections.map((section) => ({
+        ...section,
+        items: items.filter((item) =>
+          section.values.includes(normalizeStatus(item.status))
+        )
+      })),
+    [items, statusSections]
   );
 
-  const archivedItems = useMemo(
-    () => items.filter((item) => normalizeStatus(item.status) === 'ARCHIVED'),
-    [items]
+  const sectionStatusValues = useMemo(
+    () => new Set(statusSections.flatMap((section) => section.values)),
+    [statusSections]
   );
 
   const otherItems = useMemo(
     () =>
-      items.filter((item) => {
-        const status = normalizeStatus(item.status);
-        return status !== 'ACTIVE' && status !== 'INACTIVE' && status !== 'ARCHIVED';
-      }),
-    [items]
+      items.filter((item) => !sectionStatusValues.has(normalizeStatus(item.status))),
+    [items, sectionStatusValues]
   );
 
   async function loadItems() {
@@ -105,7 +126,8 @@ function ReferentialCrudContent({config}: {config: ResourceConfig}) {
             .filter((row) => row[field.lookup!.valueKey] !== null && row[field.lookup!.valueKey] !== undefined)
             .map((row) => ({
               value: String(row[field.lookup!.valueKey]),
-              labelKey: buildLookupLabel(row, field.lookup!.labelKeys)
+              labelKey: buildLookupLabel(row, field.lookup!.labelKeys),
+              meta: row
             }));
         } catch (err) {
           nextLookups[field.key] = [];
@@ -204,9 +226,9 @@ function ReferentialCrudContent({config}: {config: ResourceConfig}) {
 
       const value = payload[field.key];
 
-      if (value !== undefined && value !== '') {
-        cleaned[field.key] = value;
-      }
+if (value !== undefined && value !== '' && value !== null) {
+  cleaned[field.key] = value;
+}
     }
 
     return cleaned;
@@ -356,51 +378,23 @@ function ReferentialCrudContent({config}: {config: ResourceConfig}) {
       ) : null}
 
       <div className="space-y-5">
-        <RecordsTable
-          title={t('sections.active')}
-          items={activeItems}
-          config={config}
-          visibleFields={visibleFields}
-          lookupOptions={lookupOptions}
-          loading={loading}
-          canUpdate={canUpdate}
-          canDelete={canDelete}
-          defaultOpen
-          onInfo={setInfoItem}
-          onEdit={startEdit}
-          onDelete={deleteItem}
-        />
-
-        <RecordsTable
-          title={t('sections.inactive')}
-          items={inactiveItems}
-          config={config}
-          visibleFields={visibleFields}
-          lookupOptions={lookupOptions}
-          loading={false}
-          canUpdate={canUpdate}
-          canDelete={canDelete}
-          defaultOpen={false}
-          onInfo={setInfoItem}
-          onEdit={startEdit}
-          onDelete={deleteItem}
-        />
-
-        <RecordsTable
-          title={t('sections.archived')}
-          items={archivedItems}
-          config={config}
-          visibleFields={visibleFields}
-          lookupOptions={lookupOptions}
-          loading={false}
-          canUpdate={canUpdate}
-          canDelete={canDelete}
-          defaultOpen={false}
-          onInfo={setInfoItem}
-          onEdit={startEdit}
-          onDelete={deleteItem}
-        />
-
+           {sectionGroups.map((section, index) => (
+          <RecordsTable
+            key={section.titleKey}
+            title={t(section.titleKey)}
+            items={section.items}
+            config={config}
+            visibleFields={visibleFields}
+            lookupOptions={lookupOptions}
+            loading={index === 0 ? loading : false}
+            canUpdate={canUpdate}
+            canDelete={canDelete}
+            defaultOpen={section.defaultOpen}
+            onInfo={setInfoItem}
+            onEdit={startEdit}
+            onDelete={deleteItem}
+          />
+        ))}
         {otherItems.length > 0 ? (
           <RecordsTable
             title={t('sections.other')}
@@ -674,37 +668,55 @@ function FieldInput({
   if (field.type === 'multiselect') {
     const selectedValues = Array.isArray(value) ? value : [];
 
+    function toggleValue(optionValue: string) {
+      if (selectedValues.includes(optionValue)) {
+        onChange(selectedValues.filter((item) => item !== optionValue));
+        return;
+      }
+
+      onChange([...selectedValues, optionValue]);
+    }
+
     return (
-      <label className="block">
+      <div className="block">
         <span className="text-sm font-medium text-slate-700">
           {getInputLabel(field, form, t)}
           {field.required ? <span className="text-red-600"> *</span> : null}
         </span>
 
-        <select
-          multiple
-          value={selectedValues}
-          required={field.required}
-          onChange={(event) => {
-            const nextValues = Array.from(event.target.selectedOptions).map(
-              (option) => option.value
+        <div className="mt-2 grid gap-2">
+          {options.map((option) => {
+            const checked = selectedValues.includes(option.value);
+
+            return (
+              <button
+                key={option.value}
+                type="button"
+                onClick={() => toggleValue(option.value)}
+                className={[
+                  'flex items-center justify-between rounded-xl border px-3 py-2 text-left text-sm transition',
+                  checked
+                    ? 'border-emerald-600 bg-emerald-50 text-emerald-800'
+                    : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
+                ].join(' ')}
+              >
+                <span>{getOptionLabel(option, t)}</span>
+
+                <span
+                  className={[
+                    'flex h-5 w-5 items-center justify-center rounded-full border text-xs font-bold',
+                    checked
+                      ? 'border-emerald-600 bg-emerald-600 text-white'
+                      : 'border-slate-300 text-transparent'
+                  ].join(' ')}
+                >
+                  ✓
+                </span>
+              </button>
             );
-
-            onChange(nextValues);
-          }}
-          className="mt-1 min-h-[110px] w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
-        >
-          {options.map((option) => (
-            <option key={option.value} value={option.value}>
-              {getOptionLabel(option, t)}
-            </option>
-          ))}
-        </select>
-
-        <p className="mt-1 text-xs text-slate-400">
-          {t('messages.multiSelectHelp')}
-        </p>
-      </label>
+          })}
+        </div>
+      </div>
     );
   }
 
@@ -834,13 +846,26 @@ function getFieldOptions(
   currentRecordId: string | null
 ) {
   if (field.type === 'lookup') {
-    const options = lookupOptions[field.key] || [];
+    let options = lookupOptions[field.key] || [];
 
-    if (!field.lookup?.excludeCurrentRecord || !currentRecordId) {
-      return options;
+    if (field.lookupFilter) {
+      const parentValue = form[field.lookupFilter.fieldKey];
+
+      if (!parentValue) {
+        return [];
+      }
+
+      options = options.filter(
+        (option) =>
+          String(option.meta?.[field.lookupFilter!.targetKey]) === String(parentValue)
+      );
     }
 
-    return options.filter((option) => option.value !== currentRecordId);
+    if (field.lookup?.excludeCurrentRecord && currentRecordId) {
+      options = options.filter((option) => option.value !== currentRecordId);
+    }
+
+    return options;
   }
 
   if (field.dependsOn) {

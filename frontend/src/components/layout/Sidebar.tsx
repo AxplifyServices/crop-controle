@@ -43,22 +43,23 @@ const menuGroups: MenuGroup[] = [
   {
     key: 'referential',
     icon: Building2,
-    items: [
-      {key: 'groups', href: '/referentiel/groups', module: 'groups'},
-      {key: 'companies', href: '/referentiel/companies', module: 'companies'},
-      {key: 'farms', href: '/referentiel/farms', module: 'farms'},
-      {key: 'plots', href: '/referentiel/plots', module: 'plots'},
-      {key: 'factories', href: '/referentiel/factories', module: 'factories'},
-      {key: 'stations', href: '/referentiel/stations', module: 'stations'},
-      {key: 'products', href: '/referentiel/products', module: 'products'},
-      {
-        key: 'productVarieties',
-        href: '/referentiel/product-varieties',
-        module: 'product-varieties'
-      },
-      {key: 'vehicles', href: '/referentiel/vehicles', module: 'vehicles'},
-      {key: 'personnel', href: '/referentiel/personnel', module: 'personnel'}
-    ]
+items: [
+  {key: 'groups', href: '/referentiel/groups', module: 'groups'},
+  {key: 'companies', href: '/referentiel/companies', module: 'companies'},
+  {key: 'farms', href: '/referentiel/farms', module: 'farms'},
+  {key: 'plots', href: '/referentiel/plots', module: 'plots'},
+  {key: 'factories', href: '/referentiel/factories', module: 'factories'},
+  {key: 'stations', href: '/referentiel/stations', module: 'stations'},
+  {key: 'cultures', href: '/referentiel/cultures', module: 'cultures'},
+  {key: 'products', href: '/referentiel/products', module: 'products'},
+  {
+    key: 'productVarieties',
+    href: '/referentiel/product-varieties',
+    module: 'product-varieties'
+  },
+  {key: 'vehicles', href: '/referentiel/vehicles', module: 'vehicles'},
+  {key: 'personnel', href: '/referentiel/personnel', module: 'personnel'}
+]
   },
   {
     key: 'agriculture',

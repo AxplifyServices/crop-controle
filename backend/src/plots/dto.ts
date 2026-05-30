@@ -7,6 +7,10 @@ export class CreatePlotsDto {
 
   @IsOptional()
   @Allow()
+  culture_id?: any;
+
+  @IsOptional()
+  @Allow()
   code?: any;
 
   @IsOptional()
@@ -16,14 +20,6 @@ export class CreatePlotsDto {
   @IsOptional()
   @Allow()
   surface_ha?: any;
-
-  @IsOptional()
-  @Allow()
-  culture?: any;
-
-  @IsOptional()
-  @Allow()
-  variety?: any;
 
   @IsOptional()
   @Allow()
@@ -45,6 +41,10 @@ export class UpdatePlotsDto {
 
   @IsOptional()
   @Allow()
+  culture_id?: any;
+
+  @IsOptional()
+  @Allow()
   code?: any;
 
   @IsOptional()
@@ -54,14 +54,6 @@ export class UpdatePlotsDto {
   @IsOptional()
   @Allow()
   surface_ha?: any;
-
-  @IsOptional()
-  @Allow()
-  culture?: any;
-
-  @IsOptional()
-  @Allow()
-  variety?: any;
 
   @IsOptional()
   @Allow()

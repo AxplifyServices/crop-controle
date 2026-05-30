@@ -17,6 +17,7 @@
     "dashboard": "Dashboard",
     "referential": "Referential",
     "groups": "Groups",
+    "cultures": "Crops",
     "companies": "Companies",
     "farms": "Farms",
     "plots": "Plots",
@@ -87,11 +88,16 @@
   "mainInfo": "Main information",
   "untitled": "Untitled record"
 },
-    "sections": {
+"sections": {
   "active": "Active",
   "inactive": "Inactive",
   "archived": "Archived",
-  "other": "Other"
+  "other": "Other",
+  "plotProduction": "Production",
+  "plotYoung": "Young",
+  "plotResting": "Resting",
+  "plotFallow": "Fallow",
+  "plotArchived": "Archived"
 },
     "list": {
       "title": "List",
@@ -113,6 +119,10 @@
         "title": "Groups",
         "description": "Main structure of the agricultural group."
       },
+      "cultures": {
+  "title": "Crops",
+  "description": "Custom crop categories used to structure agricultural products."
+},
       "companies": {
         "title": "Companies",
         "description": "Companies, subsidiaries and legal hierarchy of the group."
@@ -133,10 +143,10 @@
         "title": "UC stations",
         "description": "Stations and conditioning units."
       },
-      "products": {
-        "title": "Products",
-        "description": "Agricultural products tracked in the platform."
-      },
+"products": {
+  "title": "Products",
+  "description": "Agricultural products linked to a crop."
+},
       "productVarieties": {
         "title": "Varieties",
         "description": "Varieties linked to agricultural products."
@@ -156,6 +166,8 @@
       "groupId": "Group",
       "parentCompanyId": "Parent company",
       "companyId": "Company",
+      "cultureId": "Crop",
+"varietyId": "Variety",
       "farmId": "Farm",
       "factoryId": "Factory",
       "stationId": "Station",
@@ -211,6 +223,32 @@
   "ACTIVE": "Active",
   "INACTIVE": "Inactive",
   "ARCHIVED": "Archived"
+},
+"contractType": {
+  "PERMANENT": "Permanent",
+  "FIXED_TERM": "Fixed-term",
+  "SEASONAL": "Seasonal",
+  "TEMPORARY": "Temporary",
+  "INTERNSHIP": "Internship",
+  "SERVICE_PROVIDER": "Service provider",
+  "OTHER": "Other"
+},
+"defaultUnit": {
+  "KG": "Kilogram",
+  "TON": "Ton",
+  "G": "Gram",
+  "UNIT": "Unit",
+  "BOX": "Box",
+  "PALLET": "Pallet",
+  "LITER": "Liter"
+},
+"acquisitionMode": {
+  "OWNED": "Owned",
+  "LEASED": "Leased",
+  "RENTED": "Rented",
+  "CREDIT": "Credit",
+  "SUBCONTRACTED": "Subcontracted",
+  "OTHER": "Other"
 },
 "stationFeature": {
   "SORTING_CALIBRATION": "Sorting and calibration",
@@ -406,12 +444,13 @@
         "TPG": "TPG",
         "THIRD_PARTY": "Third party"
       },
-      "plotStatus": {
-        "PRODUCTION": "Production",
-        "YOUNG": "Young",
-        "RESTING": "Resting",
-        "ABANDONED": "Abandoned"
-      },
+"plotStatus": {
+  "PRODUCTION": "Production",
+  "JEUNE": "Young",
+  "REPOS": "Resting",
+  "EN_FRICHE": "Fallow",
+  "ARCHIVED": "Archived"
+},
       "vehicleType": {
         "REFRIGERATED": "Refrigerated",
         "UTILITY": "Utility",

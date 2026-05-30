@@ -33,23 +33,39 @@ export class PlotsService {
     return item;
   }
 
-  async create(dto: CreatePlotsDto) {
-    return this.model.create({
-      data: dto,
-    });
-  }
+async create(dto: CreatePlotsDto) {
+  return this.model.create({
+    data: {
+      farm_id: dto.farm_id,
+      culture_id: dto.culture_id,
+      code: dto.code,
+      name: dto.name,
+      surface_ha: dto.surface_ha,
+      status: dto.status,
+      latitude: dto.latitude,
+      longitude: dto.longitude,
+    },
+  });
+}
 
-  async update(id: string, dto: UpdatePlotsDto) {
-    await this.findOne(id);
+async update(id: string, dto: UpdatePlotsDto) {
+  await this.findOne(id);
 
-    return this.model.update({
-      where: { id },
-      data: {
-        ...dto,
-        updated_at: new Date(),
-      },
-    });
-  }
+  return this.model.update({
+    where: { id },
+    data: {
+      farm_id: dto.farm_id,
+      culture_id: dto.culture_id,
+      code: dto.code,
+      name: dto.name,
+      surface_ha: dto.surface_ha,
+      status: dto.status,
+      latitude: dto.latitude,
+      longitude: dto.longitude,
+      updated_at: new Date(),
+    },
+  });
+}
 
   async remove(id: string) {
     await this.findOne(id);

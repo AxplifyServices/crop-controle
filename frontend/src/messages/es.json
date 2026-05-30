@@ -18,6 +18,7 @@
     "referential": "Referencial",
     "groups": "Grupos",
     "companies": "Empresas",
+    "cultures": "Cultivos",
     "farms": "Fincas",
     "plots": "Parcelas",
     "factories": "Fábricas",
@@ -87,11 +88,16 @@
   "mainInfo": "Información principal",
   "untitled": "Ficha sin título"
 },
-    "sections": {
+"sections": {
   "active": "Activos",
   "inactive": "Inactivos",
   "archived": "Archivados",
-  "other": "Otros"
+  "other": "Otros",
+  "plotProduction": "Producción",
+  "plotYoung": "Jóvenes",
+  "plotResting": "Reposo",
+  "plotFallow": "En barbecho",
+  "plotArchived": "Archivadas"
 },
     "list": {
       "title": "Lista",
@@ -113,6 +119,10 @@
         "title": "Grupos",
         "description": "Estructura principal del grupo agrícola."
       },
+      "cultures": {
+  "title": "Cultivos",
+  "description": "Cultivos agrícolas personalizables utilizados para estructurar los productos."
+},
       "companies": {
         "title": "Empresas",
         "description": "Empresas, filiales y jerarquía jurídica del grupo."
@@ -133,10 +143,10 @@
         "title": "Estaciones UC",
         "description": "Estaciones y unidades de acondicionamiento."
       },
-      "products": {
-        "title": "Productos",
-        "description": "Productos agrícolas gestionados en la plataforma."
-      },
+"products": {
+  "title": "Productos",
+  "description": "Productos agrícolas vinculados a un cultivo."
+},
       "productVarieties": {
         "title": "Variedades",
         "description": "Variedades vinculadas a productos agrícolas."
@@ -157,6 +167,8 @@
       "parentCompanyId": "Empresa matriz",
       "companyId": "Empresa",
       "farmId": "Finca",
+      "cultureId": "Cultivo",
+"varietyId": "Variedad",
       "factoryId": "Fábrica",
       "stationId": "Estación",
       "productId": "Producto",
@@ -211,6 +223,32 @@
   "ACTIVE": "Activo",
   "INACTIVE": "Inactivo",
   "ARCHIVED": "Archivado"
+},
+"acquisitionMode": {
+  "OWNED": "Propiedad",
+  "LEASED": "Leasing",
+  "RENTED": "Alquiler",
+  "CREDIT": "Crédito",
+  "SUBCONTRACTED": "Subcontratación",
+  "OTHER": "Otro"
+},
+"contractType": {
+  "PERMANENT": "Indefinido",
+  "FIXED_TERM": "Temporal",
+  "SEASONAL": "Estacional",
+  "TEMPORARY": "Interino",
+  "INTERNSHIP": "Prácticas",
+  "SERVICE_PROVIDER": "Proveedor de servicios",
+  "OTHER": "Otro"
+},
+"defaultUnit": {
+  "KG": "Kilogramo",
+  "TON": "Tonelada",
+  "G": "Gramo",
+  "UNIT": "Unidad",
+  "BOX": "Caja",
+  "PALLET": "Palé",
+  "LITER": "Litro"
 },
 "stationFeature": {
   "SORTING_CALIBRATION": "Clasificación y calibrado",
@@ -406,12 +444,13 @@
         "TPG": "TPG",
         "THIRD_PARTY": "Tercero"
       },
-      "plotStatus": {
-        "PRODUCTION": "Producción",
-        "YOUNG": "Joven",
-        "RESTING": "Reposo",
-        "ABANDONED": "Abandonada"
-      },
+"plotStatus": {
+  "PRODUCTION": "Producción",
+  "JEUNE": "Joven",
+  "REPOS": "Reposo",
+  "EN_FRICHE": "En barbecho",
+  "ARCHIVED": "Archivada"
+},
       "vehicleType": {
         "REFRIGERATED": "Frigorífico",
         "UTILITY": "Utilitario",
