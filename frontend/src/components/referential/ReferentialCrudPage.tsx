@@ -1,7 +1,7 @@
 'use client';
 
 import {useEffect, useMemo, useState} from 'react';
-import {ChevronDown, ChevronRight, Edit3, Info, Plus, RefreshCcw, Trash2, X} from 'lucide-react';
+import {ChevronDown, ChevronRight, Edit3, Funnel, Info, Plus, RefreshCcw, Trash2, X} from 'lucide-react';
 import {useTranslations} from 'next-intl';
 import {apiFetch} from '@/lib/api';
 import {getUser, type AuthUser} from '@/lib/auth';
@@ -33,12 +33,21 @@ function ReferentialCrudContent({config}: {config: ResourceConfig}) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [lookupOptions, setLookupOptions] = useState<LookupOptionsMap>({});
   const [infoItem, setInfoItem] = useState<RecordItem | null>(null);
-
+  const [filters, setFilters] = useState<Record<string, string[]>>({});
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const canCreate = hasPermission(user, config.module, 'CREATE');
   const canUpdate = hasPermission(user, config.module, 'UPDATE');
   const canDelete = hasPermission(user, config.module, 'DELETE');
 
   const visibleFields = useMemo(() => config.listFields, [config.listFields]);
+  const filterFields = useMemo(
+    () =>
+      (config.filterFields || [])
+        .map((key) => config.fields.find((field) => field.key === key))
+        .filter(Boolean) as ResourceField[],
+    [config.fields, config.filterFields]
+  );
+
 
   const visibleFormFields = useMemo(
     () => config.fields.filter((field) => isFieldVisible(field, form)),
@@ -66,17 +75,37 @@ function ReferentialCrudContent({config}: {config: ResourceConfig}) {
     []
   );
 
+const filteredItems = useMemo(
+  () =>
+    items.filter((item) => {
+      return Object.entries(filters).every(([fieldKey, selectedValues]) => {
+        if (!selectedValues.length) {
+          return true;
+        }
+
+        const itemValue = item[fieldKey];
+
+        if (Array.isArray(itemValue)) {
+          return itemValue.some((value) => selectedValues.includes(String(value)));
+        }
+
+        return selectedValues.includes(String(itemValue));
+      });
+    }),
+  [items, filters]
+);
+
   const statusSections = config.statusSections || defaultStatusSections;
 
   const sectionGroups = useMemo(
     () =>
       statusSections.map((section) => ({
         ...section,
-        items: items.filter((item) =>
+        items: filteredItems.filter((item) =>
           section.values.includes(normalizeStatus(item.status))
         )
       })),
-    [items, statusSections]
+    [filteredItems, statusSections]
   );
 
   const sectionStatusValues = useMemo(
@@ -86,8 +115,8 @@ function ReferentialCrudContent({config}: {config: ResourceConfig}) {
 
   const otherItems = useMemo(
     () =>
-      items.filter((item) => !sectionStatusValues.has(normalizeStatus(item.status))),
-    [items, sectionStatusValues]
+      filteredItems.filter((item) => !sectionStatusValues.has(normalizeStatus(item.status))),
+    [filteredItems, sectionStatusValues]
   );
 
   async function loadItems() {
@@ -212,6 +241,29 @@ function ReferentialCrudContent({config}: {config: ResourceConfig}) {
     });
   }
 
+function setFilterValue(field: ResourceField, values: string[]) {
+  setFilters((current) => {
+    const next = {
+      ...current,
+      [field.key]: values
+    };
+
+    for (const childField of config.fields) {
+      if (
+        childField.dependsOn?.fieldKey === field.key ||
+        childField.lookupFilter?.fieldKey === field.key
+      ) {
+        next[childField.key] = [];
+      }
+    }
+
+    return next;
+  });
+}
+
+function resetFilters() {
+  setFilters({});
+}
   function cleanPayload(payload: RecordItem) {
     const cleaned: RecordItem = {};
 
@@ -326,6 +378,56 @@ if (value !== undefined && value !== '' && value !== null) {
         </div>
       ) : null}
 
+{filterFields.length > 0 ? (
+  <div className="rounded-2xl border border-slate-200 bg-white shadow-sm">
+    <button
+      type="button"
+      onClick={() => setFiltersOpen((value) => !value)}
+      className="flex w-full items-center justify-between px-5 py-4 text-left transition hover:bg-slate-50"
+    >
+      <div className="flex items-center gap-3">
+        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-700">
+          <Funnel size={18} />
+        </div>
+
+        <div>
+          <h2 className="text-base font-semibold text-slate-950">
+            {t('filters.title')}
+          </h2>
+
+          <p className="mt-1 text-sm text-slate-500">
+            {t('filters.description')}
+          </p>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-3">
+        {Object.values(filters).some((values) => values.length > 0) ? (
+          <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
+            {Object.values(filters).reduce((total, values) => total + values.length, 0)}
+          </span>
+        ) : null}
+
+        <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600">
+          {filtersOpen ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
+        </div>
+      </div>
+    </button>
+
+    {filtersOpen ? (
+      <div className="border-t border-slate-100 p-5">
+        <FiltersPanel
+          fields={filterFields}
+          filters={filters}
+          lookupOptions={lookupOptions}
+          onChange={setFilterValue}
+          onReset={resetFilters}
+        />
+      </div>
+    ) : null}
+  </div>
+) : null}
+
       {openForm ? (
         <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
           <div className="mb-4 flex items-center justify-between">
@@ -422,6 +524,153 @@ if (value !== undefined && value !== '' && value !== null) {
         ) : null}
       </div>
     
+    </div>
+  );
+}
+
+function FiltersPanel({
+  fields,
+  filters,
+  lookupOptions,
+  onChange,
+  onReset
+}: {
+  fields: ResourceField[];
+  filters: Record<string, string[]>;
+  lookupOptions: LookupOptionsMap;
+  onChange: (field: ResourceField, values: string[]) => void;
+  onReset: () => void;
+}) {
+  const t = useTranslations('Referential');
+
+  const hasActiveFilters = Object.values(filters).some((values) => values.length > 0);
+
+  return (
+    <div>
+      <div className="mb-4 flex items-center justify-between gap-3">
+        <p className="text-sm text-slate-500">
+          {t('filters.multiSelectDescription')}
+        </p>
+
+        {hasActiveFilters ? (
+          <button
+            type="button"
+            onClick={onReset}
+            className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+          >
+            {t('filters.reset')}
+          </button>
+        ) : null}
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        {fields.map((field) => (
+          <FilterInput
+            key={field.key}
+            field={field}
+            value={filters[field.key] || []}
+            filters={filters}
+            lookupOptions={lookupOptions}
+            onChange={(values) => onChange(field, values)}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function FilterInput({
+  field,
+  value,
+  filters,
+  lookupOptions,
+  onChange
+}: {
+  field: ResourceField;
+  value: string[];
+  filters: Record<string, string[]>;
+  lookupOptions: LookupOptionsMap;
+  onChange: (values: string[]) => void;
+}) {
+  const t = useTranslations('Referential');
+
+  const pseudoForm = useMemo(() => {
+    const next: RecordItem = {};
+
+    for (const [key, values] of Object.entries(filters)) {
+      next[key] = values.length === 1 ? values[0] : values;
+    }
+
+    return next;
+  }, [filters]);
+
+  const options = getFilterOptions(field, pseudoForm, lookupOptions);
+
+  const availableOptions = options.filter((option) => !value.includes(option.value));
+
+  function addValue(optionValue: string) {
+    if (!optionValue || value.includes(optionValue)) {
+      return;
+    }
+
+    onChange([...value, optionValue]);
+  }
+
+  function removeValue(optionValue: string) {
+    onChange(value.filter((item) => item !== optionValue));
+  }
+
+  function getSelectedLabel(optionValue: string) {
+    const option = options.find((item) => item.value === optionValue);
+
+    if (!option) {
+      return optionValue;
+    }
+
+    return getOptionLabel(option, t);
+  }
+
+  return (
+    <div>
+      <label className="block">
+        <span className="mb-1 block text-sm font-medium text-slate-700">
+          {t(field.labelKey)}
+        </span>
+
+        <select
+          value=""
+          onChange={(event) => addValue(event.target.value)}
+          className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+        >
+          <option value="">
+            {availableOptions.length === 0
+              ? t('filters.noOptions')
+              : t('filters.choosePlaceholder')}
+          </option>
+
+          {availableOptions.map((option) => (
+            <option key={option.value} value={option.value}>
+              {getOptionLabel(option, t)}
+            </option>
+          ))}
+        </select>
+      </label>
+
+      {value.length > 0 ? (
+        <div className="mt-2 flex flex-wrap gap-2">
+          {value.map((optionValue) => (
+            <button
+              key={optionValue}
+              type="button"
+              onClick={() => removeValue(optionValue)}
+              className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700 transition hover:bg-emerald-100"
+            >
+              <span>{getSelectedLabel(optionValue)}</span>
+              <X size={13} />
+            </button>
+          ))}
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -837,6 +1086,52 @@ function getInputLabel(
   }
 
   return t(field.labelKey);
+}
+
+function getFilterOptions(
+  field: ResourceField,
+  filterForm: RecordItem,
+  lookupOptions: LookupOptionsMap
+) {
+  if (field.type === 'lookup') {
+    let options = lookupOptions[field.key] || [];
+
+    if (field.lookupFilter) {
+      const parentValue = filterForm[field.lookupFilter.fieldKey];
+
+      if (!parentValue || (Array.isArray(parentValue) && parentValue.length === 0)) {
+        return [];
+      }
+
+      const parentValues = Array.isArray(parentValue)
+        ? parentValue.map(String)
+        : [String(parentValue)];
+
+      options = options.filter((option) =>
+        parentValues.includes(String(option.meta?.[field.lookupFilter!.targetKey]))
+      );
+    }
+
+    return options;
+  }
+
+  if (field.dependsOn) {
+    const parentValue = filterForm[field.dependsOn.fieldKey];
+
+    if (!parentValue || (Array.isArray(parentValue) && parentValue.length === 0)) {
+      return [];
+    }
+
+    const parentValues = Array.isArray(parentValue)
+      ? parentValue.map(String)
+      : [String(parentValue)];
+
+    return parentValues.flatMap(
+      (parent) => field.dependsOn?.optionsByValue[String(parent)] || []
+    );
+  }
+
+  return field.options || [];
 }
 
 function getFieldOptions(

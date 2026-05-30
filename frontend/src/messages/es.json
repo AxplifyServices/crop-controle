@@ -88,6 +88,14 @@
   "mainInfo": "Información principal",
   "untitled": "Ficha sin título"
 },
+"filters": {
+  "title": "Filtros",
+  "description": "Mostrar u ocultar los filtros de búsqueda.",
+  "multiSelectDescription": "Selecciona uno o varios valores para refinar la lista.",
+  "reset": "Restablecer filtros",
+  "noOptions": "Ninguna opción disponible",
+  "choosePlaceholder": "Elegir un valor"
+},
 "sections": {
   "active": "Activos",
   "inactive": "Inactivos",

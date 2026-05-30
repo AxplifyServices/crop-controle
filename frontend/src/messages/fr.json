@@ -84,6 +84,14 @@
       "info": "Infos",
 "close": "Fermer"
     },
+"filters": {
+  "title": "Filtres",
+  "description": "Afficher ou masquer les filtres de recherche.",
+  "multiSelectDescription": "Sélectionnez une ou plusieurs valeurs pour affiner la liste.",
+  "reset": "Réinitialiser les filtres",
+  "noOptions": "Aucune option disponible",
+  "choosePlaceholder": "Choisir une valeur"
+},
 "sections": {
   "active": "Actifs",
   "inactive": "Inactifs",

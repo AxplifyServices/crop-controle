@@ -54,6 +54,7 @@ export type ResourceConfig = {
   listFields: string[];
   fields: ResourceField[];
   statusSections?: ResourceStatusSection[];
+  filterFields?: string[];
 };
 
 const statusOptions = [
@@ -125,6 +126,7 @@ export const phase2Resources: Record<string, ResourceConfig> = {
     descriptionKey: 'resources.companies.description',
     endpoint: '/companies',
     listFields: ['name', 'code', 'country', 'region', 'city', 'status'],
+    filterFields: ['group_id', 'country', 'region', 'city', 'status'],
     fields: [
       {
         key: 'group_id',
@@ -286,6 +288,7 @@ export const phase2Resources: Record<string, ResourceConfig> = {
   descriptionKey: 'resources.farms.description',
   endpoint: '/farms',
   listFields: ['name', 'code', 'company_id', 'region', 'city', 'surface_ha', 'status'],
+  filterFields: ['company_id', 'country', 'region', 'city', 'status'],  
   fields: [
     {
       key: 'company_id',
@@ -362,6 +365,7 @@ export const phase2Resources: Record<string, ResourceConfig> = {
     descriptionKey: 'resources.plots.description',
     endpoint: '/plots',
     listFields: ['code', 'name', 'farm_id', 'culture_id', 'surface_ha', 'status'],
+    filterFields: ['farm_id', 'culture_id', 'status'],
     statusSections: [
       {
         titleKey: 'sections.plotProduction',
@@ -439,6 +443,7 @@ export const phase2Resources: Record<string, ResourceConfig> = {
     descriptionKey: 'resources.factories.description',
     endpoint: '/factories',
     listFields: ['name', 'code', 'company_id', 'region', 'city', 'daily_capacity_kg', 'status'],
+    filterFields: ['company_id', 'country', 'region', 'city', 'status'],    
     fields: [
       {
         key: 'company_id',
@@ -504,6 +509,7 @@ export const phase2Resources: Record<string, ResourceConfig> = {
     descriptionKey: 'resources.stations.description',
     endpoint: '/stations',
     listFields: ['name', 'code', 'company_id', 'factory_id', 'daily_capacity_kg', 'features', 'status'],
+    filterFields: ['company_id', 'factory_id', 'features', 'status'],    
     fields: [
       {
         key: 'company_id',
@@ -551,6 +557,7 @@ export const phase2Resources: Record<string, ResourceConfig> = {
     descriptionKey: 'resources.cultures.description',
     endpoint: '/cultures',
     listFields: ['name', 'code', 'description', 'status'],
+       filterFields: ['status'],
     fields: [
       {key: 'name', labelKey: 'fields.name', type: 'text', required: true},
       {key: 'code', labelKey: 'fields.code', type: 'text'},
@@ -564,6 +571,7 @@ export const phase2Resources: Record<string, ResourceConfig> = {
     descriptionKey: 'resources.products.description',
     endpoint: '/products',
     listFields: ['culture_id', 'name', 'code', 'default_unit', 'status'],
+    filterFields: ['culture_id', 'default_unit', 'status'],   
     fields: [
       {
         key: 'culture_id',
@@ -595,6 +603,7 @@ export const phase2Resources: Record<string, ResourceConfig> = {
     descriptionKey: 'resources.productVarieties.description',
     endpoint: '/product-varieties',
     listFields: ['product_id', 'name', 'code', 'description', 'status'],
+    filterFields: ['product_id', 'status'],   
     fields: [
       {
         key: 'product_id',
@@ -620,6 +629,7 @@ export const phase2Resources: Record<string, ResourceConfig> = {
     titleKey: 'resources.vehicles.title',
     descriptionKey: 'resources.vehicles.description',
     endpoint: '/vehicles',
+    filterFields: ['company_id', 'type', 'acquisition_mode', 'status'],    
     listFields: [
       'registration_number',
       'company_id',
@@ -681,6 +691,7 @@ export const phase2Resources: Record<string, ResourceConfig> = {
     titleKey: 'resources.personnel.title',
     descriptionKey: 'resources.personnel.description',
     endpoint: '/personnel',
+    filterFields: ['user_id', 'company_id', 'farm_id', 'factory_id', 'station_id', 'contract_type', 'status'],    
     listFields: [
       'full_name',
       'user_id',
@@ -745,21 +756,21 @@ export const phase2Resources: Record<string, ResourceConfig> = {
           targetKey: 'company_id'
         }
       },
-      {
-        key: 'station_id',
-        labelKey: 'fields.stationId',
-        type: 'lookup',
-        lookup: {
-          endpoint: '/stations',
-          valueKey: 'id',
-          labelKeys: ['name', 'code'],
-          scopeEntityType: 'STATION'
-        },
-        lookupFilter: {
-          fieldKey: 'company_id',
-          targetKey: 'company_id'
-        }
-      },
+{
+  key: 'station_id',
+  labelKey: 'fields.stationId',
+  type: 'lookup',
+  lookup: {
+    endpoint: '/stations',
+    valueKey: 'id',
+    labelKeys: ['name', 'code'],
+    scopeEntityType: 'STATION'
+  },
+  lookupFilter: {
+    fieldKey: 'factory_id',
+    targetKey: 'factory_id'
+  }
+},
       {key: 'full_name', labelKey: 'fields.fullName', type: 'text', required: true},
       {key: 'grade', labelKey: 'fields.grade', type: 'text'},
       {

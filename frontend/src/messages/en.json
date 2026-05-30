@@ -84,6 +84,14 @@
       "info": "Info",
 "close": "Close"
     },
+"filters": {
+  "title": "Filters",
+  "description": "Show or hide search filters.",
+  "multiSelectDescription": "Select one or more values to refine the list.",
+  "reset": "Reset filters",
+  "noOptions": "No option available",
+  "choosePlaceholder": "Choose a value"
+},
     "details": {
   "mainInfo": "Main information",
   "untitled": "Untitled record"
