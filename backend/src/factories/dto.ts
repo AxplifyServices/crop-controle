@@ -19,6 +19,10 @@ export class CreateFactoriesDto {
 
   @IsOptional()
   @Allow()
+  country?: any;
+
+  @IsOptional()
+  @Allow()
   city?: any;
 
   @IsOptional()
@@ -62,6 +66,10 @@ export class UpdateFactoriesDto {
   @IsOptional()
   @Allow()
   address?: any;
+
+  @IsOptional()
+  @Allow()
+  country?: any;
 
   @IsOptional()
   @Allow()

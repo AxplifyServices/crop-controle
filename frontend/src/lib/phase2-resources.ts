@@ -320,8 +320,7 @@ export const phase2Resources: Record<string, ResourceConfig> = {
   labelKey: 'fields.country',
   type: 'select',
   options: countryOptions,
-  required: true,
-  persist: false
+  required: true
 },
     {
       key: 'region',
@@ -460,14 +459,13 @@ export const phase2Resources: Record<string, ResourceConfig> = {
       {key: 'name', labelKey: 'fields.name', type: 'text', required: true},
       {key: 'code', labelKey: 'fields.code', type: 'text'},
       {key: 'address', labelKey: 'fields.address', type: 'text'},
-      {
-        key: 'country',
-        labelKey: 'fields.country',
-        type: 'select',
-        options: countryOptions,
-        required: true,
-        persist: false
-      },
+{
+  key: 'country',
+  labelKey: 'fields.country',
+  type: 'select',
+  options: countryOptions,
+  required: true
+},
       {
         key: 'region',
         labelKey: 'fields.region',

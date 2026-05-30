@@ -23,6 +23,10 @@ export class CreateFarmsDto {
 
   @IsOptional()
   @Allow()
+  country?: any;
+
+  @IsOptional()
+  @Allow()
   city?: any;
 
   @IsOptional()
@@ -74,6 +78,10 @@ export class UpdateFarmsDto {
   @IsOptional()
   @Allow()
   address?: any;
+
+  @IsOptional()
+  @Allow()
+  country?: any;
 
   @IsOptional()
   @Allow()

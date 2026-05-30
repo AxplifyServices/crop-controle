@@ -395,6 +395,7 @@ model factories {
   created_at            DateTime                @default(now()) @db.Timestamp(6)
   updated_at            DateTime                @default(now()) @db.Timestamp(6)
   deleted_at            DateTime?               @db.Timestamp(6)
+  country               String?                 @db.VarChar(100)
   conditioning_sessions conditioning_sessions[]
   customer_orders       customer_orders[]
   companies             companies               @relation(fields: [company_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_factories_company")
@@ -409,6 +410,7 @@ model factories {
 
   @@index([company_id], map: "idx_factories_company_id")
   @@index([status], map: "idx_factories_status")
+  @@index([country], map: "idx_factories_country")
 }
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
@@ -526,6 +528,7 @@ model farms {
   created_at            DateTime                @default(now()) @db.Timestamp(6)
   updated_at            DateTime                @default(now()) @db.Timestamp(6)
   deleted_at            DateTime?               @db.Timestamp(6)
+  country               String?                 @db.VarChar(100)
   agricultural_projects agricultural_projects[]
   charges               charges[]
   farm_shipments        farm_shipments[]
@@ -539,6 +542,7 @@ model farms {
   @@index([category], map: "idx_farms_category")
   @@index([company_id], map: "idx_farms_company_id")
   @@index([status], map: "idx_farms_status")
+  @@index([country], map: "idx_farms_country")
 }
 
 model groups {
@@ -1328,6 +1332,7 @@ enum charge_type_enum {
 enum company_status_enum {
   ACTIVE
   INACTIVE
+  ARCHIVED
 }
 
 enum conditioning_status_enum {
@@ -1590,4 +1595,5 @@ enum vehicle_type_enum {
   FUNCTION_CAR
   TRUCK
   OTHER
+  COMPANY_CAR
 }
