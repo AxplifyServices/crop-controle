@@ -1,7 +1,7 @@
 'use client';
 
 import {useEffect, useMemo, useState} from 'react';
-import {Edit3, Plus, RefreshCcw, Trash2, X} from 'lucide-react';
+import {ChevronDown, ChevronRight, Edit3, Info, Plus, RefreshCcw, Trash2, X} from 'lucide-react';
 import {useTranslations} from 'next-intl';
 import {apiFetch} from '@/lib/api';
 import {getUser, type AuthUser} from '@/lib/auth';
@@ -22,6 +22,7 @@ export function ReferentialCrudPage({config}: {config: ResourceConfig}) {
 
 function ReferentialCrudContent({config}: {config: ResourceConfig}) {
   const t = useTranslations('Referential');
+
   const [items, setItems] = useState<RecordItem[]>([]);
   const [form, setForm] = useState<RecordItem>({});
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -31,6 +32,7 @@ function ReferentialCrudContent({config}: {config: ResourceConfig}) {
   const [error, setError] = useState('');
   const [user, setUser] = useState<AuthUser | null>(null);
   const [lookupOptions, setLookupOptions] = useState<LookupOptionsMap>({});
+  const [infoItem, setInfoItem] = useState<RecordItem | null>(null);
 
   const canCreate = hasPermission(user, config.module, 'CREATE');
   const canUpdate = hasPermission(user, config.module, 'UPDATE');
@@ -41,6 +43,30 @@ function ReferentialCrudContent({config}: {config: ResourceConfig}) {
   const visibleFormFields = useMemo(
     () => config.fields.filter((field) => isFieldVisible(field, form)),
     [config.fields, form]
+  );
+
+  const activeItems = useMemo(
+    () => items.filter((item) => normalizeStatus(item.status) === 'ACTIVE'),
+    [items]
+  );
+
+  const inactiveItems = useMemo(
+    () => items.filter((item) => normalizeStatus(item.status) === 'INACTIVE'),
+    [items]
+  );
+
+  const archivedItems = useMemo(
+    () => items.filter((item) => normalizeStatus(item.status) === 'ARCHIVED'),
+    [items]
+  );
+
+  const otherItems = useMemo(
+    () =>
+      items.filter((item) => {
+        const status = normalizeStatus(item.status);
+        return status !== 'ACTIVE' && status !== 'INACTIVE' && status !== 'ARCHIVED';
+      }),
+    [items]
   );
 
   async function loadItems() {
@@ -106,6 +132,7 @@ function ReferentialCrudContent({config}: {config: ResourceConfig}) {
     setUser(currentUser);
     loadItems();
     loadLookups(currentUser);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function resetForm() {
@@ -121,9 +148,14 @@ function ReferentialCrudContent({config}: {config: ResourceConfig}) {
   }
 
   function startEdit(item: RecordItem) {
-    setForm(item);
+    setForm(buildEditForm(config, item));
     setEditingId(item.id);
     setOpenForm(true);
+
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
   }
 
   function setFieldValue(field: ResourceField, value: string | string[]) {
@@ -163,6 +195,10 @@ function ReferentialCrudContent({config}: {config: ResourceConfig}) {
 
     for (const field of config.fields) {
       if (field.persist === false) {
+        continue;
+      }
+
+      if (!isFieldVisible(field, payload)) {
         continue;
       }
 
@@ -228,15 +264,15 @@ function ReferentialCrudContent({config}: {config: ResourceConfig}) {
     <div className="space-y-5">
       <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-            <div>
+          <div>
             <h1 className="text-2xl font-semibold text-slate-950">
-                {t(config.titleKey)}
+              {t(config.titleKey)}
             </h1>
 
             <p className="mt-2 max-w-3xl text-sm text-slate-500">
-                {t(config.descriptionKey)}
+              {t(config.descriptionKey)}
             </p>
-            </div>
+          </div>
 
           <div className="flex flex-wrap gap-2">
             <button
@@ -319,20 +355,144 @@ function ReferentialCrudContent({config}: {config: ResourceConfig}) {
         </div>
       ) : null}
 
-      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-        <div className="border-b border-slate-100 px-5 py-4">
+      <div className="space-y-5">
+        <RecordsTable
+          title={t('sections.active')}
+          items={activeItems}
+          config={config}
+          visibleFields={visibleFields}
+          lookupOptions={lookupOptions}
+          loading={loading}
+          canUpdate={canUpdate}
+          canDelete={canDelete}
+          defaultOpen
+          onInfo={setInfoItem}
+          onEdit={startEdit}
+          onDelete={deleteItem}
+        />
+
+        <RecordsTable
+          title={t('sections.inactive')}
+          items={inactiveItems}
+          config={config}
+          visibleFields={visibleFields}
+          lookupOptions={lookupOptions}
+          loading={false}
+          canUpdate={canUpdate}
+          canDelete={canDelete}
+          defaultOpen={false}
+          onInfo={setInfoItem}
+          onEdit={startEdit}
+          onDelete={deleteItem}
+        />
+
+        <RecordsTable
+          title={t('sections.archived')}
+          items={archivedItems}
+          config={config}
+          visibleFields={visibleFields}
+          lookupOptions={lookupOptions}
+          loading={false}
+          canUpdate={canUpdate}
+          canDelete={canDelete}
+          defaultOpen={false}
+          onInfo={setInfoItem}
+          onEdit={startEdit}
+          onDelete={deleteItem}
+        />
+
+        {otherItems.length > 0 ? (
+          <RecordsTable
+            title={t('sections.other')}
+            items={otherItems}
+            config={config}
+            visibleFields={visibleFields}
+            lookupOptions={lookupOptions}
+            loading={false}
+            canUpdate={canUpdate}
+            canDelete={canDelete}
+            defaultOpen={false}
+            onInfo={setInfoItem}
+            onEdit={startEdit}
+            onDelete={deleteItem}
+          />
+        ) : null}
+
+        {infoItem ? (
+          <DetailSheet
+            item={infoItem}
+            config={config}
+            lookupOptions={lookupOptions}
+            onClose={() => setInfoItem(null)}
+          />
+        ) : null}
+      </div>
+    
+    </div>
+  );
+}
+
+function RecordsTable({
+  title,
+  items,
+  config,
+  visibleFields,
+  lookupOptions,
+  loading,
+  canUpdate,
+  canDelete,
+  defaultOpen,
+  onInfo,
+  onEdit,
+  onDelete
+}: {
+  title: string;
+  items: RecordItem[];
+  config: ResourceConfig;
+  visibleFields: string[];
+  lookupOptions: LookupOptionsMap;
+  loading: boolean;
+  canUpdate: boolean;
+  canDelete: boolean;
+  defaultOpen?: boolean;
+  onInfo: (item: RecordItem) => void;
+  onEdit: (item: RecordItem) => void;
+  onDelete: (item: RecordItem) => void;
+}) {
+  const t = useTranslations('Referential');
+  const [open, setOpen] = useState(defaultOpen ?? true);
+
+  return (
+    <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+      <button
+        type="button"
+        onClick={() => setOpen((value) => !value)}
+        className="flex w-full items-center justify-between border-b border-slate-100 px-5 py-4 text-left transition hover:bg-slate-50"
+      >
+        <div>
           <h2 className="text-base font-semibold text-slate-950">
-            {t('list.title')}
+            {title}
           </h2>
+
           <p className="mt-1 text-sm text-slate-500">
             {t('list.count', {count: items.length})}
           </p>
         </div>
 
-        {loading ? (
-          <div className="p-5 text-sm text-slate-500">{t('messages.loading')}</div>
+        <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600">
+          {open ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
+        </div>
+      </button>
+
+      {open ? (
+        loading ? (
+          <div className="p-5 text-sm text-slate-500">
+            {t('messages.loading')}
+          </div>
         ) : items.length === 0 ? (
-          <div className="p-5 text-sm text-slate-500">{t('messages.empty')}</div>
+          <div className="p-5 text-sm text-slate-500">
+            {t('messages.empty')}
+          </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-slate-100 text-sm">
@@ -347,7 +507,7 @@ function ReferentialCrudContent({config}: {config: ResourceConfig}) {
                     </th>
                   ))}
 
-                  <th className="w-[140px] px-4 py-3 text-right font-semibold text-slate-600">
+                  <th className="w-[170px] px-4 py-3 text-right font-semibold text-slate-600">
                     {t('actions.title')}
                   </th>
                 </tr>
@@ -358,16 +518,25 @@ function ReferentialCrudContent({config}: {config: ResourceConfig}) {
                   <tr key={item.id} className="hover:bg-slate-50/70">
                     {visibleFields.map((field) => (
                       <td key={field} className="whitespace-nowrap px-4 py-3 text-slate-700">
-                        {formatListValue(config, field, item[field], lookupOptions)}
+                        {formatListValue(config, field, item[field], lookupOptions, t)}
                       </td>
                     ))}
 
                     <td className="px-4 py-3">
                       <div className="flex justify-end gap-2">
+                        <button
+                          type="button"
+                          onClick={() => onInfo(item)}
+                          className="rounded-lg p-2 text-slate-500 transition hover:bg-blue-50 hover:text-blue-700"
+                          title={t('actions.info')}
+                        >
+                          <Info size={16} />
+                        </button>
+
                         {canUpdate ? (
                           <button
                             type="button"
-                            onClick={() => startEdit(item)}
+                            onClick={() => onEdit(item)}
                             className="rounded-lg p-2 text-slate-500 transition hover:bg-emerald-50 hover:text-emerald-700"
                             title={t('actions.edit')}
                           >
@@ -378,7 +547,7 @@ function ReferentialCrudContent({config}: {config: ResourceConfig}) {
                         {canDelete ? (
                           <button
                             type="button"
-                            onClick={() => deleteItem(item)}
+                            onClick={() => onDelete(item)}
                             className="rounded-lg p-2 text-slate-500 transition hover:bg-red-50 hover:text-red-700"
                             title={t('actions.delete')}
                           >
@@ -398,8 +567,83 @@ function ReferentialCrudContent({config}: {config: ResourceConfig}) {
               </tbody>
             </table>
           </div>
-        )}
-      </div>
+        )
+      ) : null}
+    </div>
+  );
+}
+
+function DetailSheet({
+  item,
+  config,
+  lookupOptions,
+  onClose
+}: {
+  item: RecordItem;
+  config: ResourceConfig;
+  lookupOptions: LookupOptionsMap;
+  onClose: () => void;
+}) {
+  const t = useTranslations('Referential');
+  const detailKeys = getDetailKeys(config, item);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-stretch justify-end bg-slate-950/30 p-0 backdrop-blur-[2px]">
+      <button
+        type="button"
+        className="hidden flex-1 cursor-default lg:block"
+        onClick={onClose}
+        aria-label={t('actions.close')}
+      />
+
+      <aside className="h-full w-full overflow-y-auto bg-white shadow-2xl lg:max-w-xl">
+        <div className="sticky top-0 z-10 border-b border-slate-100 bg-white px-6 py-5">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <p className="text-sm font-medium text-slate-500">
+                {t('actions.info')}
+              </p>
+
+              <h2 className="mt-1 text-xl font-semibold text-slate-950">
+                {getBestItemTitle(config, item, lookupOptions, t)}
+              </h2>
+            </div>
+
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded-xl p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-900"
+              aria-label={t('actions.close')}
+            >
+              <X size={20} />
+            </button>
+          </div>
+        </div>
+
+        <div className="space-y-6 px-6 py-5">
+          <div className="rounded-2xl border border-slate-200">
+            <div className="border-b border-slate-100 px-4 py-3">
+              <h3 className="text-sm font-semibold text-slate-900">
+                {t('details.mainInfo')}
+              </h3>
+            </div>
+
+            <dl className="divide-y divide-slate-100">
+              {detailKeys.map((key) => (
+                <div key={key} className="grid gap-1 px-4 py-3 sm:grid-cols-3 sm:gap-4">
+                  <dt className="text-sm font-medium text-slate-500">
+                    {getDetailLabel(config, key, t)}
+                  </dt>
+
+                  <dd className="break-words text-sm text-slate-900 sm:col-span-2">
+                    {formatListValue(config, key, item[key], lookupOptions, t)}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+        </div>
+      </aside>
     </div>
   );
 }
@@ -496,6 +740,57 @@ function FieldInput({
       )}
     </label>
   );
+}
+
+function buildEditForm(config: ResourceConfig, item: RecordItem) {
+  const nextForm: RecordItem = {};
+
+  for (const field of config.fields) {
+    const value = item[field.key];
+
+    if (value === undefined) {
+      nextForm[field.key] = null;
+      continue;
+    }
+
+    if (field.type === 'number') {
+      nextForm[field.key] = value === null || value === '' ? null : Number(value);
+      continue;
+    }
+
+    if (field.type === 'multiselect') {
+      nextForm[field.key] = Array.isArray(value) ? value : [];
+      continue;
+    }
+
+    nextForm[field.key] = value;
+  }
+
+  if (!nextForm.country && nextForm.region) {
+    const country = findCountryByRegion(config, String(nextForm.region));
+
+    if (country) {
+      nextForm.country = country;
+    }
+  }
+
+  return nextForm;
+}
+
+function findCountryByRegion(config: ResourceConfig, region: string) {
+  const regionField = config.fields.find((field) => field.key === 'region');
+
+  if (!regionField?.dependsOn) {
+    return null;
+  }
+
+  for (const [country, regions] of Object.entries(regionField.dependsOn.optionsByValue)) {
+    if (regions.some((item) => item.value === region)) {
+      return country;
+    }
+  }
+
+  return null;
 }
 
 function isFieldVisible(field: ResourceField, form: RecordItem) {
@@ -641,11 +936,67 @@ function getFieldLabel(
   return t(field.labelKey);
 }
 
+function getDetailKeys(config: ResourceConfig, item: RecordItem) {
+  const configuredKeys = config.fields.map((field) => field.key);
+
+  const technicalKeys = Object.keys(item).filter(
+    (key) =>
+      !configuredKeys.includes(key) &&
+      !key.endsWith('_id') &&
+      item[key] !== undefined &&
+      item[key] !== null &&
+      item[key] !== ''
+  );
+
+  return [...configuredKeys, ...technicalKeys];
+}
+
+function getDetailLabel(
+  config: ResourceConfig,
+  key: string,
+  t: ReturnType<typeof useTranslations>
+) {
+  const field = config.fields.find((item) => item.key === key);
+
+  if (field) {
+    return t(field.labelKey);
+  }
+
+  return formatTechnicalLabel(key);
+}
+
+function getBestItemTitle(
+  config: ResourceConfig,
+  item: RecordItem,
+  lookupOptions: LookupOptionsMap,
+  t: ReturnType<typeof useTranslations>
+) {
+  if (item.name) return String(item.name);
+  if (item.title) return String(item.title);
+  if (item.label) return String(item.label);
+  if (item.code) return String(item.code);
+
+  const firstVisibleField = config.listFields[0];
+
+  if (firstVisibleField) {
+    return formatListValue(config, firstVisibleField, item[firstVisibleField], lookupOptions, t);
+  }
+
+  return t('details.untitled');
+}
+
+function formatTechnicalLabel(key: string) {
+  return key
+    .replace(/_/g, ' ')
+    .replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
 function formatListValue(
   config: ResourceConfig,
   fieldKey: string,
   value: any,
-  lookupOptions: LookupOptionsMap
+  lookupOptions: LookupOptionsMap,
+  t: ReturnType<typeof useTranslations>
 ) {
   const field = config.fields.find((item) => item.key === fieldKey);
 
@@ -659,7 +1010,32 @@ function formatListValue(
     }
   }
 
+  if ((field?.type === 'select' || field?.type === 'multiselect') && field.options) {
+    if (Array.isArray(value)) {
+      const labels = value
+        .map((itemValue) => field.options?.find((option) => option.value === String(itemValue)))
+        .filter(Boolean)
+        .map((option) => getOptionLabel(option as ResourceOption, t));
+
+      return labels.length ? labels.join(', ') : '-';
+    }
+
+    const option = field.options.find((item) => item.value === String(value));
+
+    if (option) {
+      return getOptionLabel(option, t);
+    }
+  }
+
   return formatValue(value);
+}
+
+function normalizeStatus(status: any) {
+  if (!status) {
+    return 'ACTIVE';
+  }
+
+  return String(status).toUpperCase();
 }
 
 function formatValue(value: any) {

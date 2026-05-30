@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreatePlotsDto, UpdatePlotsDto } from './dto';
 
@@ -53,6 +53,61 @@ export class PlotsService {
 
   async remove(id: string) {
     await this.findOne(id);
+
+    const [
+      agriculturalProjects,
+      plantations,
+      treatments,
+      harvests,
+      productions,
+      charges,
+    ] = await Promise.all([
+      this.prisma.agricultural_projects.count({
+        where: {
+          plot_id: id,
+          deleted_at: null,
+        },
+      }),
+      this.prisma.plantations.count({
+        where: {
+          plot_id: id,
+        },
+      }),
+      this.prisma.treatments.count({
+        where: {
+          plot_id: id,
+        },
+      }),
+      this.prisma.harvests.count({
+        where: {
+          plot_id: id,
+        },
+      }),
+      this.prisma.productions.count({
+        where: {
+          plot_id: id,
+        },
+      }),
+      this.prisma.charges.count({
+        where: {
+          plot_id: id,
+        },
+      }),
+    ]);
+
+    const total =
+      agriculturalProjects +
+      plantations +
+      treatments +
+      harvests +
+      productions +
+      charges;
+
+    if (total > 0) {
+      throw new BadRequestException(
+        `Suppression impossible : cette parcelle est liée à ${total} élément(s). Supprimez ou archivez d'abord les éléments rattachés.`,
+      );
+    }
 
     return this.model.update({
       where: { id },

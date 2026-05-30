@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateCompaniesDto, UpdateCompaniesDto } from './dto';
 
@@ -107,6 +107,60 @@ export class CompaniesService {
 
   async remove(id: string) {
     await this.findOne(id);
+
+    const [
+      childCompanies,
+      farms,
+      factories,
+      stations,
+      vehicles,
+      personnel,
+    ] = await Promise.all([
+      this.prisma.companies.count({
+        where: {
+          parent_id: id,
+          deleted_at: null,
+        },
+      }),
+      this.prisma.farms.count({
+        where: {
+          company_id: id,
+          deleted_at: null,
+        },
+      }),
+      this.prisma.factories.count({
+        where: {
+          company_id: id,
+          deleted_at: null,
+        },
+      }),
+      this.prisma.stations.count({
+        where: {
+          company_id: id,
+          deleted_at: null,
+        },
+      }),
+      this.prisma.vehicles.count({
+        where: {
+          company_id: id,
+          deleted_at: null,
+        },
+      }),
+      this.prisma.personnel.count({
+        where: {
+          company_id: id,
+          deleted_at: null,
+        },
+      }),
+    ]);
+
+    const total = childCompanies + farms + factories + stations + vehicles + personnel;
+
+    if (total > 0) {
+      throw new BadRequestException(
+        `Suppression impossible : cette entreprise est liée à ${total} élément(s). Supprimez ou archivez d'abord les éléments rattachés.`,
+      );
+    }
 
     return this.model.update({
       where: { id },

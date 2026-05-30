@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateProductsDto, UpdateProductsDto } from './dto';
 
@@ -53,6 +53,96 @@ export class ProductsService {
 
   async remove(id: string) {
     await this.findOne(id);
+
+    const [
+      varieties,
+      agriculturalProjects,
+      plantations,
+      harvests,
+      productions,
+      lots,
+      stockMovements,
+      farmShipmentItems,
+      factoryReceptionItems,
+      customerOrderItems,
+      invoiceItems,
+    ] = await Promise.all([
+      this.prisma.product_varieties.count({
+        where: {
+          product_id: id,
+        },
+      }),
+      this.prisma.agricultural_projects.count({
+        where: {
+          product_id: id,
+          deleted_at: null,
+        },
+      }),
+      this.prisma.plantations.count({
+        where: {
+          product_id: id,
+        },
+      }),
+      this.prisma.harvests.count({
+        where: {
+          product_id: id,
+        },
+      }),
+      this.prisma.productions.count({
+        where: {
+          product_id: id,
+        },
+      }),
+      this.prisma.lots.count({
+        where: {
+          product_id: id,
+        },
+      }),
+      this.prisma.stock_movements.count({
+        where: {
+          product_id: id,
+        },
+      }),
+      this.prisma.farm_shipment_items.count({
+        where: {
+          product_id: id,
+        },
+      }),
+      this.prisma.factory_reception_items.count({
+        where: {
+          product_id: id,
+        },
+      }),
+      this.prisma.customer_order_items.count({
+        where: {
+          product_id: id,
+        },
+      }),
+      this.prisma.invoice_items.count({
+        where: {
+          product_id: id,
+        },
+      }),
+    ]);
+
+    const total =
+      varieties +
+      agriculturalProjects +
+      plantations +
+      harvests +
+      productions +
+      lots +
+      stockMovements +
+      farmShipmentItems +
+      factoryReceptionItems +
+      customerOrderItems +
+      invoiceItems;
+
+    if (total > 0) {
+      throw new BadRequestException(
+        `Suppression impossible : ce produit est lié à ${total} élément(s). Supprimez ou archivez d'abord les éléments rattachés.`,
+      );
+    }
 
     return this.model.delete({
       where: { id },

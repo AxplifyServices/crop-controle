@@ -79,8 +79,20 @@
       "delete": "Delete",
       "save": "Save",
       "cancel": "Cancel",
-      "select": "Select"
+      "select": "Select",
+      "info": "Info",
+"close": "Close"
     },
+    "details": {
+  "mainInfo": "Main information",
+  "untitled": "Untitled record"
+},
+    "sections": {
+  "active": "Active",
+  "inactive": "Inactive",
+  "archived": "Archived",
+  "other": "Other"
+},
     "list": {
       "title": "List",
       "count": "{count} record(s)"

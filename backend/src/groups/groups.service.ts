@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateGroupsDto, UpdateGroupsDto } from './dto';
 
@@ -53,6 +53,19 @@ export class GroupsService {
 
   async remove(id: string) {
     await this.findOne(id);
+
+    const companies = await this.prisma.companies.count({
+      where: {
+        group_id: id,
+        deleted_at: null,
+      },
+    });
+
+    if (companies > 0) {
+      throw new BadRequestException(
+        `Suppression impossible : ce groupe est lié à ${companies} entreprise(s). Supprimez ou archivez d'abord les entreprises rattachées.`,
+      );
+    }
 
     return this.model.delete({
       where: { id },

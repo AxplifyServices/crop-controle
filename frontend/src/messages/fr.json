@@ -79,8 +79,20 @@
       "delete": "Supprimer",
       "save": "Enregistrer",
       "cancel": "Annuler",
-      "select": "Sélectionner"
+      "select": "Sélectionner",
+      "info": "Infos",
+"close": "Fermer"
     },
+    "sections": {
+  "active": "Actifs",
+  "inactive": "Inactifs",
+  "archived": "Archivés",
+  "other": "Autres"
+},
+"details": {
+  "mainInfo": "Informations principales",
+  "untitled": "Fiche sans titre"
+},
     "list": {
       "title": "Liste",
       "count": "{count} enregistrement(s)"

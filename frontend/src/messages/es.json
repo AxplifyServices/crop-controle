@@ -79,8 +79,20 @@
       "delete": "Eliminar",
       "save": "Guardar",
       "cancel": "Cancelar",
-      "select": "Seleccionar"
+      "select": "Seleccionar",
+"info": "Info",
+"close": "Cerrar"
     },
+"details": {
+  "mainInfo": "Información principal",
+  "untitled": "Ficha sin título"
+},
+    "sections": {
+  "active": "Activos",
+  "inactive": "Inactivos",
+  "archived": "Archivados",
+  "other": "Otros"
+},
     "list": {
       "title": "Lista",
       "count": "{count} registro(s)"
