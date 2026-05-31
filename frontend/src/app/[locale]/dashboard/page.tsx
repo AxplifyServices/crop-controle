@@ -6,8 +6,9 @@ import {
   TrendingUp
 } from 'lucide-react';
 import {useTranslations} from 'next-intl';
+import {RequirePermission} from '@/components/auth/RequirePermission';
 
-export default function DashboardPage() {
+function DashboardContent() {
   const t = useTranslations('Dashboard');
 
   const cards = [
@@ -89,28 +90,19 @@ export default function DashboardPage() {
             {t('activeModules')}
           </h2>
 
-          <div className="space-y-3">
-            {[
-              'Production agricole',
-              'Flux ferme → usine',
-              'Conditionnement'
-            ].map((item) => (
-              <div
-                key={item}
-                className="flex items-center justify-between rounded-2xl border border-slate-200 p-4"
-              >
-                <div>
-                  <p className="font-semibold text-slate-950">{item}</p>
-                  <p className="text-[13px] text-slate-500">Agri-Control</p>
-                </div>
-                <span className="rounded-full bg-emerald-100 px-3 py-1 text-[12px] font-semibold text-emerald-700">
-                  Actif
-                </span>
-              </div>
-            ))}
+          <div className="rounded-2xl border border-dashed border-slate-300 p-10 text-center text-[14px] text-slate-500">
+            {t('empty')}
           </div>
         </section>
       </div>
     </>
+  );
+}
+
+export default function DashboardPage() {
+  return (
+    <RequirePermission module="dashboards" action="VIEW">
+      <DashboardContent />
+    </RequirePermission>
   );
 }

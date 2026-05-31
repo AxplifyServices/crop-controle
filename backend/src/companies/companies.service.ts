@@ -1,20 +1,36 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateCompaniesDto, UpdateCompaniesDto } from './dto';
+import { AccessControlService } from '../common/access-control/access-control.service';
 
 @Injectable()
 export class CompaniesService {
   private readonly modelName = 'companies';
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly accessControl: AccessControlService,
+  ) {}
 
   private get model() {
     return (this.prisma as any)[this.modelName];
   }
 
-  async findAll() {
+  async findAll(currentUserId: string) {
+    const scopedWhere = await this.accessControl.getScopedWhere(
+      currentUserId,
+      'COMPANY',
+    );
+
     return this.model.findMany({
-      where: { deleted_at: null },
+      where: {
+        deleted_at: null,
+        ...(Object.keys(scopedWhere).length > 0
+          ? {
+              AND: [scopedWhere],
+            }
+          : {}),
+      },
       include: {
         company_legal_identifiers: {
           orderBy: {
@@ -28,26 +44,56 @@ export class CompaniesService {
     });
   }
 
-  async findOne(id: string) {
-    const item = await this.model.findUnique({
-      where: { id },
-      include: {
-        company_legal_identifiers: {
-          orderBy: {
-            identifier_type: 'asc',
-          },
+async findOne(id: string, currentUserId: string) {
+  const scopedWhere = await this.accessControl.getScopedWhere(
+    currentUserId,
+    'COMPANY',
+  );
+
+  const item = await this.model.findFirst({
+    where: {
+      id,
+      deleted_at: null,
+      ...(Object.keys(scopedWhere).length > 0
+        ? {
+            AND: [scopedWhere],
+          }
+        : {}),
+    },
+    include: {
+      company_legal_identifiers: {
+        orderBy: {
+          identifier_type: 'asc',
         },
       },
-    });
+    },
+  });
 
-    if (!item || item.deleted_at) {
-      throw new NotFoundException('Enregistrement introuvable');
-    }
-
-    return item;
+  if (!item) {
+    throw new NotFoundException('Enregistrement introuvable');
   }
 
-  async create(dto: CreateCompaniesDto) {
+  return item;
+}
+
+  async create(dto: CreateCompaniesDto, currentUserId: string) {
+
+    await this.accessControl.assertCanAccessRecord(
+      currentUserId,
+      'GROUP',
+      'groups',
+      dto.group_id,
+    );
+
+    if (dto.parent_id) {
+      await this.accessControl.assertCanAccessRecord(
+        currentUserId,
+        'COMPANY',
+        'companies',
+        dto.parent_id,
+        { deleted_at: null },
+      );
+    }
     const { legal_identifiers, ...companyData } = dto;
 
     return this.prisma.$transaction(async (tx) => {
@@ -73,8 +119,27 @@ export class CompaniesService {
     });
   }
 
-  async update(id: string, dto: UpdateCompaniesDto) {
-    await this.findOne(id);
+  async update(id: string, dto: UpdateCompaniesDto, currentUserId: string) {
+    await this.findOne(id, currentUserId);
+
+    if (dto.group_id) {
+      await this.accessControl.assertCanAccessRecord(
+        currentUserId,
+        'GROUP',
+        'groups',
+        dto.group_id,
+      );
+    }
+
+    if (dto.parent_id) {
+      await this.accessControl.assertCanAccessRecord(
+        currentUserId,
+        'COMPANY',
+        'companies',
+        dto.parent_id,
+        { deleted_at: null },
+      );
+    }
 
     const { legal_identifiers, ...companyData } = dto;
 
@@ -105,8 +170,8 @@ export class CompaniesService {
     });
   }
 
-  async remove(id: string) {
-    await this.findOne(id);
+  async remove(id: string, currentUserId: string) {
+    await this.findOne(id, currentUserId);
 
     const [
       childCompanies,

@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateStationsDto, UpdateStationsDto } from './dto';
 
@@ -9,7 +9,30 @@ export class StationsService {
   constructor(private readonly prisma: PrismaService) {}
 
   private get model() {
-    return (this.prisma as any)[this.modelName];
+      return (this.prisma as any)[this.modelName];
+    }
+
+    private async assertStationAttachmentIsConsistent(dto: {
+    company_id?: string | null;
+    factory_id?: string | null;
+  }) {
+    if (!dto.company_id || !dto.factory_id) {
+      return;
+    }
+
+    const factory = await this.prisma.factories.findFirst({
+      where: {
+        id: dto.factory_id,
+        company_id: dto.company_id,
+        deleted_at: null,
+      },
+    });
+
+    if (!factory) {
+      throw new BadRequestException(
+        'La station ne peut pas être rattachée à une usine qui appartient à une autre entreprise.',
+      );
+    }
   }
 
   async findAll() {
@@ -34,6 +57,7 @@ export class StationsService {
   }
 
   async create(dto: CreateStationsDto) {
+    await this.assertStationAttachmentIsConsistent(dto);
     return this.model.create({
       data: dto,
     });
@@ -41,6 +65,7 @@ export class StationsService {
 
   async update(id: string, dto: UpdateStationsDto) {
     await this.findOne(id);
+    await this.assertStationAttachmentIsConsistent(dto);
 
     return this.model.update({
       where: { id },

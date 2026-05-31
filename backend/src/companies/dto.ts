@@ -1,181 +1,196 @@
-import { Allow, IsOptional } from 'class-validator';
+import {
+  IsArray,
+  IsEnum,
+  IsNotEmpty,
+  IsNumber,
+  IsObject,
+  IsOptional,
+  IsString,
+  IsUUID,
+} from 'class-validator';
+import { Type } from 'class-transformer';
+import { company_status_enum } from '@prisma/client';
 
 export class CreateCompaniesDto {
-  @IsOptional()
-  @Allow()
-  group_id?: any;
+  @IsUUID()
+  group_id!: string;
 
   @IsOptional()
-  @Allow()
-  parent_id?: any;
+  @IsUUID()
+  parent_id?: string;
+
+  @IsString()
+  @IsNotEmpty()
+  name!: string;
 
   @IsOptional()
-  @Allow()
-  name?: any;
+  @IsString()
+  legal_name?: string;
 
   @IsOptional()
-  @Allow()
-  legal_name?: any;
+  @IsString()
+  code?: string;
 
   @IsOptional()
-  @Allow()
-  code?: any;
+  @IsString()
+  ice?: string;
 
   @IsOptional()
-  @Allow()
-  ice?: any;
+  @IsString()
+  tax_id?: string;
 
   @IsOptional()
-  @Allow()
-  tax_id?: any;
+  @IsString()
+  rc?: string;
 
   @IsOptional()
-  @Allow()
-  rc?: any;
+  @IsString()
+  cnss?: string;
 
   @IsOptional()
-  @Allow()
-  cnss?: any;
+  @IsString()
+  patente?: string;
 
   @IsOptional()
-  @Allow()
-  patente?: any;
+  @IsString()
+  address?: string;
 
   @IsOptional()
-  @Allow()
-  address?: any;
+  @IsString()
+  city?: string;
 
   @IsOptional()
-  @Allow()
-  city?: any;
+  @IsString()
+  region?: string;
 
   @IsOptional()
-  @Allow()
-  region?: any;
+  @IsString()
+  country?: string;
 
   @IsOptional()
-  @Allow()
-  country?: any;
+  @Type(() => Number)
+  @IsNumber()
+  latitude?: number;
 
   @IsOptional()
-  @Allow()
-  latitude?: any;
+  @Type(() => Number)
+  @IsNumber()
+  longitude?: number;
 
   @IsOptional()
-  @Allow()
-  longitude?: any;
+  @IsUUID()
+  responsible_id?: string;
 
   @IsOptional()
-  @Allow()
-  responsible_id?: any;
+  @IsEnum(company_status_enum)
+  status?: company_status_enum;
 
   @IsOptional()
-  @Allow()
-  status?: any;
+  @IsString()
+  country_id?: string;
 
   @IsOptional()
-  @Allow()
-  country_id?: any;
+  @IsString()
+  region_id?: string;
 
   @IsOptional()
-  @Allow()
-  region_id?: any;
+  @IsString()
+  city_id?: string;
 
   @IsOptional()
-  @Allow()
-  city_id?: any;
-
-  @IsOptional()
-  @Allow()
-  legal_identifiers?: any;
+  @IsObject()
+  legal_identifiers?: Record<string, string | null>;
 }
 
 export class UpdateCompaniesDto {
   @IsOptional()
-  @Allow()
-  group_id?: any;
+  @IsUUID()
+  group_id?: string;
 
   @IsOptional()
-  @Allow()
-  parent_id?: any;
+  @IsUUID()
+  parent_id?: string;
 
   @IsOptional()
-  @Allow()
-  name?: any;
+  @IsString()
+  @IsNotEmpty()
+  name?: string;
 
   @IsOptional()
-  @Allow()
-  legal_name?: any;
+  @IsString()
+  legal_name?: string;
 
   @IsOptional()
-  @Allow()
-  code?: any;
+  @IsString()
+  code?: string;
 
   @IsOptional()
-  @Allow()
-  ice?: any;
+  @IsString()
+  ice?: string;
 
   @IsOptional()
-  @Allow()
-  tax_id?: any;
+  @IsString()
+  tax_id?: string;
 
   @IsOptional()
-  @Allow()
-  rc?: any;
+  @IsString()
+  rc?: string;
 
   @IsOptional()
-  @Allow()
-  cnss?: any;
+  @IsString()
+  cnss?: string;
 
   @IsOptional()
-  @Allow()
-  patente?: any;
+  @IsString()
+  patente?: string;
 
   @IsOptional()
-  @Allow()
-  address?: any;
+  @IsString()
+  address?: string;
 
   @IsOptional()
-  @Allow()
-  city?: any;
+  @IsString()
+  city?: string;
 
   @IsOptional()
-  @Allow()
-  region?: any;
+  @IsString()
+  region?: string;
 
   @IsOptional()
-  @Allow()
-  country?: any;
+  @IsString()
+  country?: string;
 
   @IsOptional()
-  @Allow()
-  latitude?: any;
+  @Type(() => Number)
+  @IsNumber()
+  latitude?: number;
 
   @IsOptional()
-  @Allow()
-  longitude?: any;
+  @Type(() => Number)
+  @IsNumber()
+  longitude?: number;
 
   @IsOptional()
-  @Allow()
-  responsible_id?: any;
+  @IsUUID()
+  responsible_id?: string;
 
   @IsOptional()
-  @Allow()
-  status?: any;
+  @IsEnum(company_status_enum)
+  status?: company_status_enum;
 
   @IsOptional()
-  @Allow()
-  country_id?: any;
+  @IsString()
+  country_id?: string;
 
   @IsOptional()
-  @Allow()
-  region_id?: any;
+  @IsString()
+  region_id?: string;
 
   @IsOptional()
-  @Allow()
-  city_id?: any;
+  @IsString()
+  city_id?: string;
 
   @IsOptional()
-  @Allow()
-  legal_identifiers?: any;
+  @IsObject()
+  legal_identifiers?: Record<string, string | null>;
 }

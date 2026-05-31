@@ -34,6 +34,12 @@ export type AuthUser = {
 
 export type LoginResponse = {
   accessToken: string;
+  refreshToken: string;
+  user: AuthUser;
+};
+
+export type RefreshResponse = {
+  accessToken: string;
   user: AuthUser;
 };
 
@@ -48,8 +54,27 @@ export async function fetchMe() {
   return apiFetch<AuthUser>('/auth/me');
 }
 
+export async function refreshSession() {
+  const refreshToken = getRefreshToken();
+
+  if (!refreshToken) {
+    throw new Error('Refresh token absent');
+  }
+
+  const data = await apiFetch<RefreshResponse>('/auth/refresh', {
+    method: 'POST',
+    body: JSON.stringify({refreshToken})
+  });
+
+  localStorage.setItem('agri_control_token', data.accessToken);
+  localStorage.setItem('agri_control_user', JSON.stringify(data.user));
+
+  return data;
+}
+
 export function saveSession(data: LoginResponse) {
   localStorage.setItem('agri_control_token', data.accessToken);
+  localStorage.setItem('agri_control_refresh_token', data.refreshToken);
   localStorage.setItem('agri_control_user', JSON.stringify(data.user));
 }
 
@@ -60,6 +85,11 @@ export function updateStoredUser(user: AuthUser) {
 export function getToken() {
   if (typeof window === 'undefined') return null;
   return localStorage.getItem('agri_control_token');
+}
+
+export function getRefreshToken() {
+  if (typeof window === 'undefined') return null;
+  return localStorage.getItem('agri_control_refresh_token');
 }
 
 export function getUser(): AuthUser | null {
@@ -76,7 +106,19 @@ export function getUser(): AuthUser | null {
   }
 }
 
-export function logout() {
+export async function logout() {
+  const refreshToken = getRefreshToken();
+
+  try {
+    await apiFetch('/auth/logout', {
+      method: 'POST',
+      body: JSON.stringify({refreshToken})
+    });
+  } catch {
+    // On supprime quand même la session locale.
+  }
+
   localStorage.removeItem('agri_control_token');
+  localStorage.removeItem('agri_control_refresh_token');
   localStorage.removeItem('agri_control_user');
 }

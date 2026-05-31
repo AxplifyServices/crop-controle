@@ -1,0 +1,10 @@
+{
+  "name": "Agri-Control",
+  "short_name": "Agri-Control",
+  "description": "Plateforme de pilotage agricole",
+  "start_url": "/fr/login",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#047857",
+  "icons": []
+}

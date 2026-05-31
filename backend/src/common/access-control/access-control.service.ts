@@ -260,6 +260,321 @@ export class AccessControlService {
     return false;
   }
 
+  private splitScopes(user: any) {
+    const scopes = user.user_scopes || [];
+
+    return {
+      groupIds: scopes
+        .filter((scope: any) => String(scope.entity_type).toUpperCase() === 'GROUP')
+        .map((scope: any) => scope.entity_id),
+
+      companyIds: scopes
+        .filter((scope: any) => String(scope.entity_type).toUpperCase() === 'COMPANY')
+        .map((scope: any) => scope.entity_id),
+
+      farmIds: scopes
+        .filter((scope: any) => String(scope.entity_type).toUpperCase() === 'FARM')
+        .map((scope: any) => scope.entity_id),
+
+      factoryIds: scopes
+        .filter((scope: any) => String(scope.entity_type).toUpperCase() === 'FACTORY')
+        .map((scope: any) => scope.entity_id),
+
+      stationIds: scopes
+        .filter((scope: any) => String(scope.entity_type).toUpperCase() === 'STATION')
+        .map((scope: any) => scope.entity_id),
+    };
+  }
+
+  private emptyScopeWhere() {
+    return {
+      id: {
+        in: [],
+      },
+    };
+  }
+
+  private addIfNotEmpty(or: any[], condition: any, ids: string[]) {
+    if (ids.length > 0) {
+      or.push(condition);
+    }
+  }
+
+  async getScopedWhere(currentUserId: string, entityType: string) {
+    const user = await this.getUserWithAccess(currentUserId);
+
+    if (this.isSuperAdmin(user)) {
+      return {};
+    }
+
+    const { groupIds, companyIds, farmIds, factoryIds, stationIds } =
+      this.splitScopes(user);
+
+    const type = String(entityType).toUpperCase();
+    const or: any[] = [];
+
+    if (type === 'GROUP') {
+      this.addIfNotEmpty(or, { id: { in: groupIds } }, groupIds);
+
+      return or.length > 0 ? { OR: or } : this.emptyScopeWhere();
+    }
+
+    if (type === 'COMPANY') {
+      this.addIfNotEmpty(or, { group_id: { in: groupIds } }, groupIds);
+      this.addIfNotEmpty(or, { id: { in: companyIds } }, companyIds);
+
+      return or.length > 0 ? { OR: or } : this.emptyScopeWhere();
+    }
+
+    if (type === 'FARM') {
+      this.addIfNotEmpty(
+        or,
+        {
+          companies: {
+            group_id: {
+              in: groupIds,
+            },
+          },
+        },
+        groupIds,
+      );
+
+      this.addIfNotEmpty(or, { company_id: { in: companyIds } }, companyIds);
+      this.addIfNotEmpty(or, { id: { in: farmIds } }, farmIds);
+
+      return or.length > 0 ? { OR: or } : this.emptyScopeWhere();
+    }
+
+    if (type === 'FACTORY') {
+      this.addIfNotEmpty(
+        or,
+        {
+          companies: {
+            group_id: {
+              in: groupIds,
+            },
+          },
+        },
+        groupIds,
+      );
+
+      this.addIfNotEmpty(or, { company_id: { in: companyIds } }, companyIds);
+      this.addIfNotEmpty(or, { id: { in: factoryIds } }, factoryIds);
+
+      return or.length > 0 ? { OR: or } : this.emptyScopeWhere();
+    }
+
+    if (type === 'STATION') {
+      this.addIfNotEmpty(
+        or,
+        {
+          companies: {
+            group_id: {
+              in: groupIds,
+            },
+          },
+        },
+        groupIds,
+      );
+
+      this.addIfNotEmpty(
+        or,
+        {
+          factories: {
+            companies: {
+              group_id: {
+                in: groupIds,
+              },
+            },
+          },
+        },
+        groupIds,
+      );
+
+      this.addIfNotEmpty(or, { company_id: { in: companyIds } }, companyIds);
+
+      this.addIfNotEmpty(
+        or,
+        {
+          factories: {
+            company_id: {
+              in: companyIds,
+            },
+          },
+        },
+        companyIds,
+      );
+
+      this.addIfNotEmpty(or, { factory_id: { in: factoryIds } }, factoryIds);
+      this.addIfNotEmpty(or, { id: { in: stationIds } }, stationIds);
+
+      return or.length > 0 ? { OR: or } : this.emptyScopeWhere();
+    }
+
+    if (type === 'PLOT') {
+      this.addIfNotEmpty(
+        or,
+        {
+          farms: {
+            companies: {
+              group_id: {
+                in: groupIds,
+              },
+            },
+          },
+        },
+        groupIds,
+      );
+
+      this.addIfNotEmpty(
+        or,
+        {
+          farms: {
+            company_id: {
+              in: companyIds,
+            },
+          },
+        },
+        companyIds,
+      );
+
+      this.addIfNotEmpty(or, { farm_id: { in: farmIds } }, farmIds);
+
+      return or.length > 0 ? { OR: or } : this.emptyScopeWhere();
+    }
+
+    if (type === 'VEHICLE') {
+      this.addIfNotEmpty(
+        or,
+        {
+          companies: {
+            group_id: {
+              in: groupIds,
+            },
+          },
+        },
+        groupIds,
+      );
+
+      this.addIfNotEmpty(or, { company_id: { in: companyIds } }, companyIds);
+
+      return or.length > 0 ? { OR: or } : this.emptyScopeWhere();
+    }
+
+    if (type === 'PERSONNEL') {
+      this.addIfNotEmpty(
+        or,
+        {
+          companies: {
+            group_id: {
+              in: groupIds,
+            },
+          },
+        },
+        groupIds,
+      );
+
+      this.addIfNotEmpty(
+        or,
+        {
+          farms: {
+            companies: {
+              group_id: {
+                in: groupIds,
+              },
+            },
+          },
+        },
+        groupIds,
+      );
+
+      this.addIfNotEmpty(
+        or,
+        {
+          factories: {
+            companies: {
+              group_id: {
+                in: groupIds,
+              },
+            },
+          },
+        },
+        groupIds,
+      );
+
+      this.addIfNotEmpty(
+        or,
+        {
+          stations: {
+            OR: [
+              {
+                companies: {
+                  group_id: {
+                    in: groupIds,
+                  },
+                },
+              },
+              {
+                factories: {
+                  companies: {
+                    group_id: {
+                      in: groupIds,
+                    },
+                  },
+                },
+              },
+            ],
+          },
+        },
+        groupIds,
+      );
+
+      this.addIfNotEmpty(or, { company_id: { in: companyIds } }, companyIds);
+      this.addIfNotEmpty(or, { farm_id: { in: farmIds } }, farmIds);
+      this.addIfNotEmpty(or, { factory_id: { in: factoryIds } }, factoryIds);
+      this.addIfNotEmpty(or, { station_id: { in: stationIds } }, stationIds);
+
+      return or.length > 0 ? { OR: or } : this.emptyScopeWhere();
+    }
+
+    /**
+     * Référentiels globaux : cultures, products, product-varieties,
+     * geography, legal-identifier-types.
+     * Ils sont protégés par permission, mais pas par périmètre organisationnel.
+     */
+    return {};
+  }
+
+  async assertCanAccessRecord(
+    currentUserId: string,
+    entityType: string,
+    modelName: string,
+    recordId: string,
+    extraWhere: any = {},
+  ) {
+    const scopedWhere = await this.getScopedWhere(currentUserId, entityType);
+
+    const item = await (this.prisma as any)[modelName].findFirst({
+      where: {
+        id: recordId,
+        ...extraWhere,
+        ...(Object.keys(scopedWhere).length > 0
+          ? {
+              AND: [scopedWhere],
+            }
+          : {}),
+      },
+    });
+
+    if (!item) {
+      throw new ForbiddenException(
+        'Vous ne disposez pas du périmètre nécessaire pour accéder à cet élément.',
+      );
+    }
+
+    return item;
+  }
+
   async getDescendantUserIds(userId: string) {
     const descendants = new Set<string>();
     let currentLevel = [userId];
