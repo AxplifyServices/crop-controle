@@ -12,7 +12,9 @@ import {
   Sprout,
   Truck,
   Users,
-  X
+  X,
+  ScrollText,
+  UserCog
 } from 'lucide-react';
 import {useTranslations} from 'next-intl';
 import {Link, usePathname} from '@/i18n/navigation';
@@ -102,15 +104,14 @@ items: [
     href: '/dashboard',
     module: 'reports'
   },
-  {
-    key: 'admin',
-    icon: Users,
-    items: [
-      {key: 'users', href: '/dashboard', module: 'users'},
-      {key: 'roles', href: '/dashboard', module: 'roles'},
-      {key: 'settings', href: '/dashboard', module: 'permissions'}
-    ]
-  }
+{
+  key: 'admin',
+  icon: UserCog,
+  items: [
+    {key: 'profiles', href: '/admin/profiles', module: 'profiles'},
+    {key: 'logs', href: '/admin/logs', module: 'audit-logs'}
+  ]
+}
 ];
 
 export function Sidebar({

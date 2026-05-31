@@ -17,6 +17,11 @@ export type AuthUser = {
   firstName: string;
   lastName: string;
   phone?: string | null;
+  title?: string | null;
+  jobTitle?: string | null;
+  assignmentType?: string | null;
+  assignmentId?: string | null;
+  managerId?: string | null;
   status: string;
   role: {
     id: string;

@@ -77,6 +77,11 @@ export class AuthService {
         firstName: user.first_name,
         lastName: user.last_name,
         phone: user.phone,
+        title: (user as any).title,
+        jobTitle: (user as any).job_title,
+        assignmentType: (user as any).assignment_type,
+        assignmentId: (user as any).assignment_id,
+        managerId: user.manager_id,
         status: user.status,
         role: {
           id: user.roles.id,

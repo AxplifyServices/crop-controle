@@ -18,6 +18,10 @@ import { PersonnelModule } from './personnel/personnel.module';
 import { GeographyModule } from './geography/geography.module';
 import { LegalIdentifierTypesModule } from './legal-identifier-types/legal-identifier-types.module';
 import { CulturesModule } from './cultures/cultures.module';
+import { APP_INTERCEPTOR } from '@nestjs/core';
+import { ProfilesModule } from './profiles/profiles.module';
+import { AuditLogsModule } from './audit-logs/audit-logs.module';
+import { AuditLogInterceptor } from './common/interceptors/audit-log.interceptor';
 
 @Module({
   imports: [
@@ -42,6 +46,14 @@ import { CulturesModule } from './cultures/cultures.module';
     GeographyModule,
     LegalIdentifierTypesModule,
     CulturesModule,
+    ProfilesModule,
+    AuditLogsModule,
+  ],
+  providers: [
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: AuditLogInterceptor,
+    },
   ],
 })
 export class AppModule {}
