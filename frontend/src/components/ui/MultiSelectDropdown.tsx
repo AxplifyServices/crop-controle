@@ -56,10 +56,10 @@ export function MultiSelectDropdown({
 
     for (const option of filteredOptions) {
       const group = option.group || '';
-      const current = groups.get(group) || [];
+      const currentOptions = groups.get(group) || [];
 
-      current.push(option);
-      groups.set(group, current);
+      currentOptions.push(option);
+      groups.set(group, currentOptions);
     }
 
     return Array.from(groups.entries());
@@ -112,7 +112,7 @@ export function MultiSelectDropdown({
                 type="button"
                 onClick={() => removeValue(option.value)}
                 className="rounded-full p-0.5 hover:bg-white/20"
-                aria-label={`Retirer ${option.label}`}
+                aria-label={`remove-${option.value}`}
               >
                 <X size={12} />
               </button>
@@ -161,7 +161,9 @@ export function MultiSelectDropdown({
                         }`}
                       >
                         <span>
-                          <span className="block font-medium">{option.label}</span>
+                          <span className="block font-medium">
+                            {option.label}
+                          </span>
 
                           {option.description ? (
                             <span

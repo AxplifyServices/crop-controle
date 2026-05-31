@@ -1,6 +1,6 @@
 'use client';
 
-import {useEffect, useState} from 'react';
+import {useCallback, useEffect, useState} from 'react';
 import {useTranslations} from 'next-intl';
 import {RefreshCcw, Search} from 'lucide-react';
 import {apiFetch} from '@/lib/api';
@@ -37,13 +37,16 @@ export default function AuditLogsPage() {
 function AuditLogsContent() {
   const t = useTranslations('AuditLogs');
 
-  const safeT = (key: string, fallback: string) => {
-    try {
-      return t(key);
-    } catch {
-      return fallback;
-    }
-  };
+  const safeT = useCallback(
+    (key: string, fallback: string) => {
+      try {
+        return t(key);
+      } catch {
+        return fallback;
+      }
+    },
+    [t]
+  );
 
   const [logs, setLogs] = useState<AuditLog[]>([]);
   const [loading, setLoading] = useState(true);
@@ -53,6 +56,7 @@ function AuditLogsContent() {
 
   useEffect(() => {
     loadLogs();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function loadLogs() {
@@ -90,6 +94,7 @@ function AuditLogsContent() {
   }
 
   function getActionLabel(value: string) {
+    const isFailed = value.includes('_FAILED');
     const normalized = value.replace('_FAILED', '').toLowerCase();
 
     const labels: Record<string, string> = {
@@ -102,7 +107,7 @@ function AuditLogsContent() {
 
     const label = labels[normalized] || value;
 
-    if (value.includes('_FAILED')) {
+    if (isFailed) {
       return `${label} — ${safeT('actions.failed', 'Échec')}`;
     }
 
@@ -117,9 +122,11 @@ function AuditLogsContent() {
             <p className="text-sm font-medium text-slate-500">
               {safeT('section', 'Administration')}
             </p>
+
             <h1 className="mt-1 text-2xl font-semibold text-slate-950">
               {safeT('title', 'Historique des logs')}
             </h1>
+
             <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">
               {safeT(
                 'description',
@@ -144,6 +151,7 @@ function AuditLogsContent() {
           <h2 className="font-semibold text-slate-950">
             {safeT('filtersTitle', 'Filtres')}
           </h2>
+
           <p className="mt-1 text-sm text-slate-500">
             {safeT(
               'filtersDescription',
@@ -224,9 +232,7 @@ function AuditLogsContent() {
               <thead className="bg-slate-50 text-xs uppercase text-slate-500">
                 <tr>
                   <th className="px-5 py-3">{safeT('table.date', 'Date')}</th>
-                  <th className="px-5 py-3">
-                    {safeT('table.user', 'Utilisateur')}
-                  </th>
+                  <th className="px-5 py-3">{safeT('table.user', 'Utilisateur')}</th>
                   <th className="px-5 py-3">{safeT('table.action', 'Action')}</th>
                   <th className="px-5 py-3">{safeT('table.module', 'Module')}</th>
                   <th className="px-5 py-3">{safeT('table.ip', 'IP')}</th>

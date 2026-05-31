@@ -17,44 +17,46 @@ export class AuditLogInterceptor implements NestInterceptor {
     const method = request.method;
     const path = request.originalUrl || request.url;
     const user = request.user;
-    const userId = user?.sub || user?.id || null;
-
     const startedAt = Date.now();
 
     return next.handle().pipe(
       tap(async (response) => {
-        if (path?.includes('/health')) {
-          return;
-        }
+        if (this.shouldSkip(path)) return;
 
         const action = this.getAction(method, path);
         const entityType = this.getEntityType(path);
-        const entityId = request.params?.id || response?.id || null;
+        const entityId = request.params?.id || response?.id || response?.user?.id || null;
+        const userId = user?.sub || user?.id || response?.user?.id || null;
 
         await this.auditLogsService
-        .create({
+          .create({
             userId,
             action,
             entityType,
             entityId,
             oldValue: null,
             newValue: {
-            method,
-            path,
-            params: request.params,
-            query: request.query,
-            body: this.sanitizeBody(request.body),
-            durationMs: Date.now() - startedAt,
-            status: 'SUCCESS',
+              method,
+              path,
+              params: request.params,
+              query: request.query,
+              body: this.sanitizeBody(request.body),
+              durationMs: Date.now() - startedAt,
+              status: 'SUCCESS',
             },
             ipAddress: request.ip,
             userAgent: request.headers?.['user-agent'] || null,
-        })
-        .catch(() => undefined);
+          })
+          .catch(() => undefined);
       }),
       catchError((error) => {
+        if (this.shouldSkip(path)) {
+          return throwError(() => error);
+        }
+
         const action = this.getAction(method, path);
         const entityType = this.getEntityType(path);
+        const userId = user?.sub || user?.id || null;
 
         this.auditLogsService
           .create({
@@ -82,8 +84,17 @@ export class AuditLogInterceptor implements NestInterceptor {
     );
   }
 
+  private shouldSkip(path: string) {
+    return (
+      path?.includes('/health') ||
+      path?.includes('/favicon') ||
+      path?.startsWith('/audit-logs')
+    );
+  }
+
   private getAction(method: string, path: string) {
     if (path.includes('/auth/login')) return 'LOGIN';
+    if (path.includes('/auth/logout')) return 'LOGOUT';
 
     switch (method) {
       case 'GET':
@@ -117,6 +128,7 @@ export class AuditLogInterceptor implements NestInterceptor {
     delete clone.password_hash;
     delete clone.accessToken;
     delete clone.refreshToken;
+    delete clone.token;
 
     return clone;
   }

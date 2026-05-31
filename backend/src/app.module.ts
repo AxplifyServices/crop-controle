@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { APP_INTERCEPTOR } from '@nestjs/core';
 import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
@@ -18,7 +19,6 @@ import { PersonnelModule } from './personnel/personnel.module';
 import { GeographyModule } from './geography/geography.module';
 import { LegalIdentifierTypesModule } from './legal-identifier-types/legal-identifier-types.module';
 import { CulturesModule } from './cultures/cultures.module';
-import { APP_INTERCEPTOR } from '@nestjs/core';
 import { ProfilesModule } from './profiles/profiles.module';
 import { AuditLogsModule } from './audit-logs/audit-logs.module';
 import { AuditLogInterceptor } from './common/interceptors/audit-log.interceptor';

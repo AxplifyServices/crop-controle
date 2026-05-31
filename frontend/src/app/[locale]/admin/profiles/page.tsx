@@ -1,8 +1,8 @@
 'use client';
 
-import {useEffect, useMemo, useState, type FormEvent} from 'react';
+import {useCallback, useEffect, useMemo, useState, type FormEvent} from 'react';
 import {useTranslations} from 'next-intl';
-import {Edit3, Plus, RefreshCcw, ShieldCheck, Trash2, X} from 'lucide-react';
+import {Edit3, Lock, Plus, RefreshCcw, ShieldCheck, Trash2, X} from 'lucide-react';
 import {apiFetch} from '@/lib/api';
 import {getUser, type AuthUser} from '@/lib/auth';
 import {hasPermission} from '@/lib/permissions';
@@ -44,6 +44,7 @@ type Profile = {
   title?: string | null;
   jobTitle?: string | null;
   status: string;
+  isLocked?: boolean;
   assignmentType?: string | null;
   assignmentId?: string | null;
   manager?: {
@@ -55,6 +56,7 @@ type Profile = {
   role?: {
     id: string;
     name: string;
+    description?: string | null;
   } | null;
   permissions: Permission[];
   scopes: {
@@ -110,7 +112,6 @@ const moduleFallbackLabels: Record<string, string> = {
   users: 'Utilisateurs',
   roles: 'Rôles',
   permissions: 'Permissions',
-
   groups: 'Groupes',
   companies: 'Entreprises',
   farms: 'Fermes',
@@ -122,20 +123,18 @@ const moduleFallbackLabels: Record<string, string> = {
   products: 'Produits',
   'product-varieties': 'Variétés produits',
   cultures: 'Cultures',
-
   'agricultural-projects': 'Projets agricoles',
   plantations: 'Plantations',
   treatments: 'Traitements',
   harvests: 'Récoltes',
   productions: 'Productions',
   charges: 'Charges',
-
   shipments: 'Expéditions ferme-usine',
   receptions: 'Réceptions usine',
   conditioning: 'Conditionnement',
-
   alerts: 'Alertes',
   dashboard: 'Tableau de bord',
+  dashboards: 'Tableaux de bord',
   reports: 'Reporting'
 };
 
@@ -145,7 +144,6 @@ const moduleGroupFallbackLabels: Record<string, string> = {
   users: 'Administration',
   roles: 'Administration',
   permissions: 'Administration',
-
   groups: 'Référentiel',
   companies: 'Référentiel',
   farms: 'Référentiel',
@@ -157,22 +155,26 @@ const moduleGroupFallbackLabels: Record<string, string> = {
   products: 'Référentiel',
   'product-varieties': 'Référentiel',
   cultures: 'Référentiel',
-
   'agricultural-projects': 'Production agricole',
   plantations: 'Production agricole',
-  treatments: 'Traitements',
-  harvests: 'Récoltes',
-  productions: 'Productions',
-  charges: 'Charges',
-
+  treatments: 'Production agricole',
+  harvests: 'Production agricole',
+  productions: 'Production agricole',
+  charges: 'Production agricole',
   shipments: 'Flux ferme-usine',
   receptions: 'Flux ferme-usine',
   conditioning: 'Flux ferme-usine',
-
   alerts: 'Pilotage',
   dashboard: 'Pilotage',
+  dashboards: 'Pilotage',
   reports: 'Pilotage'
 };
+
+function isSuperAdminRole(roleName?: string | null) {
+  const normalized = String(roleName || '').toLowerCase();
+
+  return ['super_admin', 'super-admin', 'superadmin'].includes(normalized);
+}
 
 export default function ProfilesPage() {
   return (
@@ -185,23 +187,30 @@ export default function ProfilesPage() {
 function ProfilesContent() {
   const t = useTranslations('Profiles');
 
-  const safeT = (key: string, fallback: string) => {
-    try {
-      return t(key);
-    } catch {
-      return fallback;
-    }
-  };
+  const safeT = useCallback(
+    (key: string, fallback: string) => {
+      try {
+        return t(key);
+      } catch {
+        return fallback;
+      }
+    },
+    [t]
+  );
 
-  const scopeTypes = useMemo(
-    () => [
-      {value: 'GROUP', label: safeT('scopeTypes.group', 'Groupe')},
-      {value: 'COMPANY', label: safeT('scopeTypes.company', 'Entreprise')},
-      {value: 'FARM', label: safeT('scopeTypes.farm', 'Ferme')},
-      {value: 'FACTORY', label: safeT('scopeTypes.factory', 'Usine')},
-      {value: 'STATION', label: safeT('scopeTypes.station', 'Station / UC')}
-    ],
-    []
+  const safeTParams = useCallback(
+    (key: string, fallback: string, params: Record<string, string | number>) => {
+      try {
+        return t(key, params);
+      } catch {
+        return Object.entries(params).reduce(
+          (current, [paramKey, paramValue]) =>
+            current.replace(`{${paramKey}}`, String(paramValue)),
+          fallback
+        );
+      }
+    },
+    [t]
   );
 
   const [user, setUser] = useState<AuthUser | null>(null);
@@ -213,6 +222,17 @@ function ProfilesContent() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+
+  const scopeTypes = useMemo(
+    () => [
+      {value: 'GROUP', label: safeT('scopeTypes.group', 'Groupe')},
+      {value: 'COMPANY', label: safeT('scopeTypes.company', 'Entreprise')},
+      {value: 'FARM', label: safeT('scopeTypes.farm', 'Ferme')},
+      {value: 'FACTORY', label: safeT('scopeTypes.factory', 'Usine')},
+      {value: 'STATION', label: safeT('scopeTypes.station', 'Station / UC')}
+    ],
+    [safeT]
+  );
 
   const canCreate = hasPermission(user, 'profiles', 'CREATE');
   const canUpdate = hasPermission(user, 'profiles', 'UPDATE');
@@ -232,17 +252,18 @@ function ProfilesContent() {
 
       const groupLabel = safeT(
         `moduleGroups.${permission.module}`,
-        moduleGroupFallbackLabels[permission.module] || safeT('moduleGroups.other', 'Autres')
+        moduleGroupFallbackLabels[permission.module] ||
+          safeT('moduleGroups.other', 'Autres')
       );
 
       return {
         value: `${permission.module}.${permission.action}`,
         label: `${moduleLabel} — ${actionLabel}`,
-        description: permission.description || groupLabel,
+        description: groupLabel,
         group: groupLabel
       };
     });
-  }, [meta]);
+  }, [meta, safeT]);
 
   const scopeOptions = useMemo<MultiSelectOption[]>(() => {
     const options: MultiSelectOption[] = [];
@@ -266,6 +287,7 @@ function ProfilesContent() {
   useEffect(() => {
     setUser(getUser());
     loadData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function loadData() {
@@ -279,7 +301,11 @@ function ProfilesContent() {
       setProfiles(profilesData);
       setMeta(metaData);
     } catch (err) {
-      setError(err instanceof Error ? err.message : safeT('errors.loading', 'Erreur de chargement.'));
+      setError(
+        err instanceof Error
+          ? err.message
+          : safeT('errors.loading', 'Erreur de chargement.')
+      );
     } finally {
       setLoading(false);
     }
@@ -297,7 +323,18 @@ function ProfilesContent() {
     setOpenForm(true);
   }
 
+  function isLockedProfile(profile: Profile) {
+    if (profile.isLocked) return true;
+    if (profile.id === user?.id) return true;
+    return isSuperAdminRole(profile.role?.name);
+  }
+
   function startEdit(profile: Profile) {
+    if (isLockedProfile(profile)) {
+      setError(safeT('errors.lockedProfile', 'Ce profil ne peut pas être modifié.'));
+      return;
+    }
+
     setEditingId(profile.id);
     setOpenForm(true);
 
@@ -390,13 +427,20 @@ function ProfilesContent() {
   }
 
   async function deleteProfile(profile: Profile) {
+    if (isLockedProfile(profile)) {
+      setError(safeT('errors.lockedProfile', 'Ce profil ne peut pas être modifié.'));
+      return;
+    }
+
     const confirmed = window.confirm(
-      safeT(
+      safeTParams(
         'confirmDelete',
-        `Désactiver le profil ${profile.firstName} ${profile.lastName} ?`
+        'Désactiver le profil {firstName} {lastName} ?',
+        {
+          firstName: profile.firstName,
+          lastName: profile.lastName
+        }
       )
-        .replace('{firstName}', profile.firstName)
-        .replace('{lastName}', profile.lastName)
     );
 
     if (!confirmed) return;
@@ -421,10 +465,14 @@ function ProfilesContent() {
       <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div>
-            <p className="text-sm font-medium text-slate-500">{safeT('section', 'Administration')}</p>
+            <p className="text-sm font-medium text-slate-500">
+              {safeT('section', 'Administration')}
+            </p>
+
             <h1 className="mt-1 text-2xl font-semibold text-slate-950">
               {safeT('title', 'Gestion des profils')}
             </h1>
+
             <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">
               {safeT(
                 'description',
@@ -471,8 +519,11 @@ function ProfilesContent() {
           <div className="mb-5 flex items-center justify-between gap-3">
             <div>
               <h2 className="text-lg font-semibold text-slate-950">
-                {editingId ? safeT('editTitle', 'Modifier le profil') : safeT('createTitle', 'Créer un profil')}
+                {editingId
+                  ? safeT('editTitle', 'Modifier le profil')
+                  : safeT('createTitle', 'Créer un profil')}
               </h2>
+
               <p className="text-sm text-slate-500">
                 {safeT(
                   'formDescription',
@@ -580,10 +631,12 @@ function ProfilesContent() {
             <section className="rounded-2xl border border-slate-200 p-4">
               <div className="mb-4 flex items-center gap-2">
                 <ShieldCheck size={18} className="text-slate-600" />
+
                 <div>
                   <h3 className="font-semibold text-slate-950">
                     {safeT('permissionsTitle', 'Fonctionnalités autorisées')}
                   </h3>
+
                   <p className="mt-1 text-xs text-slate-500">
                     {safeT(
                       'permissionsDescription',
@@ -593,24 +646,21 @@ function ProfilesContent() {
                 </div>
               </div>
 
-            <MultiSelectDropdown
-            label={safeT('permissionsLabel', 'Fonctionnalités')}
-            placeholder={safeT(
-                'permissionsPlaceholder',
-                'Choisir une ou plusieurs fonctionnalités'
-            )}
-            values={form.permissions}
-            options={permissionOptions}
-            onChange={(values) => setForm({...form, permissions: values})}
-            emptyLabel={safeT('emptyPermissions', 'Aucune fonctionnalité disponible')}
-            searchPlaceholder={safeT('searchPlaceholder', 'Rechercher...')}
-            selectedCountLabel={(count) =>
-                safeT('selectedCount', '{count} sélectionné(s)').replace(
-                '{count}',
-                String(count)
-                )
-            }
-            />
+              <MultiSelectDropdown
+                label={safeT('permissionsLabel', 'Fonctionnalités')}
+                placeholder={safeT(
+                  'permissionsPlaceholder',
+                  'Choisir une ou plusieurs fonctionnalités'
+                )}
+                values={form.permissions}
+                options={permissionOptions}
+                onChange={(values) => setForm({...form, permissions: values})}
+                emptyLabel={safeT('emptyPermissions', 'Aucune fonctionnalité disponible')}
+                searchPlaceholder={safeT('searchPlaceholder', 'Rechercher...')}
+                selectedCountLabel={(count) =>
+                  safeTParams('selectedCount', '{count} sélectionné(s)', {count})
+                }
+              />
             </section>
 
             <section className="rounded-2xl border border-slate-200 p-4">
@@ -618,6 +668,7 @@ function ProfilesContent() {
                 <h3 className="font-semibold text-slate-950">
                   {safeT('scopesTitle', 'Périmètres autorisés')}
                 </h3>
+
                 <p className="mt-1 text-xs text-slate-500">
                   {safeT(
                     'scopesDescription',
@@ -626,21 +677,18 @@ function ProfilesContent() {
                 </p>
               </div>
 
-            <MultiSelectDropdown
-            label={safeT('scopesLabel', 'Périmètres')}
-            placeholder={safeT('scopesPlaceholder', 'Choisir un ou plusieurs périmètres')}
-            values={form.scopes}
-            options={scopeOptions}
-            onChange={(values) => setForm({...form, scopes: values})}
-            emptyLabel={safeT('emptyScopes', 'Aucun périmètre disponible')}
-            searchPlaceholder={safeT('searchPlaceholder', 'Rechercher...')}
-            selectedCountLabel={(count) =>
-                safeT('selectedCount', '{count} sélectionné(s)').replace(
-                '{count}',
-                String(count)
-                )
-            }
-            />
+              <MultiSelectDropdown
+                label={safeT('scopesLabel', 'Périmètres')}
+                placeholder={safeT('scopesPlaceholder', 'Choisir un ou plusieurs périmètres')}
+                values={form.scopes}
+                options={scopeOptions}
+                onChange={(values) => setForm({...form, scopes: values})}
+                emptyLabel={safeT('emptyScopes', 'Aucun périmètre disponible')}
+                searchPlaceholder={safeT('searchPlaceholder', 'Rechercher...')}
+                selectedCountLabel={(count) =>
+                  safeTParams('selectedCount', '{count} sélectionné(s)', {count})
+                }
+              />
             </section>
           </div>
 
@@ -691,69 +739,90 @@ function ProfilesContent() {
               </thead>
 
               <tbody className="divide-y divide-slate-100">
-                {profiles.map((profile) => (
-                  <tr key={profile.id} className="hover:bg-slate-50/70">
-                    <td className="px-5 py-4">
-                      <div className="font-medium text-slate-950">
-                        {profile.firstName} {profile.lastName}
-                      </div>
-                      <div className="text-xs text-slate-500">{profile.email}</div>
-                    </td>
+                {profiles.map((profile) => {
+                  const locked = isLockedProfile(profile);
 
-                    <td className="px-5 py-4 text-slate-600">
-                      <div>{profile.title || '-'}</div>
-                      <div className="text-xs text-slate-500">
-                        {profile.jobTitle || '-'}
-                      </div>
-                    </td>
+                  return (
+                    <tr key={profile.id} className="hover:bg-slate-50/70">
+                      <td className="px-5 py-4">
+                        <div className="flex items-center gap-2">
+                          <div>
+                            <div className="font-medium text-slate-950">
+                              {profile.firstName} {profile.lastName}
+                            </div>
 
-                    <td className="px-5 py-4 text-slate-600">
-                      {profile.manager
-                        ? `${profile.manager.firstName} ${profile.manager.lastName}`
-                        : '-'}
-                    </td>
+                            <div className="text-xs text-slate-500">
+                              {profile.email}
+                            </div>
+                          </div>
 
-                    <td className="px-5 py-4 text-slate-600">
-                      {profile.permissions.length}
-                    </td>
+                          {locked ? (
+                            <span
+                              className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-1 text-xs font-medium text-slate-600"
+                              title={safeT('lockedProfile', 'Profil protégé')}
+                            >
+                              <Lock size={12} />
+                              {safeT('locked', 'Protégé')}
+                            </span>
+                          ) : null}
+                        </div>
+                      </td>
 
-                    <td className="px-5 py-4 text-slate-600">
-                      {profile.scopes.length}
-                    </td>
+                      <td className="px-5 py-4 text-slate-600">
+                        <div>{profile.title || '-'}</div>
+                        <div className="text-xs text-slate-500">
+                          {profile.jobTitle || '-'}
+                        </div>
+                      </td>
 
-                    <td className="px-5 py-4">
-                      <span className="rounded-full bg-slate-100 px-2 py-1 text-xs font-medium text-slate-700">
-                        {profile.status}
-                      </span>
-                    </td>
+                      <td className="px-5 py-4 text-slate-600">
+                        {profile.manager
+                          ? `${profile.manager.firstName} ${profile.manager.lastName}`
+                          : '-'}
+                      </td>
 
-                    <td className="px-5 py-4">
-                      <div className="flex justify-end gap-2">
-                        {canUpdate ? (
-                          <button
-                            type="button"
-                            onClick={() => startEdit(profile)}
-                            className="rounded-lg border border-slate-200 p-2 text-slate-600 hover:bg-white hover:text-slate-950"
-                            title={safeT('actions.edit', 'Modifier')}
-                          >
-                            <Edit3 size={16} />
-                          </button>
-                        ) : null}
+                      <td className="px-5 py-4 text-slate-600">
+                        {profile.permissions.length}
+                      </td>
 
-                        {canDelete ? (
-                          <button
-                            type="button"
-                            onClick={() => deleteProfile(profile)}
-                            className="rounded-lg border border-red-200 p-2 text-red-600 hover:bg-red-50"
-                            title={safeT('actions.delete', 'Supprimer')}
-                          >
-                            <Trash2 size={16} />
-                          </button>
-                        ) : null}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                      <td className="px-5 py-4 text-slate-600">
+                        {profile.scopes.length}
+                      </td>
+
+                      <td className="px-5 py-4">
+                        <span className="rounded-full bg-slate-100 px-2 py-1 text-xs font-medium text-slate-700">
+                          {profile.status}
+                        </span>
+                      </td>
+
+                      <td className="px-5 py-4">
+                        <div className="flex justify-end gap-2">
+                          {canUpdate && !locked ? (
+                            <button
+                              type="button"
+                              onClick={() => startEdit(profile)}
+                              className="rounded-lg border border-slate-200 p-2 text-slate-600 hover:bg-white hover:text-slate-950"
+                              title={safeT('actions.edit', 'Modifier')}
+                            >
+                              <Edit3 size={16} />
+                            </button>
+                          ) : null}
+
+                          {canDelete && !locked ? (
+                            <button
+                              type="button"
+                              onClick={() => deleteProfile(profile)}
+                              className="rounded-lg border border-red-200 p-2 text-red-600 hover:bg-red-50"
+                              title={safeT('actions.delete', 'Supprimer')}
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          ) : null}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
 
                 {profiles.length === 0 ? (
                   <tr>
@@ -788,7 +857,10 @@ function Field({
 }) {
   return (
     <label className="block">
-      <span className="mb-1 block text-sm font-medium text-slate-700">{label}</span>
+      <span className="mb-1 block text-sm font-medium text-slate-700">
+        {label}
+      </span>
+
       <input
         type={type}
         value={value}
@@ -816,7 +888,10 @@ function SelectField({
 }) {
   return (
     <label className="block">
-      <span className="mb-1 block text-sm font-medium text-slate-700">{label}</span>
+      <span className="mb-1 block text-sm font-medium text-slate-700">
+        {label}
+      </span>
+
       <select
         value={value}
         onChange={(event) => onChange(event.target.value)}

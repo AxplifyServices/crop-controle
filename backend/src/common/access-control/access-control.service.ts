@@ -15,6 +15,12 @@ type ScopeInput = {
 export class AccessControlService {
   constructor(private readonly prisma: PrismaService) {}
 
+  isSuperAdminRoleName(roleName?: string | null) {
+    const normalized = String(roleName || '').toLowerCase();
+
+    return ['super_admin', 'super-admin', 'superadmin'].includes(normalized);
+  }
+
   async getUserWithAccess(userId: string) {
     const user = await (this.prisma as any).users.findUnique({
       where: { id: userId },
@@ -40,9 +46,7 @@ export class AccessControlService {
   }
 
   isSuperAdmin(user: any) {
-    const roleName = String(user?.roles?.name || '').toLowerCase();
-
-    return ['super_admin', 'super-admin', 'superadmin'].includes(roleName);
+    return this.isSuperAdminRoleName(user?.roles?.name);
   }
 
   getPermissionKeys(user: any) {
@@ -52,6 +56,33 @@ export class AccessControlService {
         return `${permission.module}.${permission.action}`;
       }) || [],
     );
+  }
+
+  async assertTargetIsNotSuperAdmin(targetUserId: string) {
+    const target = await (this.prisma as any).users.findUnique({
+      where: { id: targetUserId },
+      include: {
+        roles: true,
+      },
+    });
+
+    if (!target || target.deleted_at) {
+      throw new NotFoundException('Profil introuvable.');
+    }
+
+    if (this.isSuperAdminRoleName(target.roles?.name)) {
+      throw new ForbiddenException('Le profil super administrateur est protégé.');
+    }
+
+    return target;
+  }
+
+  async assertNotSelf(currentUserId: string, targetUserId: string) {
+    if (currentUserId === targetUserId) {
+      throw new ForbiddenException(
+        'Vous ne pouvez pas modifier ou supprimer votre propre profil depuis cette interface.',
+      );
+    }
   }
 
   async assertCanGrantPermissions(creatorId: string, permissions: PermissionInput[]) {
@@ -95,7 +126,10 @@ export class AccessControlService {
     }
   }
 
-  private async isScopeAllowedByCreatorScopes(creatorScopes: any[], targetScope: ScopeInput) {
+  private async isScopeAllowedByCreatorScopes(
+    creatorScopes: any[],
+    targetScope: ScopeInput,
+  ) {
     const targetType = String(targetScope.entityType).toUpperCase();
 
     for (const creatorScope of creatorScopes) {
@@ -109,7 +143,10 @@ export class AccessControlService {
       if (creatorType === 'GROUP') {
         if (targetType === 'COMPANY') {
           const company = await (this.prisma as any).companies.findFirst({
-            where: { id: targetScope.entityId, group_id: creatorId },
+            where: {
+              id: targetScope.entityId,
+              group_id: creatorId,
+            },
           });
 
           if (company) return true;
@@ -145,11 +182,20 @@ export class AccessControlService {
           const station = await (this.prisma as any).stations.findFirst({
             where: {
               id: targetScope.entityId,
-              factories: {
-                companies: {
-                  group_id: creatorId,
+              OR: [
+                {
+                  companies: {
+                    group_id: creatorId,
+                  },
                 },
-              },
+                {
+                  factories: {
+                    companies: {
+                      group_id: creatorId,
+                    },
+                  },
+                },
+              ],
             },
           });
 
@@ -160,7 +206,10 @@ export class AccessControlService {
       if (creatorType === 'COMPANY') {
         if (targetType === 'FARM') {
           const farm = await (this.prisma as any).farms.findFirst({
-            where: { id: targetScope.entityId, company_id: creatorId },
+            where: {
+              id: targetScope.entityId,
+              company_id: creatorId,
+            },
           });
 
           if (farm) return true;
@@ -168,7 +217,10 @@ export class AccessControlService {
 
         if (targetType === 'FACTORY') {
           const factory = await (this.prisma as any).factories.findFirst({
-            where: { id: targetScope.entityId, company_id: creatorId },
+            where: {
+              id: targetScope.entityId,
+              company_id: creatorId,
+            },
           });
 
           if (factory) return true;
@@ -176,7 +228,17 @@ export class AccessControlService {
 
         if (targetType === 'STATION') {
           const station = await (this.prisma as any).stations.findFirst({
-            where: { id: targetScope.entityId, company_id: creatorId },
+            where: {
+              id: targetScope.entityId,
+              OR: [
+                { company_id: creatorId },
+                {
+                  factories: {
+                    company_id: creatorId,
+                  },
+                },
+              ],
+            },
           });
 
           if (station) return true;
@@ -185,7 +247,10 @@ export class AccessControlService {
 
       if (creatorType === 'FACTORY' && targetType === 'STATION') {
         const station = await (this.prisma as any).stations.findFirst({
-          where: { id: targetScope.entityId, factory_id: creatorId },
+          where: {
+            id: targetScope.entityId,
+            factory_id: creatorId,
+          },
         });
 
         if (station) return true;
@@ -207,12 +272,13 @@ export class AccessControlService {
           },
           deleted_at: null,
         },
-        select: {
-          id: true,
+        include: {
+          roles: true,
         },
       });
 
       const childIds = children
+        .filter((child: any) => !this.isSuperAdminRoleName(child.roles?.name))
         .map((child: any) => child.id)
         .filter((id: string) => !descendants.has(id));
 
@@ -227,9 +293,8 @@ export class AccessControlService {
   }
 
   async assertCanManageUser(managerId: string, targetUserId: string) {
-    if (managerId === targetUserId) {
-      throw new ForbiddenException('Vous ne pouvez pas vous modifier vous-même depuis cet écran.');
-    }
+    await this.assertNotSelf(managerId, targetUserId);
+    await this.assertTargetIsNotSuperAdmin(targetUserId);
 
     const manager = await this.getUserWithAccess(managerId);
 
@@ -246,9 +311,29 @@ export class AccessControlService {
     }
   }
 
-  async assertCanUseManager(creatorId: string, selectedManagerId: string | null | undefined) {
+  async assertCanUseManager(
+    creatorId: string,
+    selectedManagerId: string | null | undefined,
+  ) {
     if (!selectedManagerId) {
       return;
+    }
+
+    const selectedManager = await (this.prisma as any).users.findUnique({
+      where: { id: selectedManagerId },
+      include: {
+        roles: true,
+      },
+    });
+
+    if (!selectedManager || selectedManager.deleted_at) {
+      throw new ForbiddenException('Le supérieur hiérarchique choisi est introuvable.');
+    }
+
+    if (this.isSuperAdminRoleName(selectedManager.roles?.name)) {
+      throw new ForbiddenException(
+        'Le super administrateur ne peut pas être choisi comme supérieur depuis cette interface.',
+      );
     }
 
     const creator = await this.getUserWithAccess(creatorId);
@@ -297,7 +382,9 @@ export class AccessControlService {
     }
 
     return (
-      user.roles?.role_permissions?.map((rolePermission: any) => rolePermission.permissions) || []
+      user.roles?.role_permissions?.map(
+        (rolePermission: any) => rolePermission.permissions,
+      ) || []
     );
   }
 
@@ -305,44 +392,61 @@ export class AccessControlService {
     const currentUser = await this.getUserWithAccess(currentUserId);
 
     if (this.isSuperAdmin(currentUser)) {
-      return (this.prisma as any).users.findMany({
-        where: { deleted_at: null },
-        orderBy: [{ first_name: 'asc' }, { last_name: 'asc' }],
-        select: {
-          id: true,
-          email: true,
-          first_name: true,
-          last_name: true,
-          title: true,
-          job_title: true,
+      const users = await (this.prisma as any).users.findMany({
+        where: {
+          deleted_at: null,
         },
+        include: {
+          roles: true,
+        },
+        orderBy: [{ first_name: 'asc' }, { last_name: 'asc' }],
       });
+
+      return users
+        .filter((user: any) => !this.isSuperAdminRoleName(user.roles?.name))
+        .map((user: any) => ({
+          id: user.id,
+          email: user.email,
+          first_name: user.first_name,
+          last_name: user.last_name,
+          title: user.title,
+          job_title: user.job_title,
+        }));
     }
 
     const descendantIds = await this.getDescendantUserIds(currentUserId);
 
-    return (this.prisma as any).users.findMany({
+    const users = await (this.prisma as any).users.findMany({
       where: {
         id: {
           in: [currentUserId, ...descendantIds],
         },
         deleted_at: null,
       },
-      orderBy: [{ first_name: 'asc' }, { last_name: 'asc' }],
-      select: {
-        id: true,
-        email: true,
-        first_name: true,
-        last_name: true,
-        title: true,
-        job_title: true,
+      include: {
+        roles: true,
       },
+      orderBy: [{ first_name: 'asc' }, { last_name: 'asc' }],
     });
+
+    return users
+      .filter((user: any) => !this.isSuperAdminRoleName(user.roles?.name))
+      .map((user: any) => ({
+        id: user.id,
+        email: user.email,
+        first_name: user.first_name,
+        last_name: user.last_name,
+        title: user.title,
+        job_title: user.job_title,
+      }));
   }
 
   async findUserOrThrow(userId: string) {
     const user = await (this.prisma as any).users.findUnique({
       where: { id: userId },
+      include: {
+        roles: true,
+      },
     });
 
     if (!user || user.deleted_at) {
