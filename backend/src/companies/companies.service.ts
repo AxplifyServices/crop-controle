@@ -283,6 +283,9 @@ async findOne(id: string, currentUserId: string) {
 
     const value = String(countryCodeOrId).trim().toUpperCase();
 
+    if (value === 'COUNTRY_MA') return 'MA';
+    if (value === 'COUNTRY_ES') return 'ES';
+
     if (value === 'MAROC' || value === 'MOROCCO') return 'MA';
     if (value === 'ESPAGNE' || value === 'SPAIN' || value === 'ESPAÑA') return 'ES';
 

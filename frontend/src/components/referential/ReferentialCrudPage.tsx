@@ -7,6 +7,12 @@ import {apiFetch} from '@/lib/api';
 import {getUser, type AuthUser} from '@/lib/auth';
 import {hasPermission} from '@/lib/permissions';
 import type {ResourceConfig, ResourceField, ResourceOption} from '@/lib/phase2-resources';
+import {
+  emptyGeographyOptions,
+  getGeographyOptionsForField,
+  loadGeographyOptions,
+  type GeographyOptions
+} from '@/lib/geo-options';
 import {RequirePermission} from '@/components/auth/RequirePermission';
 
 type RecordItem = Record<string, any>;
@@ -32,6 +38,8 @@ function ReferentialCrudContent({config}: {config: ResourceConfig}) {
   const [error, setError] = useState('');
   const [user, setUser] = useState<AuthUser | null>(null);
   const [lookupOptions, setLookupOptions] = useState<LookupOptionsMap>({});
+  const [geographyOptions, setGeographyOptions] =
+    useState<GeographyOptions>(emptyGeographyOptions);
   const [infoItem, setInfoItem] = useState<RecordItem | null>(null);
   const [filters, setFilters] = useState<Record<string, string[]>>({});
   const [filtersOpen, setFiltersOpen] = useState(false);
@@ -46,6 +54,11 @@ function ReferentialCrudContent({config}: {config: ResourceConfig}) {
         .map((key) => config.fields.find((field) => field.key === key))
         .filter(Boolean) as ResourceField[],
     [config.fields, config.filterFields]
+  );
+
+  const hasGeographyFields = useMemo(
+    () => config.fields.some((field) => field.geographyLevel),
+    [config.fields]
   );
 
 
@@ -119,6 +132,23 @@ const filteredItems = useMemo(
     [filteredItems, sectionStatusValues]
   );
 
+  async function loadGeography() {
+    if (!hasGeographyFields) {
+      return;
+    }
+
+    try {
+      const options = await loadGeographyOptions();
+      setGeographyOptions(options);
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? `Impossible de charger la géographie : ${err.message}`
+          : 'Impossible de charger la géographie.'
+      );
+    }
+  }
+
   async function loadItems() {
     setLoading(true);
     setError('');
@@ -183,6 +213,7 @@ const filteredItems = useMemo(
     setUser(currentUser);
     loadItems();
     loadLookups(currentUser);
+    loadGeography();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -416,13 +447,14 @@ if (value !== undefined && value !== '' && value !== null) {
 
     {filtersOpen ? (
       <div className="border-t border-slate-100 p-5">
-        <FiltersPanel
-          fields={filterFields}
-          filters={filters}
-          lookupOptions={lookupOptions}
-          onChange={setFilterValue}
-          onReset={resetFilters}
-        />
+      <FiltersPanel
+        fields={filterFields}
+        filters={filters}
+        lookupOptions={lookupOptions}
+        geographyOptions={geographyOptions}
+        onChange={setFilterValue}
+        onReset={resetFilters}
+      />
       </div>
     ) : null}
   </div>
@@ -454,6 +486,7 @@ if (value !== undefined && value !== '' && value !== null) {
                 form={form}
                 currentRecordId={editingId}
                 lookupOptions={lookupOptions}
+                geographyOptions={geographyOptions}
                 onChange={(value) => setFieldValue(field, value)}
               />
             ))}
@@ -488,6 +521,7 @@ if (value !== undefined && value !== '' && value !== null) {
             config={config}
             visibleFields={visibleFields}
             lookupOptions={lookupOptions}
+            geographyOptions={geographyOptions}
             loading={index === 0 ? loading : false}
             canUpdate={canUpdate}
             canDelete={canDelete}
@@ -504,6 +538,7 @@ if (value !== undefined && value !== '' && value !== null) {
             config={config}
             visibleFields={visibleFields}
             lookupOptions={lookupOptions}
+            geographyOptions={geographyOptions}
             loading={false}
             canUpdate={canUpdate}
             canDelete={canDelete}
@@ -519,6 +554,7 @@ if (value !== undefined && value !== '' && value !== null) {
             item={infoItem}
             config={config}
             lookupOptions={lookupOptions}
+            geographyOptions={geographyOptions}
             onClose={() => setInfoItem(null)}
           />
         ) : null}
@@ -532,12 +568,14 @@ function FiltersPanel({
   fields,
   filters,
   lookupOptions,
+  geographyOptions,
   onChange,
   onReset
 }: {
   fields: ResourceField[];
   filters: Record<string, string[]>;
   lookupOptions: LookupOptionsMap;
+  geographyOptions: GeographyOptions;
   onChange: (field: ResourceField, values: string[]) => void;
   onReset: () => void;
 }) {
@@ -584,12 +622,14 @@ function FilterInput({
   value,
   filters,
   lookupOptions,
+  geographyOptions,
   onChange
 }: {
   field: ResourceField;
   value: string[];
   filters: Record<string, string[]>;
   lookupOptions: LookupOptionsMap;
+  geographyOptions: GeographyOptions;
   onChange: (values: string[]) => void;
 }) {
   const t = useTranslations('Referential');
@@ -604,7 +644,7 @@ function FilterInput({
     return next;
   }, [filters]);
 
-  const options = getFilterOptions(field, pseudoForm, lookupOptions);
+  const options = getFilterOptions(field, pseudoForm, lookupOptions, geographyOptions);
 
   const availableOptions = options.filter((option) => !value.includes(option.value));
 
@@ -681,6 +721,7 @@ function RecordsTable({
   config,
   visibleFields,
   lookupOptions,
+  geographyOptions,
   loading,
   canUpdate,
   canDelete,
@@ -694,6 +735,7 @@ function RecordsTable({
   config: ResourceConfig;
   visibleFields: string[];
   lookupOptions: LookupOptionsMap;
+  geographyOptions: GeographyOptions;
   loading: boolean;
   canUpdate: boolean;
   canDelete: boolean;
@@ -761,7 +803,7 @@ function RecordsTable({
                   <tr key={item.id} className="hover:bg-slate-50/70">
                     {visibleFields.map((field) => (
                       <td key={field} className="whitespace-nowrap px-4 py-3 text-slate-700">
-                        {formatListValue(config, field, item[field], lookupOptions, t)}
+                        {formatListValue(config, field, item[field], lookupOptions, geographyOptions, t)}
                       </td>
                     ))}
 
@@ -848,7 +890,7 @@ function DetailSheet({
               </p>
 
               <h2 className="mt-1 text-xl font-semibold text-slate-950">
-                {getBestItemTitle(config, item, lookupOptions, t)}
+                {getBestItemTitle(config, item, lookupOptions, geographyOptions, t)}
               </h2>
             </div>
 
@@ -879,7 +921,7 @@ function DetailSheet({
                   </dt>
 
                   <dd className="break-words text-sm text-slate-900 sm:col-span-2">
-                    {formatListValue(config, key, item[key], lookupOptions, t)}
+                    {formatListValue(config, key, item[key], lookupOptions, geographyOptions, t)}
                   </dd>
                 </div>
               ))}
@@ -897,6 +939,7 @@ function FieldInput({
   form,
   currentRecordId,
   lookupOptions,
+  geographyOptions,
   onChange
 }: {
   field: ResourceField;
@@ -904,6 +947,7 @@ function FieldInput({
   form: RecordItem;
   currentRecordId: string | null;
   lookupOptions: LookupOptionsMap;
+  geographyOptions: GeographyOptions;
   onChange: (value: string | string[]) => void;
 }) {
   const t = useTranslations('Referential');
@@ -911,7 +955,13 @@ function FieldInput({
   const inputClass =
     'mt-1 h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-800 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100';
 
-  const options = getFieldOptions(field, form, lookupOptions, currentRecordId);
+  const options = getFieldOptions(
+    field,
+    form,
+    lookupOptions,
+    geographyOptions,
+    currentRecordId
+  );
   const isSelectLike = field.type === 'select' || field.type === 'lookup';
 
   if (field.type === 'multiselect') {
@@ -1027,31 +1077,7 @@ function buildEditForm(config: ResourceConfig, item: RecordItem) {
     nextForm[field.key] = value;
   }
 
-  if (!nextForm.country && nextForm.region) {
-    const country = findCountryByRegion(config, String(nextForm.region));
-
-    if (country) {
-      nextForm.country = country;
-    }
-  }
-
   return nextForm;
-}
-
-function findCountryByRegion(config: ResourceConfig, region: string) {
-  const regionField = config.fields.find((field) => field.key === 'region');
-
-  if (!regionField?.dependsOn) {
-    return null;
-  }
-
-  for (const [country, regions] of Object.entries(regionField.dependsOn.optionsByValue)) {
-    if (regions.some((item) => item.value === region)) {
-      return country;
-    }
-  }
-
-  return null;
 }
 
 function isFieldVisible(field: ResourceField, form: RecordItem) {
@@ -1091,8 +1117,17 @@ function getInputLabel(
 function getFilterOptions(
   field: ResourceField,
   filterForm: RecordItem,
-  lookupOptions: LookupOptionsMap
+  lookupOptions: LookupOptionsMap,
+  geographyOptions: GeographyOptions
 ) {
+  if (field.geographyLevel) {
+    return getGeographyOptionsForField(
+      field.geographyLevel,
+      filterForm,
+      geographyOptions
+    );
+  }
+
   if (field.type === 'lookup') {
     let options = lookupOptions[field.key] || [];
 
@@ -1138,8 +1173,17 @@ function getFieldOptions(
   field: ResourceField,
   form: RecordItem,
   lookupOptions: LookupOptionsMap,
+  geographyOptions: GeographyOptions,
   currentRecordId: string | null
 ) {
+  if (field.geographyLevel) {
+    return getGeographyOptionsForField(
+      field.geographyLevel,
+      form,
+      geographyOptions
+    );
+  }
+
   if (field.type === 'lookup') {
     let options = lookupOptions[field.key] || [];
 
@@ -1297,6 +1341,7 @@ function getBestItemTitle(
   config: ResourceConfig,
   item: RecordItem,
   lookupOptions: LookupOptionsMap,
+  geographyOptions: GeographyOptions,
   t: ReturnType<typeof useTranslations>
 ) {
   if (item.name) return String(item.name);
@@ -1307,7 +1352,7 @@ function getBestItemTitle(
   const firstVisibleField = config.listFields[0];
 
   if (firstVisibleField) {
-    return formatListValue(config, firstVisibleField, item[firstVisibleField], lookupOptions, t);
+    return formatListValue(config, firstVisibleField, item[firstVisibleField], lookupOptions, geographyOptions, t);
   }
 
   return t('details.untitled');
@@ -1324,9 +1369,28 @@ function formatListValue(
   fieldKey: string,
   value: any,
   lookupOptions: LookupOptionsMap,
+  geographyOptions: GeographyOptions,
   t: ReturnType<typeof useTranslations>
 ) {
   const field = config.fields.find((item) => item.key === fieldKey);
+
+  if (field?.geographyLevel) {
+    const options = getGeographyOptionsForField(
+      field.geographyLevel,
+      {
+        country_id: field.geographyLevel === 'country' ? value : undefined,
+        region_id: field.geographyLevel === 'region' ? value : undefined,
+        city_id: field.geographyLevel === 'city' ? value : undefined,
+      },
+      geographyOptions
+    );
+
+    const option = options.find((item) => item.value === String(value));
+
+    if (option) {
+      return option.labelKey;
+    }
+  }
 
   if (field?.type === 'lookup') {
     const option = lookupOptions[fieldKey]?.find(

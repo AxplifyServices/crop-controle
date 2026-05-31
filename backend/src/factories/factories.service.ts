@@ -16,6 +16,37 @@ export class FactoriesService {
     return (this.prisma as any)[this.modelName];
   }
 
+  private async enrichGeography<T extends CreateFactoriesDto | UpdateFactoriesDto>(dto: T) {
+    if (!dto.country_id && !dto.region_id && !dto.city_id) {
+      return dto;
+    }
+
+    const location = await this.prisma.geography_locations.findFirst({
+      where: {
+        country_id: dto.country_id || undefined,
+        region_id: dto.region_id || undefined,
+        city_id: dto.city_id || undefined,
+        is_active: true,
+      },
+    });
+
+    if (!location) {
+      throw new BadRequestException(
+        'La combinaison pays / région / ville est invalide.',
+      );
+    }
+
+    return {
+      ...dto,
+      country_id: location.country_id,
+      region_id: location.region_id,
+      city_id: location.city_id,
+      country: location.country_name,
+      region: location.region_name,
+      city: location.city_name,
+    };
+  }
+
   async findAll(currentUserId: string) {
     const scopedWhere = await this.accessControl.getScopedWhere(
       currentUserId,
@@ -71,8 +102,10 @@ export class FactoriesService {
       { deleted_at: null },
     );
 
+    const data = await this.enrichGeography(dto);
+
     return this.model.create({
-      data: dto,
+      data,
     });
   }
 
@@ -89,10 +122,12 @@ export class FactoriesService {
       );
     }
 
+    const data = await this.enrichGeography(dto);
+
     return this.model.update({
       where: { id },
       data: {
-        ...dto,
+        ...data,
         updated_at: new Date(),
       },
     });

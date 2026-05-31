@@ -17,16 +17,16 @@ export class GeographyController {
 
   @RequirePermission('geography', 'VIEW')
   @Get('regions')
-  getRegions(@Query('countryCode') countryCode: string) {
-    return this.geographyService.getRegions(countryCode);
+  getRegions(@Query('countryId') countryId: string) {
+    return this.geographyService.getRegions(countryId);
   }
 
   @RequirePermission('geography', 'VIEW')
   @Get('cities')
   getCities(
-    @Query('countryCode') countryCode: string,
-    @Query('regionCode') regionCode?: string,
+    @Query('countryId') countryId: string,
+    @Query('regionId') regionId?: string,
   ) {
-    return this.geographyService.getCities(countryCode, regionCode);
+    return this.geographyService.getCities(countryId, regionId);
   }
 }

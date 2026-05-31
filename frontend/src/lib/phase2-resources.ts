@@ -1,4 +1,3 @@
-import {cityOptionsByRegion, countryOptions, regionOptionsByCountry} from '@/lib/geo-options';
 
 export type FieldType = 'text' | 'number' | 'select' | 'lookup' | 'multiselect';
 
@@ -12,6 +11,7 @@ export type ResourceField = {
   key: string;
   labelKey: string;
   type: FieldType;
+  geographyLevel?: 'country' | 'region' | 'city';
   required?: boolean;
   persist?: boolean;
   options?: ResourceOption[];
@@ -126,7 +126,7 @@ export const phase2Resources: Record<string, ResourceConfig> = {
     descriptionKey: 'resources.companies.description',
     endpoint: '/companies',
     listFields: ['name', 'code', 'country', 'region', 'city', 'status'],
-    filterFields: ['group_id', 'country', 'region', 'city', 'status'],
+    filterFields: ['group_id', 'country_id', 'region_id', 'city_id', 'status'],
     fields: [
       {
         key: 'group_id',
@@ -158,10 +158,10 @@ export const phase2Resources: Record<string, ResourceConfig> = {
       {key: 'code', labelKey: 'fields.codeInternal', type: 'text'},
 
       {
-        key: 'country',
+        key: 'country_id',
         labelKey: 'fields.country',
         type: 'select',
-        options: countryOptions,
+        geographyLevel: 'country',
         required: true
       },
 
@@ -248,22 +248,16 @@ export const phase2Resources: Record<string, ResourceConfig> = {
       {key: 'address', labelKey: 'fields.address', type: 'text'},
 
       {
-        key: 'region',
+        key: 'region_id',
         labelKey: 'fields.region',
         type: 'select',
-        dependsOn: {
-          fieldKey: 'country',
-          optionsByValue: regionOptionsByCountry
-        }
+        geographyLevel: 'region'
       },
       {
-        key: 'city',
+        key: 'city_id',
         labelKey: 'fields.city',
         type: 'select',
-        dependsOn: {
-          fieldKey: 'region',
-          optionsByValue: cityOptionsByRegion
-        }
+        geographyLevel: 'city'
       },
 
       {key: 'latitude', labelKey: 'fields.latitude', type: 'number'},
@@ -288,7 +282,7 @@ export const phase2Resources: Record<string, ResourceConfig> = {
   descriptionKey: 'resources.farms.description',
   endpoint: '/farms',
   listFields: ['name', 'code', 'company_id', 'region', 'city', 'surface_ha', 'status'],
-  filterFields: ['company_id', 'country', 'region', 'city', 'status'],  
+  filterFields: ['company_id', 'country_id', 'region_id', 'city_id', 'category', 'status'],
   fields: [
     {
       key: 'company_id',
@@ -315,30 +309,24 @@ export const phase2Resources: Record<string, ResourceConfig> = {
       ]
     },
     {key: 'address', labelKey: 'fields.address', type: 'text'},
-{
-  key: 'country',
-  labelKey: 'fields.country',
-  type: 'select',
-  options: countryOptions,
-  required: true
-},
     {
-      key: 'region',
-      labelKey: 'fields.region',
+      key: 'country_id',
+      labelKey: 'fields.country',
       type: 'select',
-      dependsOn: {
-        fieldKey: 'country',
-        optionsByValue: regionOptionsByCountry
-      }
+      geographyLevel: 'country',
+      required: true
     },
     {
-      key: 'city',
+      key: 'region_id',
+      labelKey: 'fields.region',
+      type: 'select',
+      geographyLevel: 'region'
+    },
+    {
+      key: 'city_id',
       labelKey: 'fields.city',
       type: 'select',
-      dependsOn: {
-        fieldKey: 'region',
-        optionsByValue: cityOptionsByRegion
-      }
+      geographyLevel: 'city'
     },
     {key: 'latitude', labelKey: 'fields.latitude', type: 'number'},
     {key: 'longitude', labelKey: 'fields.longitude', type: 'number'},
@@ -442,7 +430,7 @@ export const phase2Resources: Record<string, ResourceConfig> = {
     descriptionKey: 'resources.factories.description',
     endpoint: '/factories',
     listFields: ['name', 'code', 'company_id', 'region', 'city', 'daily_capacity_kg', 'status'],
-    filterFields: ['company_id', 'country', 'region', 'city', 'status'],    
+    filterFields: ['company_id', 'country_id', 'region_id', 'city_id', 'status'], 
     fields: [
       {
         key: 'company_id',
@@ -460,30 +448,24 @@ export const phase2Resources: Record<string, ResourceConfig> = {
       {key: 'code', labelKey: 'fields.code', type: 'text'},
       {key: 'address', labelKey: 'fields.address', type: 'text'},
 {
-  key: 'country',
+  key: 'country_id',
   labelKey: 'fields.country',
   type: 'select',
-  options: countryOptions,
+  geographyLevel: 'country',
   required: true
 },
-      {
-        key: 'region',
-        labelKey: 'fields.region',
-        type: 'select',
-        dependsOn: {
-          fieldKey: 'country',
-          optionsByValue: regionOptionsByCountry
-        }
-      },
-      {
-        key: 'city',
-        labelKey: 'fields.city',
-        type: 'select',
-        dependsOn: {
-          fieldKey: 'region',
-          optionsByValue: cityOptionsByRegion
-        }
-      },
+{
+  key: 'region_id',
+  labelKey: 'fields.region',
+  type: 'select',
+  geographyLevel: 'region'
+},
+{
+  key: 'city_id',
+  labelKey: 'fields.city',
+  type: 'select',
+  geographyLevel: 'city'
+},
       {key: 'latitude', labelKey: 'fields.latitude', type: 'number'},
       {key: 'longitude', labelKey: 'fields.longitude', type: 'number'},
       {key: 'daily_capacity_kg', labelKey: 'fields.dailyCapacityKg', type: 'number'},

@@ -31,15 +31,27 @@ export class CreateFarmsDto {
 
   @IsOptional()
   @IsString()
+  country_id?: string;
+
+  @IsOptional()
+  @IsString()
+  region_id?: string;
+
+  @IsOptional()
+  @IsString()
+  city_id?: string;
+
+  @IsOptional()
+  @IsString()
   country?: string;
 
   @IsOptional()
   @IsString()
-  city?: string;
+  region?: string;
 
   @IsOptional()
   @IsString()
-  region?: string;
+  city?: string;
 
   @IsOptional()
   @Type(() => Number)
@@ -94,15 +106,27 @@ export class UpdateFarmsDto {
 
   @IsOptional()
   @IsString()
+  country_id?: string;
+
+  @IsOptional()
+  @IsString()
+  region_id?: string;
+
+  @IsOptional()
+  @IsString()
+  city_id?: string;
+
+  @IsOptional()
+  @IsString()
   country?: string;
 
   @IsOptional()
   @IsString()
-  city?: string;
+  region?: string;
 
   @IsOptional()
   @IsString()
-  region?: string;
+  city?: string;
 
   @IsOptional()
   @Type(() => Number)
