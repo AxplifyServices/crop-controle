@@ -2,7 +2,15 @@
 
 import {useEffect, useState} from 'react';
 import {useRouter} from '@/i18n/navigation';
-import {fetchMe, getToken, getUser, updateStoredUser, type AuthUser} from '@/lib/auth';
+import {
+  fetchMe,
+  getRefreshToken,
+  getToken,
+  getUser,
+  refreshSession,
+  updateStoredUser,
+  type AuthUser
+} from '@/lib/auth';
 import {hasPermission, type PermissionAction} from '@/lib/permissions';
 
 type RequirePermissionProps = {
@@ -21,33 +29,50 @@ export function RequirePermission({
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let mounted = true;
+
     async function init() {
-      const token = getToken();
-
-      if (!token) {
-        router.push('/login');
-        return;
-      }
-
-      const storedUser = getUser();
-
-      if (storedUser) {
-        setUser(storedUser);
-      }
-
       try {
+        let token = getToken();
+
+        if (!token && getRefreshToken()) {
+          const refreshed = await refreshSession();
+          token = refreshed.accessToken;
+        }
+
+        if (!token) {
+          router.push('/login');
+          return;
+        }
+
+        const storedUser = getUser();
+
+        if (storedUser && mounted) {
+          setUser(storedUser);
+        }
+
         const freshUser = await fetchMe();
+
         updateStoredUser(freshUser);
-        setUser(freshUser);
+
+        if (mounted) {
+          setUser(freshUser);
+        }
       } catch {
         router.push('/login');
         return;
       } finally {
-        setLoading(false);
+        if (mounted) {
+          setLoading(false);
+        }
       }
     }
 
     init();
+
+    return () => {
+      mounted = false;
+    };
   }, [router]);
 
   if (loading) {

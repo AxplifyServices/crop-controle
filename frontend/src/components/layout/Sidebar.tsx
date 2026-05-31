@@ -5,16 +5,9 @@ import {
   BarChart3,
   Building2,
   ChevronRight,
-  Factory,
-  FileText,
   Leaf,
-  Package,
-  Sprout,
-  Truck,
-  Users,
-  X,
-  ScrollText,
-  UserCog
+  UserCog,
+  X
 } from 'lucide-react';
 import {useTranslations} from 'next-intl';
 import {Link, usePathname} from '@/i18n/navigation';
@@ -45,73 +38,32 @@ const menuGroups: MenuGroup[] = [
   {
     key: 'referential',
     icon: Building2,
-items: [
-  {key: 'groups', href: '/referentiel/groups', module: 'groups'},
-  {key: 'companies', href: '/referentiel/companies', module: 'companies'},
-  {key: 'farms', href: '/referentiel/farms', module: 'farms'},
-  {key: 'plots', href: '/referentiel/plots', module: 'plots'},
-  {key: 'factories', href: '/referentiel/factories', module: 'factories'},
-  {key: 'stations', href: '/referentiel/stations', module: 'stations'},
-  {key: 'cultures', href: '/referentiel/cultures', module: 'cultures'},
-  {key: 'products', href: '/referentiel/products', module: 'products'},
-  {
-    key: 'productVarieties',
-    href: '/referentiel/product-varieties',
-    module: 'product-varieties'
-  },
-  {key: 'vehicles', href: '/referentiel/vehicles', module: 'vehicles'},
-  {key: 'personnel', href: '/referentiel/personnel', module: 'personnel'}
-]
-  },
-  {
-    key: 'agriculture',
-    icon: Sprout,
     items: [
-      {key: 'projects', href: '/dashboard', module: 'agricultural-projects'},
-      {key: 'plantations', href: '/dashboard', module: 'plantations'},
-      {key: 'harvests', href: '/dashboard', module: 'harvests'},
-      {key: 'charges', href: '/dashboard', module: 'charges'}
+      {key: 'groups', href: '/referentiel/groups', module: 'groups'},
+      {key: 'companies', href: '/referentiel/companies', module: 'companies'},
+      {key: 'farms', href: '/referentiel/farms', module: 'farms'},
+      {key: 'plots', href: '/referentiel/plots', module: 'plots'},
+      {key: 'factories', href: '/referentiel/factories', module: 'factories'},
+      {key: 'stations', href: '/referentiel/stations', module: 'stations'},
+      {key: 'cultures', href: '/referentiel/cultures', module: 'cultures'},
+      {key: 'products', href: '/referentiel/products', module: 'products'},
+      {
+        key: 'productVarieties',
+        href: '/referentiel/product-varieties',
+        module: 'product-varieties'
+      },
+      {key: 'vehicles', href: '/referentiel/vehicles', module: 'vehicles'},
+      {key: 'personnel', href: '/referentiel/personnel', module: 'personnel'}
     ]
   },
   {
-    key: 'factoryFlow',
-    icon: Factory,
+    key: 'admin',
+    icon: UserCog,
     items: [
-      {key: 'shipments', href: '/dashboard', module: 'shipments'},
-      {key: 'receptions', href: '/dashboard', module: 'receptions'},
-      {key: 'conditioning', href: '/dashboard', module: 'conditioning'}
+      {key: 'profiles', href: '/admin/profiles', module: 'profiles'},
+      {key: 'logs', href: '/admin/logs', module: 'audit-logs'}
     ]
-  },
-  {
-    key: 'commercial',
-    icon: Package,
-    items: [
-      {key: 'clients', href: '/dashboard', module: 'clients'},
-      {key: 'orders', href: '/dashboard', module: 'orders'},
-      {key: 'invoices', href: '/dashboard', module: 'invoices'},
-      {key: 'payments', href: '/dashboard', module: 'payments'}
-    ]
-  },
-  {
-    key: 'logistics',
-    icon: Truck,
-    href: '/dashboard',
-    module: 'transports'
-  },
-  {
-    key: 'reports',
-    icon: FileText,
-    href: '/dashboard',
-    module: 'reports'
-  },
-{
-  key: 'admin',
-  icon: UserCog,
-  items: [
-    {key: 'profiles', href: '/admin/profiles', module: 'profiles'},
-    {key: 'logs', href: '/admin/logs', module: 'audit-logs'}
-  ]
-}
+  }
 ];
 
 export function Sidebar({

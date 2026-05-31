@@ -1227,6 +1227,14 @@ function filterRowsByScope(
   field: ResourceField,
   user: AuthUser | null
 ) {
+  /**
+   * La sécurité est désormais côté backend.
+   * Ici, ce filtre ne sert qu'à éviter d'afficher des options explicitement hors scope
+   * quand le scope direct est connu côté frontend.
+   *
+   * Si aucun scope direct n'existe côté frontend, on garde les lignes renvoyées par l'API,
+   * car l'API est déjà filtrée par périmètre.
+   */
   const scopeEntityType = field.lookup?.scopeEntityType;
 
   if (!scopeEntityType || !user?.scopes?.length) {

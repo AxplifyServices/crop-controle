@@ -611,8 +611,7 @@ export const phase2Resources: Record<string, ResourceConfig> = {
         lookup: {
           endpoint: '/products',
           valueKey: 'id',
-          labelKeys: ['name', 'code'],
-          scopeEntityType: 'PRODUCT'
+          labelKeys: ['name', 'code']
         }
       },
       {key: 'name', labelKey: 'fields.name', type: 'text', required: true},

@@ -18,8 +18,8 @@ export function Topbar({
   const router = useRouter();
   const t = useTranslations('Common');
 
-  function handleLogout() {
-    logout();
+  async function handleLogout() {
+    await logout();
     router.push('/login');
   }
 

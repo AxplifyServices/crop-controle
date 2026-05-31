@@ -122,32 +122,61 @@ async getMeta(currentUserId: string) {
   const permissions = await this.accessControl.getGrantablePermissions(currentUserId);
   const managers = await this.accessControl.getManageableUsers(currentUserId);
 
+  const [
+    groupWhere,
+    companyWhere,
+    farmWhere,
+    factoryWhere,
+    stationWhere,
+  ] = await Promise.all([
+    this.accessControl.getScopedWhere(currentUserId, 'GROUP'),
+    this.accessControl.getScopedWhere(currentUserId, 'COMPANY'),
+    this.accessControl.getScopedWhere(currentUserId, 'FARM'),
+    this.accessControl.getScopedWhere(currentUserId, 'FACTORY'),
+    this.accessControl.getScopedWhere(currentUserId, 'STATION'),
+  ]);
+
   const [groups, companies, farms, factories, stations] = await Promise.all([
     (this.prisma as any).groups.findMany({
+      where: {
+        ...(Object.keys(groupWhere).length > 0 ? { AND: [groupWhere] } : {}),
+      },
       orderBy: { name: 'asc' },
       select: { id: true, name: true },
     }),
 
     (this.prisma as any).companies.findMany({
-      where: { deleted_at: null },
+      where: {
+        deleted_at: null,
+        ...(Object.keys(companyWhere).length > 0 ? { AND: [companyWhere] } : {}),
+      },
       orderBy: { name: 'asc' },
       select: { id: true, name: true },
     }),
 
     (this.prisma as any).farms.findMany({
-      where: { deleted_at: null },
+      where: {
+        deleted_at: null,
+        ...(Object.keys(farmWhere).length > 0 ? { AND: [farmWhere] } : {}),
+      },
       orderBy: { name: 'asc' },
       select: { id: true, name: true },
     }),
 
     (this.prisma as any).factories.findMany({
-      where: { deleted_at: null },
+      where: {
+        deleted_at: null,
+        ...(Object.keys(factoryWhere).length > 0 ? { AND: [factoryWhere] } : {}),
+      },
       orderBy: { name: 'asc' },
       select: { id: true, name: true },
     }),
 
     (this.prisma as any).stations.findMany({
-      where: { deleted_at: null },
+      where: {
+        deleted_at: null,
+        ...(Object.keys(stationWhere).length > 0 ? { AND: [stationWhere] } : {}),
+      },
       orderBy: { name: 'asc' },
       select: { id: true, name: true },
     }),
