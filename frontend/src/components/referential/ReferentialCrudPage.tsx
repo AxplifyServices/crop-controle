@@ -1,12 +1,26 @@
 'use client';
 
 import {useEffect, useMemo, useState} from 'react';
-import {ChevronDown, ChevronRight, Edit3, Funnel, Info, Plus, RefreshCcw, Trash2, X} from 'lucide-react';
+import {
+  ChevronDown,
+  ChevronRight,
+  Edit3,
+  Funnel,
+  Info,
+  Plus,
+  RefreshCcw,
+  Trash2,
+  X
+} from 'lucide-react';
 import {useTranslations} from 'next-intl';
 import {apiFetch} from '@/lib/api';
 import {getUser, type AuthUser} from '@/lib/auth';
 import {hasPermission} from '@/lib/permissions';
-import type {ResourceConfig, ResourceField, ResourceOption} from '@/lib/phase2-resources';
+import type {
+  ResourceConfig,
+  ResourceField,
+  ResourceOption
+} from '@/lib/phase2-resources';
 import {
   emptyGeographyOptions,
   getGeographyOptionsForField,
@@ -43,11 +57,13 @@ function ReferentialCrudContent({config}: {config: ResourceConfig}) {
   const [infoItem, setInfoItem] = useState<RecordItem | null>(null);
   const [filters, setFilters] = useState<Record<string, string[]>>({});
   const [filtersOpen, setFiltersOpen] = useState(false);
+
   const canCreate = hasPermission(user, config.module, 'CREATE');
   const canUpdate = hasPermission(user, config.module, 'UPDATE');
   const canDelete = hasPermission(user, config.module, 'DELETE');
 
   const visibleFields = useMemo(() => config.listFields, [config.listFields]);
+
   const filterFields = useMemo(
     () =>
       (config.filterFields || [])
@@ -60,7 +76,6 @@ function ReferentialCrudContent({config}: {config: ResourceConfig}) {
     () => config.fields.some((field) => field.geographyLevel),
     [config.fields]
   );
-
 
   const visibleFormFields = useMemo(
     () => config.fields.filter((field) => isFieldVisible(field, form)),
@@ -88,25 +103,27 @@ function ReferentialCrudContent({config}: {config: ResourceConfig}) {
     []
   );
 
-const filteredItems = useMemo(
-  () =>
-    items.filter((item) => {
-      return Object.entries(filters).every(([fieldKey, selectedValues]) => {
-        if (!selectedValues.length) {
-          return true;
-        }
+  const filteredItems = useMemo(
+    () =>
+      items.filter((item) => {
+        return Object.entries(filters).every(([fieldKey, selectedValues]) => {
+          if (!selectedValues.length) {
+            return true;
+          }
 
-        const itemValue = item[fieldKey];
+          const itemValue = item[fieldKey];
 
-        if (Array.isArray(itemValue)) {
-          return itemValue.some((value) => selectedValues.includes(String(value)));
-        }
+          if (Array.isArray(itemValue)) {
+            return itemValue.some((value) =>
+              selectedValues.includes(String(value))
+            );
+          }
 
-        return selectedValues.includes(String(itemValue));
-      });
-    }),
-  [items, filters]
-);
+          return selectedValues.includes(String(itemValue));
+        });
+      }),
+    [items, filters]
+  );
 
   const statusSections = config.statusSections || defaultStatusSections;
 
@@ -128,7 +145,9 @@ const filteredItems = useMemo(
 
   const otherItems = useMemo(
     () =>
-      filteredItems.filter((item) => !sectionStatusValues.has(normalizeStatus(item.status))),
+      filteredItems.filter(
+        (item) => !sectionStatusValues.has(normalizeStatus(item.status))
+      ),
     [filteredItems, sectionStatusValues]
   );
 
@@ -143,8 +162,8 @@ const filteredItems = useMemo(
     } catch (err) {
       setError(
         err instanceof Error
-          ? `Impossible de charger la géographie : ${err.message}`
-          : 'Impossible de charger la géographie.'
+          ? t('messages.geographyLoadErrorWithReason', {reason: err.message})
+          : t('messages.geographyLoadError')
       );
     }
   }
@@ -164,25 +183,34 @@ const filteredItems = useMemo(
   }
 
   async function loadLookups(currentUser: AuthUser | null) {
-    const lookupFields = config.fields.filter((field) => field.type === 'lookup' && field.lookup);
+    const lookupFields = config.fields.filter(
+      (field) => field.type === 'lookup' && field.lookup
+    );
 
-    if (lookupFields.length === 0) return;
+    if (lookupFields.length === 0) {
+      return;
+    }
 
     const nextLookups: LookupOptionsMap = {};
     const lookupErrors: string[] = [];
 
     await Promise.all(
       lookupFields.map(async (field) => {
-        if (!field.lookup) return;
+        if (!field.lookup) {
+          return;
+        }
 
         try {
           const data = await apiFetch<unknown>(field.lookup.endpoint);
           const rows = normalizeApiRows(data);
-
           const allowedRows = filterRowsByScope(rows, field, currentUser);
 
           nextLookups[field.key] = allowedRows
-            .filter((row) => row[field.lookup!.valueKey] !== null && row[field.lookup!.valueKey] !== undefined)
+            .filter(
+              (row) =>
+                row[field.lookup!.valueKey] !== null &&
+                row[field.lookup!.valueKey] !== undefined
+            )
             .map((row) => ({
               value: String(row[field.lookup!.valueKey]),
               labelKey: buildLookupLabel(row, field.lookup!.labelKeys),
@@ -193,7 +221,7 @@ const filteredItems = useMemo(
 
           lookupErrors.push(
             `${field.key} (${field.lookup.endpoint}) : ${
-              err instanceof Error ? err.message : 'Erreur API'
+              err instanceof Error ? err.message : t('messages.apiError')
             }`
           );
         }
@@ -203,7 +231,11 @@ const filteredItems = useMemo(
     setLookupOptions(nextLookups);
 
     if (lookupErrors.length > 0) {
-      setError(`Certaines listes déroulantes ne sont pas chargées : ${lookupErrors.join(' | ')}`);
+      setError(
+        t('messages.lookupLoadWarning', {
+          details: lookupErrors.join(' | ')
+        })
+      );
     }
   }
 
@@ -257,14 +289,18 @@ const filteredItems = useMemo(
       };
 
       for (const childField of config.fields) {
-        if (childField.dependsOn?.fieldKey === field.key) {
-          next[childField.key] = null;
+        if (
+          childField.dependsOn?.fieldKey === field.key ||
+          childField.lookupFilter?.fieldKey === field.key
+        ) {
+          next[childField.key] = childField.type === 'multiselect' ? [] : null;
         }
       }
 
       for (const childField of config.fields) {
         if (!isFieldVisible(childField, next)) {
-          next[childField.key] = null;
+          next[childField.key] =
+            childField.type === 'multiselect' ? [] : null;
         }
       }
 
@@ -272,29 +308,30 @@ const filteredItems = useMemo(
     });
   }
 
-function setFilterValue(field: ResourceField, values: string[]) {
-  setFilters((current) => {
-    const next = {
-      ...current,
-      [field.key]: values
-    };
+  function setFilterValue(field: ResourceField, values: string[]) {
+    setFilters((current) => {
+      const next = {
+        ...current,
+        [field.key]: values
+      };
 
-    for (const childField of config.fields) {
-      if (
-        childField.dependsOn?.fieldKey === field.key ||
-        childField.lookupFilter?.fieldKey === field.key
-      ) {
-        next[childField.key] = [];
+      for (const childField of config.fields) {
+        if (
+          childField.dependsOn?.fieldKey === field.key ||
+          childField.lookupFilter?.fieldKey === field.key
+        ) {
+          next[childField.key] = [];
+        }
       }
-    }
 
-    return next;
-  });
-}
+      return next;
+    });
+  }
 
-function resetFilters() {
-  setFilters({});
-}
+  function resetFilters() {
+    setFilters({});
+  }
+
   function cleanPayload(payload: RecordItem) {
     const cleaned: RecordItem = {};
 
@@ -309,9 +346,9 @@ function resetFilters() {
 
       const value = payload[field.key];
 
-if (value !== undefined && value !== '' && value !== null) {
-  cleaned[field.key] = value;
-}
+      if (value !== undefined && value !== '' && value !== null) {
+        cleaned[field.key] = value;
+      }
     }
 
     return cleaned;
@@ -350,7 +387,9 @@ if (value !== undefined && value !== '' && value !== null) {
   async function deleteItem(item: RecordItem) {
     const confirmed = window.confirm(t('messages.confirmDelete'));
 
-    if (!confirmed) return;
+    if (!confirmed) {
+      return;
+    }
 
     setError('');
 
@@ -409,56 +448,63 @@ if (value !== undefined && value !== '' && value !== null) {
         </div>
       ) : null}
 
-{filterFields.length > 0 ? (
-  <div className="rounded-2xl border border-slate-200 bg-white shadow-sm">
-    <button
-      type="button"
-      onClick={() => setFiltersOpen((value) => !value)}
-      className="flex w-full items-center justify-between px-5 py-4 text-left transition hover:bg-slate-50"
-    >
-      <div className="flex items-center gap-3">
-        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-700">
-          <Funnel size={18} />
+      {filterFields.length > 0 ? (
+        <div className="rounded-2xl border border-slate-200 bg-white shadow-sm">
+          <button
+            type="button"
+            onClick={() => setFiltersOpen((value) => !value)}
+            className="flex w-full items-center justify-between px-5 py-4 text-left transition hover:bg-slate-50"
+          >
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-700">
+                <Funnel size={18} />
+              </div>
+
+              <div>
+                <h2 className="text-base font-semibold text-slate-950">
+                  {t('filters.title')}
+                </h2>
+
+                <p className="mt-1 text-sm text-slate-500">
+                  {t('filters.description')}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              {Object.values(filters).some((values) => values.length > 0) ? (
+                <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
+                  {Object.values(filters).reduce(
+                    (total, values) => total + values.length,
+                    0
+                  )}
+                </span>
+              ) : null}
+
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600">
+                {filtersOpen ? (
+                  <ChevronDown size={18} />
+                ) : (
+                  <ChevronRight size={18} />
+                )}
+              </div>
+            </div>
+          </button>
+
+          {filtersOpen ? (
+            <div className="border-t border-slate-100 p-5">
+              <FiltersPanel
+                fields={filterFields}
+                filters={filters}
+                lookupOptions={lookupOptions}
+                geographyOptions={geographyOptions}
+                onChange={setFilterValue}
+                onReset={resetFilters}
+              />
+            </div>
+          ) : null}
         </div>
-
-        <div>
-          <h2 className="text-base font-semibold text-slate-950">
-            {t('filters.title')}
-          </h2>
-
-          <p className="mt-1 text-sm text-slate-500">
-            {t('filters.description')}
-          </p>
-        </div>
-      </div>
-
-      <div className="flex items-center gap-3">
-        {Object.values(filters).some((values) => values.length > 0) ? (
-          <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
-            {Object.values(filters).reduce((total, values) => total + values.length, 0)}
-          </span>
-        ) : null}
-
-        <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600">
-          {filtersOpen ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
-        </div>
-      </div>
-    </button>
-
-    {filtersOpen ? (
-      <div className="border-t border-slate-100 p-5">
-      <FiltersPanel
-        fields={filterFields}
-        filters={filters}
-        lookupOptions={lookupOptions}
-        geographyOptions={geographyOptions}
-        onChange={setFilterValue}
-        onReset={resetFilters}
-      />
-      </div>
-    ) : null}
-  </div>
-) : null}
+      ) : null}
 
       {openForm ? (
         <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
@@ -477,7 +523,10 @@ if (value !== undefined && value !== '' && value !== null) {
             </button>
           </div>
 
-          <form onSubmit={submitForm} className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          <form
+            onSubmit={submitForm}
+            className="grid gap-4 md:grid-cols-2 xl:grid-cols-3"
+          >
             {visibleFormFields.map((field) => (
               <FieldInput
                 key={field.key}
@@ -513,7 +562,7 @@ if (value !== undefined && value !== '' && value !== null) {
       ) : null}
 
       <div className="space-y-5">
-           {sectionGroups.map((section, index) => (
+        {sectionGroups.map((section, index) => (
           <RecordsTable
             key={section.titleKey}
             title={t(section.titleKey)}
@@ -531,6 +580,7 @@ if (value !== undefined && value !== '' && value !== null) {
             onDelete={deleteItem}
           />
         ))}
+
         {otherItems.length > 0 ? (
           <RecordsTable
             title={t('sections.other')}
@@ -559,7 +609,6 @@ if (value !== undefined && value !== '' && value !== null) {
           />
         ) : null}
       </div>
-    
     </div>
   );
 }
@@ -581,7 +630,9 @@ function FiltersPanel({
 }) {
   const t = useTranslations('Referential');
 
-  const hasActiveFilters = Object.values(filters).some((values) => values.length > 0);
+  const hasActiveFilters = Object.values(filters).some(
+    (values) => values.length > 0
+  );
 
   return (
     <div>
@@ -609,6 +660,7 @@ function FiltersPanel({
             value={filters[field.key] || []}
             filters={filters}
             lookupOptions={lookupOptions}
+            geographyOptions={geographyOptions}
             onChange={(values) => onChange(field, values)}
           />
         ))}
@@ -644,9 +696,16 @@ function FilterInput({
     return next;
   }, [filters]);
 
-  const options = getFilterOptions(field, pseudoForm, lookupOptions, geographyOptions);
+  const options = getFilterOptions(
+    field,
+    pseudoForm,
+    lookupOptions,
+    geographyOptions
+  );
 
-  const availableOptions = options.filter((option) => !value.includes(option.value));
+  const availableOptions = options.filter(
+    (option) => !value.includes(option.value)
+  );
 
   function addValue(optionValue: string) {
     if (!optionValue || value.includes(optionValue)) {
@@ -755,9 +814,7 @@ function RecordsTable({
         className="flex w-full items-center justify-between border-b border-slate-100 px-5 py-4 text-left transition hover:bg-slate-50"
       >
         <div>
-          <h2 className="text-base font-semibold text-slate-950">
-            {title}
-          </h2>
+          <h2 className="text-base font-semibold text-slate-950">{title}</h2>
 
           <p className="mt-1 text-sm text-slate-500">
             {t('list.count', {count: items.length})}
@@ -779,82 +836,303 @@ function RecordsTable({
             {t('messages.empty')}
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-slate-100 text-sm">
-              <thead className="bg-slate-50">
-                <tr>
-                  {visibleFields.map((field) => (
-                    <th
-                      key={field}
-                      className="whitespace-nowrap px-4 py-3 text-left font-semibold text-slate-600"
-                    >
-                      {getFieldLabel(config, field, t)}
-                    </th>
-                  ))}
-
-                  <th className="w-[170px] px-4 py-3 text-right font-semibold text-slate-600">
-                    {t('actions.title')}
-                  </th>
-                </tr>
-              </thead>
-
-              <tbody className="divide-y divide-slate-100">
-                {items.map((item) => (
-                  <tr key={item.id} className="hover:bg-slate-50/70">
+          <>
+            <div className="hidden overflow-x-auto md:block">
+              <table className="min-w-full divide-y divide-slate-100 text-sm">
+                <thead className="bg-slate-50">
+                  <tr>
                     {visibleFields.map((field) => (
-                      <td key={field} className="whitespace-nowrap px-4 py-3 text-slate-700">
-                        {formatListValue(config, field, item[field], lookupOptions, geographyOptions, t)}
-                      </td>
+                      <th
+                        key={field}
+                        className="whitespace-nowrap px-4 py-3 text-left font-semibold text-slate-600"
+                      >
+                        {getFieldLabel(config, field, t)}
+                      </th>
                     ))}
 
-                    <td className="px-4 py-3">
-                      <div className="flex justify-end gap-2">
-                        <button
-                          type="button"
-                          onClick={() => onInfo(item)}
-                          className="rounded-lg p-2 text-slate-500 transition hover:bg-blue-50 hover:text-blue-700"
-                          title={t('actions.info')}
-                        >
-                          <Info size={16} />
-                        </button>
-
-                        {canUpdate ? (
-                          <button
-                            type="button"
-                            onClick={() => onEdit(item)}
-                            className="rounded-lg p-2 text-slate-500 transition hover:bg-emerald-50 hover:text-emerald-700"
-                            title={t('actions.edit')}
-                          >
-                            <Edit3 size={16} />
-                          </button>
-                        ) : null}
-
-                        {canDelete ? (
-                          <button
-                            type="button"
-                            onClick={() => onDelete(item)}
-                            className="rounded-lg p-2 text-slate-500 transition hover:bg-red-50 hover:text-red-700"
-                            title={t('actions.delete')}
-                          >
-                            <Trash2 size={16} />
-                          </button>
-                        ) : null}
-
-                        {!canUpdate && !canDelete ? (
-                          <span className="text-xs text-slate-400">
-                            {t('messages.readOnly')}
-                          </span>
-                        ) : null}
-                      </div>
-                    </td>
+                    <th className="w-[170px] px-4 py-3 text-right font-semibold text-slate-600">
+                      {t('actions.title')}
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+
+                <tbody className="divide-y divide-slate-100">
+                  {items.map((item) => (
+                    <tr key={item.id} className="hover:bg-slate-50/70">
+                      {visibleFields.map((field) => (
+                        <td
+                          key={field}
+                          className="whitespace-nowrap px-4 py-3 text-slate-700"
+                        >
+                          {formatListValue(
+                            config,
+                            field,
+                            item[field],
+                            lookupOptions,
+                            geographyOptions,
+                            t
+                          )}
+                        </td>
+                      ))}
+
+                      <td className="px-4 py-3">
+                        <div className="flex justify-end gap-2">
+                          <button
+                            type="button"
+                            onClick={() => onInfo(item)}
+                            className="rounded-lg p-2 text-slate-500 transition hover:bg-blue-50 hover:text-blue-700"
+                            title={t('actions.info')}
+                          >
+                            <Info size={16} />
+                          </button>
+
+                          {canUpdate ? (
+                            <button
+                              type="button"
+                              onClick={() => onEdit(item)}
+                              className="rounded-lg p-2 text-slate-500 transition hover:bg-emerald-50 hover:text-emerald-700"
+                              title={t('actions.edit')}
+                            >
+                              <Edit3 size={16} />
+                            </button>
+                          ) : null}
+
+                          {canDelete ? (
+                            <button
+                              type="button"
+                              onClick={() => onDelete(item)}
+                              className="rounded-lg p-2 text-slate-500 transition hover:bg-red-50 hover:text-red-700"
+                              title={t('actions.delete')}
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          ) : null}
+
+                          {!canUpdate && !canDelete ? (
+                            <span className="text-xs text-slate-400">
+                              {t('messages.readOnly')}
+                            </span>
+                          ) : null}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="grid gap-3 bg-slate-50/60 p-3 md:hidden">
+              {items.map((item) => (
+                <MobileRecordCard
+                  key={item.id}
+                  item={item}
+                  config={config}
+                  visibleFields={visibleFields}
+                  lookupOptions={lookupOptions}
+                  geographyOptions={geographyOptions}
+                  canUpdate={canUpdate}
+                  canDelete={canDelete}
+                  onInfo={onInfo}
+                  onEdit={onEdit}
+                  onDelete={onDelete}
+                />
+              ))}
+            </div>
+          </>
         )
       ) : null}
     </div>
+  );
+}
+
+function MobileRecordCard({
+  item,
+  config,
+  visibleFields,
+  lookupOptions,
+  geographyOptions,
+  canUpdate,
+  canDelete,
+  onInfo,
+  onEdit,
+  onDelete
+}: {
+  item: RecordItem;
+  config: ResourceConfig;
+  visibleFields: string[];
+  lookupOptions: LookupOptionsMap;
+  geographyOptions: GeographyOptions;
+  canUpdate: boolean;
+  canDelete: boolean;
+  onInfo: (item: RecordItem) => void;
+  onEdit: (item: RecordItem) => void;
+  onDelete: (item: RecordItem) => void;
+}) {
+  const t = useTranslations('Referential');
+
+  const primaryField = getMobilePrimaryField(config, visibleFields, item);
+  const subtitleFields = getMobileSubtitleFields(
+    config,
+    visibleFields,
+    item,
+    primaryField
+  );
+  const metaFields = getMobileMetaFields(
+    config,
+    visibleFields,
+    item,
+    primaryField,
+    subtitleFields
+  );
+
+  const title = formatListValue(
+    config,
+    primaryField,
+    item[primaryField],
+    lookupOptions,
+    geographyOptions,
+    t
+  );
+
+  const subtitleValues = subtitleFields
+    .map((fieldKey) =>
+      formatListValue(
+        config,
+        fieldKey,
+        item[fieldKey],
+        lookupOptions,
+        geographyOptions,
+        t
+      )
+    )
+    .filter((value) => value && value !== '-');
+
+  const hasStatus = Object.prototype.hasOwnProperty.call(item, 'status');
+  const statusLabel = hasStatus
+    ? formatListValue(
+        config,
+        'status',
+        item.status,
+        lookupOptions,
+        geographyOptions,
+        t
+      )
+    : '';
+
+  return (
+    <article
+      role="button"
+      tabIndex={0}
+      onClick={() => onInfo(item)}
+      onKeyDown={(event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          onInfo(item);
+        }
+      }}
+      className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition active:scale-[0.99]"
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <h3 className="truncate text-base font-semibold text-slate-950">
+            {title || '-'}
+          </h3>
+
+          {subtitleValues.length > 0 ? (
+            <p className="mt-1 truncate text-sm text-slate-500">
+              {subtitleValues.join(' · ')}
+            </p>
+          ) : null}
+        </div>
+
+        {hasStatus ? (
+          <span
+            className={[
+              'shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold',
+              getStatusBadgeClass(item.status)
+            ].join(' ')}
+          >
+            {statusLabel}
+          </span>
+        ) : null}
+      </div>
+
+      {metaFields.length > 0 ? (
+        <div className="mt-4 grid gap-2">
+          {metaFields.map((fieldKey) => {
+            const value = formatListValue(
+              config,
+              fieldKey,
+              item[fieldKey],
+              lookupOptions,
+              geographyOptions,
+              t
+            );
+
+            if (!value || value === '-') {
+              return null;
+            }
+
+            return (
+              <div
+                key={fieldKey}
+                className="flex items-start justify-between gap-3 rounded-xl bg-slate-50 px-3 py-2"
+              >
+                <span className="text-xs font-medium text-slate-500">
+                  {getFieldLabel(config, fieldKey, t)}
+                </span>
+
+                <span className="max-w-[58%] text-right text-xs font-semibold text-slate-800">
+                  {value}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      ) : null}
+
+      <div className="mt-4 flex items-center justify-between gap-2 border-t border-slate-100 pt-3">
+        <button
+          type="button"
+          onClick={(event) => {
+            event.stopPropagation();
+            onInfo(item);
+          }}
+          className="inline-flex h-9 flex-1 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
+        >
+          <Info size={15} />
+          {t('actions.info')}
+        </button>
+
+        {canUpdate ? (
+          <button
+            type="button"
+            onClick={(event) => {
+              event.stopPropagation();
+              onEdit(item);
+            }}
+            className="inline-flex h-9 items-center justify-center rounded-xl border border-emerald-100 bg-emerald-50 px-3 text-emerald-700 transition hover:bg-emerald-100"
+            title={t('actions.edit')}
+          >
+            <Edit3 size={15} />
+          </button>
+        ) : null}
+
+        {canDelete ? (
+          <button
+            type="button"
+            onClick={(event) => {
+              event.stopPropagation();
+              onDelete(item);
+            }}
+            className="inline-flex h-9 items-center justify-center rounded-xl border border-red-100 bg-red-50 px-3 text-red-700 transition hover:bg-red-100"
+            title={t('actions.delete')}
+          >
+            <Trash2 size={15} />
+          </button>
+        ) : null}
+      </div>
+    </article>
   );
 }
 
@@ -862,11 +1140,13 @@ function DetailSheet({
   item,
   config,
   lookupOptions,
+  geographyOptions,
   onClose
 }: {
   item: RecordItem;
   config: ResourceConfig;
   lookupOptions: LookupOptionsMap;
+  geographyOptions: GeographyOptions;
   onClose: () => void;
 }) {
   const t = useTranslations('Referential');
@@ -890,7 +1170,13 @@ function DetailSheet({
               </p>
 
               <h2 className="mt-1 text-xl font-semibold text-slate-950">
-                {getBestItemTitle(config, item, lookupOptions, geographyOptions, t)}
+                {getBestItemTitle(
+                  config,
+                  item,
+                  lookupOptions,
+                  geographyOptions,
+                  t
+                )}
               </h2>
             </div>
 
@@ -915,13 +1201,23 @@ function DetailSheet({
 
             <dl className="divide-y divide-slate-100">
               {detailKeys.map((key) => (
-                <div key={key} className="grid gap-1 px-4 py-3 sm:grid-cols-3 sm:gap-4">
+                <div
+                  key={key}
+                  className="grid gap-1 px-4 py-3 sm:grid-cols-3 sm:gap-4"
+                >
                   <dt className="text-sm font-medium text-slate-500">
                     {getDetailLabel(config, key, t)}
                   </dt>
 
                   <dd className="break-words text-sm text-slate-900 sm:col-span-2">
-                    {formatListValue(config, key, item[key], lookupOptions, geographyOptions, t)}
+                    {formatListValue(
+                      config,
+                      key,
+                      item[key],
+                      lookupOptions,
+                      geographyOptions,
+                      t
+                    )}
                   </dd>
                 </div>
               ))}
@@ -962,6 +1258,7 @@ function FieldInput({
     geographyOptions,
     currentRecordId
   );
+
   const isSelectLike = field.type === 'select' || field.type === 'lookup';
 
   if (field.type === 'multiselect') {
@@ -1034,6 +1331,7 @@ function FieldInput({
           className={inputClass}
         >
           <option value="">{t('actions.select')}</option>
+
           {options.map((option) => (
             <option key={option.value} value={option.value}>
               {getOptionLabel(option, t)}
@@ -1060,12 +1358,13 @@ function buildEditForm(config: ResourceConfig, item: RecordItem) {
     const value = item[field.key];
 
     if (value === undefined) {
-      nextForm[field.key] = null;
+      nextForm[field.key] = field.type === 'multiselect' ? [] : null;
       continue;
     }
 
     if (field.type === 'number') {
-      nextForm[field.key] = value === null || value === '' ? null : Number(value);
+      nextForm[field.key] =
+        value === null || value === '' ? null : Number(value);
       continue;
     }
 
@@ -1103,7 +1402,8 @@ function getInputLabel(
     const parentValue = form[field.labelKeyByValue.fieldKey];
 
     if (parentValue) {
-      const dynamicLabelKey = field.labelKeyByValue.labelsByValue[String(parentValue)];
+      const dynamicLabelKey =
+        field.labelKeyByValue.labelsByValue[String(parentValue)];
 
       if (dynamicLabelKey) {
         return t(dynamicLabelKey);
@@ -1143,7 +1443,9 @@ function getFilterOptions(
         : [String(parentValue)];
 
       options = options.filter((option) =>
-        parentValues.includes(String(option.meta?.[field.lookupFilter!.targetKey]))
+        parentValues.includes(
+          String(option.meta?.[field.lookupFilter!.targetKey])
+        )
       );
     }
 
@@ -1196,7 +1498,8 @@ function getFieldOptions(
 
       options = options.filter(
         (option) =>
-          String(option.meta?.[field.lookupFilter!.targetKey]) === String(parentValue)
+          String(option.meta?.[field.lookupFilter!.targetKey]) ===
+          String(parentValue)
       );
     }
 
@@ -1210,7 +1513,9 @@ function getFieldOptions(
   if (field.dependsOn) {
     const parentValue = form[field.dependsOn.fieldKey];
 
-    if (!parentValue) return [];
+    if (!parentValue) {
+      return [];
+    }
 
     return field.dependsOn.optionsByValue[String(parentValue)] || [];
   }
@@ -1271,14 +1576,6 @@ function filterRowsByScope(
   field: ResourceField,
   user: AuthUser | null
 ) {
-  /**
-   * La sécurité est désormais côté backend.
-   * Ici, ce filtre ne sert qu'à éviter d'afficher des options explicitement hors scope
-   * quand le scope direct est connu côté frontend.
-   *
-   * Si aucun scope direct n'existe côté frontend, on garde les lignes renvoyées par l'API,
-   * car l'API est déjà filtrée par périmètre.
-   */
   const scopeEntityType = field.lookup?.scopeEntityType;
 
   if (!scopeEntityType || !user?.scopes?.length) {
@@ -1303,7 +1600,9 @@ function getFieldLabel(
 ) {
   const field = config.fields.find((item) => item.key === key);
 
-  if (!field) return key;
+  if (!field) {
+    return key;
+  }
 
   return t(field.labelKey);
 }
@@ -1344,18 +1643,182 @@ function getBestItemTitle(
   geographyOptions: GeographyOptions,
   t: ReturnType<typeof useTranslations>
 ) {
-  if (item.name) return String(item.name);
-  if (item.title) return String(item.title);
-  if (item.label) return String(item.label);
-  if (item.code) return String(item.code);
+  if (item.name) {
+    return String(item.name);
+  }
+
+  if (item.title) {
+    return String(item.title);
+  }
+
+  if (item.label) {
+    return String(item.label);
+  }
+
+  if (item.code) {
+    return String(item.code);
+  }
 
   const firstVisibleField = config.listFields[0];
 
   if (firstVisibleField) {
-    return formatListValue(config, firstVisibleField, item[firstVisibleField], lookupOptions, geographyOptions, t);
+    return formatListValue(
+      config,
+      firstVisibleField,
+      item[firstVisibleField],
+      lookupOptions,
+      geographyOptions,
+      t
+    );
   }
 
   return t('details.untitled');
+}
+
+function getMobilePrimaryField(
+  config: ResourceConfig,
+  visibleFields: string[],
+  item: RecordItem
+) {
+  const priorityFields = [
+    'name',
+    'full_name',
+    'registration_number',
+    'legal_name',
+    'code',
+    'email',
+    'title'
+  ];
+
+  const fromPriority = priorityFields.find(
+    (fieldKey) =>
+      visibleFields.includes(fieldKey) &&
+      item[fieldKey] !== undefined &&
+      item[fieldKey] !== null &&
+      item[fieldKey] !== ''
+  );
+
+  if (fromPriority) {
+    return fromPriority;
+  }
+
+  const fromConfig = visibleFields.find(
+    (fieldKey) =>
+      fieldKey !== 'status' &&
+      item[fieldKey] !== undefined &&
+      item[fieldKey] !== null &&
+      item[fieldKey] !== ''
+  );
+
+  return fromConfig || config.listFields[0] || 'id';
+}
+
+function getMobileSubtitleFields(
+  config: ResourceConfig,
+  visibleFields: string[],
+  item: RecordItem,
+  primaryField: string
+) {
+  const priorityFields = [
+    'code',
+    'legal_name',
+    'company_id',
+    'farm_id',
+    'factory_id',
+    'station_id',
+    'product_id',
+    'culture_id',
+    'type',
+    'category'
+  ];
+
+  return priorityFields
+    .filter(
+      (fieldKey) =>
+        fieldKey !== primaryField &&
+        visibleFields.includes(fieldKey) &&
+        config.fields.some((field) => field.key === fieldKey) &&
+        item[fieldKey] !== undefined &&
+        item[fieldKey] !== null &&
+        item[fieldKey] !== ''
+    )
+    .slice(0, 2);
+}
+
+function getMobileMetaFields(
+  config: ResourceConfig,
+  visibleFields: string[],
+  item: RecordItem,
+  primaryField: string,
+  subtitleFields: string[]
+) {
+  const excludedFields = new Set([
+    primaryField,
+    'status',
+    ...subtitleFields
+  ]);
+
+  const priorityFields = [
+    'country_id',
+    'region_id',
+    'city_id',
+    'surface_ha',
+    'daily_capacity_kg',
+    'capacity_kg',
+    'default_unit',
+    'contract_type',
+    'grade',
+    'brand',
+    'model',
+    'acquisition_mode',
+    'features',
+    'culture',
+    'variety'
+  ];
+
+  const prioritized = priorityFields.filter(
+    (fieldKey) =>
+      !excludedFields.has(fieldKey) &&
+      visibleFields.includes(fieldKey) &&
+      config.fields.some((field) => field.key === fieldKey) &&
+      item[fieldKey] !== undefined &&
+      item[fieldKey] !== null &&
+      item[fieldKey] !== ''
+  );
+
+  const remaining = visibleFields.filter(
+    (fieldKey) =>
+      !excludedFields.has(fieldKey) &&
+      !prioritized.includes(fieldKey) &&
+      config.fields.some((field) => field.key === fieldKey) &&
+      item[fieldKey] !== undefined &&
+      item[fieldKey] !== null &&
+      item[fieldKey] !== ''
+  );
+
+  return [...prioritized, ...remaining].slice(0, 3);
+}
+
+function getStatusBadgeClass(status: any) {
+  const normalizedStatus = normalizeStatus(status);
+
+  if (normalizedStatus === 'ACTIVE' || normalizedStatus === 'PRODUCTION') {
+    return 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100';
+  }
+
+  if (
+    normalizedStatus === 'INACTIVE' ||
+    normalizedStatus === 'RESTING' ||
+    normalizedStatus === 'YOUNG'
+  ) {
+    return 'bg-amber-50 text-amber-700 ring-1 ring-amber-100';
+  }
+
+  if (normalizedStatus === 'ARCHIVED' || normalizedStatus === 'FALLOW') {
+    return 'bg-slate-100 text-slate-600 ring-1 ring-slate-200';
+  }
+
+  return 'bg-blue-50 text-blue-700 ring-1 ring-blue-100';
 }
 
 function formatTechnicalLabel(key: string) {
@@ -1380,7 +1843,7 @@ function formatListValue(
       {
         country_id: field.geographyLevel === 'country' ? value : undefined,
         region_id: field.geographyLevel === 'region' ? value : undefined,
-        city_id: field.geographyLevel === 'city' ? value : undefined,
+        city_id: field.geographyLevel === 'city' ? value : undefined
       },
       geographyOptions
     );
@@ -1405,14 +1868,20 @@ function formatListValue(
   if ((field?.type === 'select' || field?.type === 'multiselect') && field.options) {
     if (Array.isArray(value)) {
       const labels = value
-        .map((itemValue) => field.options?.find((option) => option.value === String(itemValue)))
+        .map((itemValue) =>
+          field.options?.find(
+            (option) => option.value === String(itemValue)
+          )
+        )
         .filter(Boolean)
         .map((option) => getOptionLabel(option as ResourceOption, t));
 
       return labels.length ? labels.join(', ') : '-';
     }
 
-    const option = field.options.find((item) => item.value === String(value));
+    const option = field.options.find(
+      (item) => item.value === String(value)
+    );
 
     if (option) {
       return getOptionLabel(option, t);
@@ -1431,7 +1900,9 @@ function normalizeStatus(status: any) {
 }
 
 function formatValue(value: any) {
-  if (value === null || value === undefined || value === '') return '-';
+  if (value === null || value === undefined || value === '') {
+    return '-';
+  }
 
   if (Array.isArray(value)) {
     return value.length ? value.join(', ') : '-';

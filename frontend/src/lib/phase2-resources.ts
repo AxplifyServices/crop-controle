@@ -1,4 +1,3 @@
-
 export type FieldType = 'text' | 'number' | 'select' | 'lookup' | 'multiselect';
 
 export type ResourceOption = {
@@ -57,37 +56,19 @@ export type ResourceConfig = {
   filterFields?: string[];
 };
 
-const statusOptions = [
+const statusOptions: ResourceOption[] = [
   {labelKey: 'options.status.ACTIVE', value: 'ACTIVE'},
   {labelKey: 'options.status.INACTIVE', value: 'INACTIVE'},
   {labelKey: 'options.status.ARCHIVED', value: 'ARCHIVED'}
 ];
 
-const cultureOptions = [
-  {labelKey: 'options.culture.STRAWBERRY', value: 'STRAWBERRY'},
-  {labelKey: 'options.culture.BLUEBERRY', value: 'BLUEBERRY'},
-  {labelKey: 'options.culture.RASPBERRY', value: 'RASPBERRY'},
-  {labelKey: 'options.culture.BLACKBERRY', value: 'BLACKBERRY'},
-  {labelKey: 'options.culture.MIXED', value: 'MIXED'},
-  {labelKey: 'options.culture.OTHER', value: 'OTHER'}
+const stationFeatureOptions: ResourceOption[] = [
+  {labelKey: 'options.stationFeature.SORTING_CALIBRATION', value: 'SORTING_CALIBRATION'},
+  {labelKey: 'options.stationFeature.PACKAGING', value: 'PACKAGING'},
+  {labelKey: 'options.stationFeature.FREEZING', value: 'FREEZING'}
 ];
 
-const stationFeatureOptions = [
-  {
-    labelKey: 'options.stationFeature.SORTING_CALIBRATION',
-    value: 'SORTING_CALIBRATION'
-  },
-  {
-    labelKey: 'options.stationFeature.PACKAGING',
-    value: 'PACKAGING'
-  },
-  {
-    labelKey: 'options.stationFeature.FREEZING',
-    value: 'FREEZING'
-  }
-];
-
-const contractTypeOptions = [
+const contractTypeOptions: ResourceOption[] = [
   {labelKey: 'options.contractType.PERMANENT', value: 'PERMANENT'},
   {labelKey: 'options.contractType.FIXED_TERM', value: 'FIXED_TERM'},
   {labelKey: 'options.contractType.SEASONAL', value: 'SEASONAL'},
@@ -97,7 +78,7 @@ const contractTypeOptions = [
   {labelKey: 'options.contractType.OTHER', value: 'OTHER'}
 ];
 
-const defaultUnitOptions = [
+const defaultUnitOptions: ResourceOption[] = [
   {labelKey: 'options.defaultUnit.KG', value: 'KG'},
   {labelKey: 'options.defaultUnit.TON', value: 'TON'},
   {labelKey: 'options.defaultUnit.G', value: 'G'},
@@ -105,6 +86,45 @@ const defaultUnitOptions = [
   {labelKey: 'options.defaultUnit.BOX', value: 'BOX'},
   {labelKey: 'options.defaultUnit.PALLET', value: 'PALLET'},
   {labelKey: 'options.defaultUnit.LITER', value: 'LITER'}
+];
+
+const farmCategoryOptions: ResourceOption[] = [
+  {labelKey: 'options.farmCategory.OWNED', value: 'OWNED'},
+  {labelKey: 'options.farmCategory.TPG', value: 'TPG'},
+  {labelKey: 'options.farmCategory.THIRD_PARTY', value: 'THIRD_PARTY'}
+];
+
+const vehicleTypeOptions: ResourceOption[] = [
+  {labelKey: 'options.vehicleType.REFRIGERATED', value: 'REFRIGERATED'},
+  {labelKey: 'options.vehicleType.UTILITY', value: 'UTILITY'},
+  {labelKey: 'options.vehicleType.AGRICULTURAL', value: 'AGRICULTURAL'},
+  {labelKey: 'options.vehicleType.COMPANY_CAR', value: 'COMPANY_CAR'},
+  {labelKey: 'options.vehicleType.OTHER', value: 'OTHER'}
+];
+
+const acquisitionModeOptions: ResourceOption[] = [
+  {labelKey: 'options.acquisitionMode.OWNED', value: 'OWNED'},
+  {labelKey: 'options.acquisitionMode.LEASED', value: 'LEASED'},
+  {labelKey: 'options.acquisitionMode.RENTED', value: 'RENTED'},
+  {labelKey: 'options.acquisitionMode.CREDIT', value: 'CREDIT'},
+  {labelKey: 'options.acquisitionMode.SUBCONTRACTED', value: 'SUBCONTRACTED'},
+  {labelKey: 'options.acquisitionMode.OTHER', value: 'OTHER'}
+];
+
+const plotStatusSections: ResourceStatusSection[] = [
+  {titleKey: 'sections.plotProduction', values: ['PRODUCTION'], defaultOpen: true},
+  {titleKey: 'sections.plotYoung', values: ['YOUNG'], defaultOpen: false},
+  {titleKey: 'sections.plotResting', values: ['RESTING'], defaultOpen: false},
+  {titleKey: 'sections.plotFallow', values: ['FALLOW'], defaultOpen: false},
+  {titleKey: 'sections.plotArchived', values: ['ARCHIVED'], defaultOpen: false}
+];
+
+const plotStatusOptions: ResourceOption[] = [
+  {labelKey: 'options.plotStatus.PRODUCTION', value: 'PRODUCTION'},
+  {labelKey: 'options.plotStatus.YOUNG', value: 'YOUNG'},
+  {labelKey: 'options.plotStatus.RESTING', value: 'RESTING'},
+  {labelKey: 'options.plotStatus.FALLOW', value: 'FALLOW'},
+  {labelKey: 'options.plotStatus.ARCHIVED', value: 'ARCHIVED'}
 ];
 
 export const phase2Resources: Record<string, ResourceConfig> = {
@@ -125,7 +145,7 @@ export const phase2Resources: Record<string, ResourceConfig> = {
     titleKey: 'resources.companies.title',
     descriptionKey: 'resources.companies.description',
     endpoint: '/companies',
-    listFields: ['name', 'code', 'country', 'region', 'city', 'status'],
+    listFields: ['name', 'code', 'country_id', 'region_id', 'city_id', 'status'],
     filterFields: ['group_id', 'country_id', 'region_id', 'city_id', 'status'],
     fields: [
       {
@@ -152,114 +172,18 @@ export const phase2Resources: Record<string, ResourceConfig> = {
           excludeCurrentRecord: true
         }
       },
-
       {key: 'name', labelKey: 'fields.name', type: 'text', required: true},
       {key: 'legal_name', labelKey: 'fields.legalName', type: 'text'},
       {key: 'code', labelKey: 'fields.codeInternal', type: 'text'},
-
-      {
-        key: 'country_id',
-        labelKey: 'fields.country',
-        type: 'select',
-        geographyLevel: 'country',
-        required: true
-      },
-
-      {
-        key: 'ice',
-        labelKey: 'fields.ice',
-        type: 'text',
-        visibleWhen: {
-          fieldKey: 'country',
-          values: ['Maroc']
-        },
-        labelKeyByValue: {
-          fieldKey: 'country',
-          labelsByValue: {
-            Maroc: 'fields.iceMorocco'
-          }
-        }
-      },
-      {
-        key: 'tax_id',
-        labelKey: 'fields.taxId',
-        type: 'text',
-        visibleWhen: {
-          fieldKey: 'country',
-          values: ['Maroc', 'Espagne']
-        },
-        labelKeyByValue: {
-          fieldKey: 'country',
-          labelsByValue: {
-            Maroc: 'fields.taxIdMorocco',
-            Espagne: 'fields.taxIdSpain'
-          }
-        }
-      },
-      {
-        key: 'rc',
-        labelKey: 'fields.rc',
-        type: 'text',
-        visibleWhen: {
-          fieldKey: 'country',
-          values: ['Maroc', 'Espagne']
-        },
-        labelKeyByValue: {
-          fieldKey: 'country',
-          labelsByValue: {
-            Maroc: 'fields.rcMorocco',
-            Espagne: 'fields.rcSpain'
-          }
-        }
-      },
-      {
-        key: 'cnss',
-        labelKey: 'fields.cnss',
-        type: 'text',
-        visibleWhen: {
-          fieldKey: 'country',
-          values: ['Maroc', 'Espagne']
-        },
-        labelKeyByValue: {
-          fieldKey: 'country',
-          labelsByValue: {
-            Maroc: 'fields.cnssMorocco',
-            Espagne: 'fields.socialSecuritySpain'
-          }
-        }
-      },
-      {
-        key: 'patente',
-        labelKey: 'fields.patente',
-        type: 'text',
-        visibleWhen: {
-          fieldKey: 'country',
-          values: ['Maroc', 'Espagne']
-        },
-        labelKeyByValue: {
-          fieldKey: 'country',
-          labelsByValue: {
-            Maroc: 'fields.patenteMorocco',
-            Espagne: 'fields.iaeSpain'
-          }
-        }
-      },
-
+      {key: 'country_id', labelKey: 'fields.country', type: 'select', geographyLevel: 'country', required: true},
+      {key: 'region_id', labelKey: 'fields.region', type: 'select', geographyLevel: 'region'},
+      {key: 'city_id', labelKey: 'fields.city', type: 'select', geographyLevel: 'city'},
+      {key: 'ice', labelKey: 'fields.ice', type: 'text'},
+      {key: 'tax_id', labelKey: 'fields.taxId', type: 'text'},
+      {key: 'rc', labelKey: 'fields.rc', type: 'text'},
+      {key: 'cnss', labelKey: 'fields.cnss', type: 'text'},
+      {key: 'patente', labelKey: 'fields.patente', type: 'text'},
       {key: 'address', labelKey: 'fields.address', type: 'text'},
-
-      {
-        key: 'region_id',
-        labelKey: 'fields.region',
-        type: 'select',
-        geographyLevel: 'region'
-      },
-      {
-        key: 'city_id',
-        labelKey: 'fields.city',
-        type: 'select',
-        geographyLevel: 'city'
-      },
-
       {key: 'latitude', labelKey: 'fields.latitude', type: 'number'},
       {key: 'longitude', labelKey: 'fields.longitude', type: 'number'},
       {
@@ -276,111 +200,72 @@ export const phase2Resources: Record<string, ResourceConfig> = {
     ]
   },
 
- farms: {
-  module: 'farms',
-  titleKey: 'resources.farms.title',
-  descriptionKey: 'resources.farms.description',
-  endpoint: '/farms',
-  listFields: ['name', 'code', 'company_id', 'region', 'city', 'surface_ha', 'status'],
-  filterFields: ['company_id', 'country_id', 'region_id', 'city_id', 'category', 'status'],
-  fields: [
-    {
-      key: 'company_id',
-      labelKey: 'fields.companyId',
-      type: 'lookup',
-      required: true,
-      lookup: {
-        endpoint: '/companies',
-        valueKey: 'id',
-        labelKeys: ['name', 'code'],
-        scopeEntityType: 'COMPANY'
-      }
-    },
-    {key: 'name', labelKey: 'fields.name', type: 'text', required: true},
-    {key: 'code', labelKey: 'fields.code', type: 'text'},
-    {
-      key: 'category',
-      labelKey: 'fields.category',
-      type: 'select',
-      options: [
-        {labelKey: 'options.farmCategory.OWNED', value: 'OWNED'},
-        {labelKey: 'options.farmCategory.TPG', value: 'TPG'},
-        {labelKey: 'options.farmCategory.THIRD_PARTY', value: 'THIRD_PARTY'}
-      ]
-    },
-    {key: 'address', labelKey: 'fields.address', type: 'text'},
-    {
-      key: 'country_id',
-      labelKey: 'fields.country',
-      type: 'select',
-      geographyLevel: 'country',
-      required: true
-    },
-    {
-      key: 'region_id',
-      labelKey: 'fields.region',
-      type: 'select',
-      geographyLevel: 'region'
-    },
-    {
-      key: 'city_id',
-      labelKey: 'fields.city',
-      type: 'select',
-      geographyLevel: 'city'
-    },
-    {key: 'latitude', labelKey: 'fields.latitude', type: 'number'},
-    {key: 'longitude', labelKey: 'fields.longitude', type: 'number'},
-    {key: 'surface_ha', labelKey: 'fields.surfaceHa', type: 'number'},
-    {key: 'rent_monthly', labelKey: 'fields.rentMonthly', type: 'number'},
-    {
-      key: 'responsible_id',
-      labelKey: 'fields.responsibleId',
-      type: 'lookup',
-      lookup: {
-        endpoint: '/users',
-        valueKey: 'id',
-        labelKeys: ['firstName', 'lastName', 'email']
-      }
-    },
-    {key: 'status', labelKey: 'fields.status', type: 'select', options: statusOptions}
-  ]
-},
+  farms: {
+    module: 'farms',
+    titleKey: 'resources.farms.title',
+    descriptionKey: 'resources.farms.description',
+    endpoint: '/farms',
+    listFields: ['name', 'code', 'company_id', 'region_id', 'city_id', 'surface_ha', 'status'],
+    filterFields: ['company_id', 'country_id', 'region_id', 'city_id', 'category', 'status'],
+    fields: [
+      {
+        key: 'company_id',
+        labelKey: 'fields.companyId',
+        type: 'lookup',
+        required: true,
+        lookup: {
+          endpoint: '/companies',
+          valueKey: 'id',
+          labelKeys: ['name', 'code'],
+          scopeEntityType: 'COMPANY'
+        }
+      },
+      {key: 'name', labelKey: 'fields.name', type: 'text', required: true},
+      {key: 'code', labelKey: 'fields.code', type: 'text'},
+      {key: 'category', labelKey: 'fields.category', type: 'select', options: farmCategoryOptions},
+      {key: 'address', labelKey: 'fields.address', type: 'text'},
+      {key: 'country_id', labelKey: 'fields.country', type: 'select', geographyLevel: 'country', required: true},
+      {key: 'region_id', labelKey: 'fields.region', type: 'select', geographyLevel: 'region'},
+      {key: 'city_id', labelKey: 'fields.city', type: 'select', geographyLevel: 'city'},
+      {key: 'latitude', labelKey: 'fields.latitude', type: 'number'},
+      {key: 'longitude', labelKey: 'fields.longitude', type: 'number'},
+      {key: 'surface_ha', labelKey: 'fields.surfaceHa', type: 'number'},
+      {key: 'rent_monthly', labelKey: 'fields.rentMonthly', type: 'number'},
+      {
+        key: 'responsible_id',
+        labelKey: 'fields.responsibleId',
+        type: 'lookup',
+        lookup: {
+          endpoint: '/users',
+          valueKey: 'id',
+          labelKeys: ['firstName', 'lastName', 'email']
+        }
+      },
+      {key: 'status', labelKey: 'fields.status', type: 'select', options: statusOptions}
+    ]
+  },
 
   plots: {
     module: 'plots',
     titleKey: 'resources.plots.title',
     descriptionKey: 'resources.plots.description',
     endpoint: '/plots',
-    listFields: ['code', 'name', 'farm_id', 'culture_id', 'surface_ha', 'status'],
-    filterFields: ['farm_id', 'culture_id', 'status'],
-    statusSections: [
-      {
-        titleKey: 'sections.plotProduction',
-        values: ['PRODUCTION'],
-        defaultOpen: true
-      },
-      {
-        titleKey: 'sections.plotYoung',
-        values: ['JEUNE'],
-        defaultOpen: false
-      },
-      {
-        titleKey: 'sections.plotResting',
-        values: ['REPOS'],
-        defaultOpen: false
-      },
-      {
-        titleKey: 'sections.plotFallow',
-        values: ['EN_FRICHE'],
-        defaultOpen: false
-      },
-      {
-        titleKey: 'sections.plotArchived',
-        values: ['ARCHIVED'],
-        defaultOpen: false
-      }
-    ],
+    listFields: ['name', 'code', 'farm_id', 'surface_ha', 'culture', 'variety', 'status'],
+    filterFields: ['company_id', 'farm_id', 'culture', 'variety', 'status'],
+    statusSections: plotStatusSections,
     fields: [
+      {
+        key: 'company_id',
+        labelKey: 'fields.companyId',
+        type: 'lookup',
+        persist: false,
+        lookup: {
+          endpoint: '/companies',
+          valueKey: 'id',
+          labelKeys: ['name', 'code'],
+          scopeEntityType: 'COMPANY'
+        }
+      },
       {
         key: 'farm_id',
         labelKey: 'fields.farmId',
@@ -391,36 +276,17 @@ export const phase2Resources: Record<string, ResourceConfig> = {
           valueKey: 'id',
           labelKeys: ['name', 'code'],
           scopeEntityType: 'FARM'
-        }
+        },
+        lookupFilter: {fieldKey: 'company_id', targetKey: 'company_id'}
       },
+      {key: 'name', labelKey: 'fields.name', type: 'text', required: true},
       {key: 'code', labelKey: 'fields.code', type: 'text'},
-      {key: 'name', labelKey: 'fields.name', type: 'text'},
-      {
-        key: 'culture_id',
-        labelKey: 'fields.cultureId',
-        type: 'lookup',
-        lookup: {
-          endpoint: '/cultures',
-          valueKey: 'id',
-          labelKeys: ['name', 'code']
-        }
-      },
-    
       {key: 'surface_ha', labelKey: 'fields.surfaceHa', type: 'number'},
-      {
-        key: 'status',
-        labelKey: 'fields.status',
-        type: 'select',
-        options: [
-          {labelKey: 'options.plotStatus.PRODUCTION', value: 'PRODUCTION'},
-          {labelKey: 'options.plotStatus.JEUNE', value: 'JEUNE'},
-          {labelKey: 'options.plotStatus.REPOS', value: 'REPOS'},
-          {labelKey: 'options.plotStatus.EN_FRICHE', value: 'EN_FRICHE'},
-          {labelKey: 'options.plotStatus.ARCHIVED', value: 'ARCHIVED'}
-        ]
-      },
+      {key: 'culture', labelKey: 'fields.culture', type: 'text'},
+      {key: 'variety', labelKey: 'fields.variety', type: 'text'},
       {key: 'latitude', labelKey: 'fields.latitude', type: 'number'},
-      {key: 'longitude', labelKey: 'fields.longitude', type: 'number'}
+      {key: 'longitude', labelKey: 'fields.longitude', type: 'number'},
+      {key: 'status', labelKey: 'fields.status', type: 'select', options: plotStatusOptions}
     ]
   },
 
@@ -429,8 +295,8 @@ export const phase2Resources: Record<string, ResourceConfig> = {
     titleKey: 'resources.factories.title',
     descriptionKey: 'resources.factories.description',
     endpoint: '/factories',
-    listFields: ['name', 'code', 'company_id', 'region', 'city', 'daily_capacity_kg', 'status'],
-    filterFields: ['company_id', 'country_id', 'region_id', 'city_id', 'status'], 
+    listFields: ['name', 'code', 'company_id', 'region_id', 'city_id', 'daily_capacity_kg', 'status'],
+    filterFields: ['company_id', 'country_id', 'region_id', 'city_id', 'status'],
     fields: [
       {
         key: 'company_id',
@@ -447,25 +313,9 @@ export const phase2Resources: Record<string, ResourceConfig> = {
       {key: 'name', labelKey: 'fields.name', type: 'text', required: true},
       {key: 'code', labelKey: 'fields.code', type: 'text'},
       {key: 'address', labelKey: 'fields.address', type: 'text'},
-{
-  key: 'country_id',
-  labelKey: 'fields.country',
-  type: 'select',
-  geographyLevel: 'country',
-  required: true
-},
-{
-  key: 'region_id',
-  labelKey: 'fields.region',
-  type: 'select',
-  geographyLevel: 'region'
-},
-{
-  key: 'city_id',
-  labelKey: 'fields.city',
-  type: 'select',
-  geographyLevel: 'city'
-},
+      {key: 'country_id', labelKey: 'fields.country', type: 'select', geographyLevel: 'country', required: true},
+      {key: 'region_id', labelKey: 'fields.region', type: 'select', geographyLevel: 'region'},
+      {key: 'city_id', labelKey: 'fields.city', type: 'select', geographyLevel: 'city'},
       {key: 'latitude', labelKey: 'fields.latitude', type: 'number'},
       {key: 'longitude', labelKey: 'fields.longitude', type: 'number'},
       {key: 'daily_capacity_kg', labelKey: 'fields.dailyCapacityKg', type: 'number'},
@@ -489,7 +339,7 @@ export const phase2Resources: Record<string, ResourceConfig> = {
     descriptionKey: 'resources.stations.description',
     endpoint: '/stations',
     listFields: ['name', 'code', 'company_id', 'factory_id', 'daily_capacity_kg', 'features', 'status'],
-    filterFields: ['company_id', 'factory_id', 'features', 'status'],    
+    filterFields: ['company_id', 'factory_id', 'features', 'status'],
     fields: [
       {
         key: 'company_id',
@@ -512,32 +362,25 @@ export const phase2Resources: Record<string, ResourceConfig> = {
           labelKeys: ['name', 'code'],
           scopeEntityType: 'FACTORY'
         },
-        lookupFilter: {
-          fieldKey: 'company_id',
-          targetKey: 'company_id'
-        }
+        lookupFilter: {fieldKey: 'company_id', targetKey: 'company_id'}
       },
       {key: 'name', labelKey: 'fields.name', type: 'text', required: true},
       {key: 'code', labelKey: 'fields.code', type: 'text'},
       {key: 'daily_capacity_kg', labelKey: 'fields.dailyCapacityKg', type: 'number'},
       {key: 'latitude', labelKey: 'fields.latitude', type: 'number'},
       {key: 'longitude', labelKey: 'fields.longitude', type: 'number'},
-      {
-        key: 'features',
-        labelKey: 'fields.features',
-        type: 'multiselect',
-        options: stationFeatureOptions
-      },
+      {key: 'features', labelKey: 'fields.features', type: 'multiselect', options: stationFeatureOptions},
       {key: 'status', labelKey: 'fields.status', type: 'select', options: statusOptions}
     ]
   },
+
   cultures: {
     module: 'cultures',
     titleKey: 'resources.cultures.title',
     descriptionKey: 'resources.cultures.description',
     endpoint: '/cultures',
     listFields: ['name', 'code', 'description', 'status'],
-       filterFields: ['status'],
+    filterFields: ['status'],
     fields: [
       {key: 'name', labelKey: 'fields.name', type: 'text', required: true},
       {key: 'code', labelKey: 'fields.code', type: 'text'},
@@ -545,13 +388,14 @@ export const phase2Resources: Record<string, ResourceConfig> = {
       {key: 'status', labelKey: 'fields.status', type: 'select', options: statusOptions}
     ]
   },
+
   products: {
     module: 'products',
     titleKey: 'resources.products.title',
     descriptionKey: 'resources.products.description',
     endpoint: '/products',
     listFields: ['culture_id', 'name', 'code', 'default_unit', 'status'],
-    filterFields: ['culture_id', 'default_unit', 'status'],   
+    filterFields: ['culture_id', 'default_unit', 'status'],
     fields: [
       {
         key: 'culture_id',
@@ -567,12 +411,7 @@ export const phase2Resources: Record<string, ResourceConfig> = {
       {key: 'name', labelKey: 'fields.name', type: 'text', required: true},
       {key: 'code', labelKey: 'fields.code', type: 'text'},
       {key: 'description', labelKey: 'fields.description', type: 'text'},
-      {
-        key: 'default_unit',
-        labelKey: 'fields.defaultUnit',
-        type: 'select',
-        options: defaultUnitOptions
-      },
+      {key: 'default_unit', labelKey: 'fields.defaultUnit', type: 'select', options: defaultUnitOptions},
       {key: 'status', labelKey: 'fields.status', type: 'select', options: statusOptions}
     ]
   },
@@ -583,7 +422,7 @@ export const phase2Resources: Record<string, ResourceConfig> = {
     descriptionKey: 'resources.productVarieties.description',
     endpoint: '/product-varieties',
     listFields: ['product_id', 'name', 'code', 'description', 'status'],
-    filterFields: ['product_id', 'status'],   
+    filterFields: ['product_id', 'status'],
     fields: [
       {
         key: 'product_id',
@@ -608,7 +447,6 @@ export const phase2Resources: Record<string, ResourceConfig> = {
     titleKey: 'resources.vehicles.title',
     descriptionKey: 'resources.vehicles.description',
     endpoint: '/vehicles',
-    filterFields: ['company_id', 'type', 'acquisition_mode', 'status'],    
     listFields: [
       'registration_number',
       'company_id',
@@ -619,6 +457,7 @@ export const phase2Resources: Record<string, ResourceConfig> = {
       'capacity_kg',
       'status'
     ],
+    filterFields: ['company_id', 'type', 'acquisition_mode', 'status'],
     fields: [
       {
         key: 'company_id',
@@ -631,34 +470,11 @@ export const phase2Resources: Record<string, ResourceConfig> = {
           scopeEntityType: 'COMPANY'
         }
       },
-      {
-        key: 'type',
-        labelKey: 'fields.type',
-        type: 'select',
-        options: [
-          {labelKey: 'options.vehicleType.REFRIGERATED', value: 'REFRIGERATED'},
-          {labelKey: 'options.vehicleType.UTILITY', value: 'UTILITY'},
-          {labelKey: 'options.vehicleType.AGRICULTURAL', value: 'AGRICULTURAL'},
-          {labelKey: 'options.vehicleType.COMPANY_CAR', value: 'COMPANY_CAR'},
-          {labelKey: 'options.vehicleType.OTHER', value: 'OTHER'}
-        ]
-      },
+      {key: 'type', labelKey: 'fields.type', type: 'select', options: vehicleTypeOptions},
       {key: 'brand', labelKey: 'fields.brand', type: 'text'},
       {key: 'model', labelKey: 'fields.model', type: 'text'},
       {key: 'registration_number', labelKey: 'fields.registrationNumber', type: 'text'},
-      {
-        key: 'acquisition_mode',
-        labelKey: 'fields.acquisitionMode',
-        type: 'select',
-        options: [
-          {labelKey: 'options.acquisitionMode.OWNED', value: 'OWNED'},
-          {labelKey: 'options.acquisitionMode.LEASED', value: 'LEASED'},
-          {labelKey: 'options.acquisitionMode.RENTED', value: 'RENTED'},
-          {labelKey: 'options.acquisitionMode.CREDIT', value: 'CREDIT'},
-          {labelKey: 'options.acquisitionMode.SUBCONTRACTED', value: 'SUBCONTRACTED'},
-          {labelKey: 'options.acquisitionMode.OTHER', value: 'OTHER'}
-        ]
-      },
+      {key: 'acquisition_mode', labelKey: 'fields.acquisitionMode', type: 'select', options: acquisitionModeOptions},
       {key: 'rent_monthly', labelKey: 'fields.rentMonthly', type: 'number'},
       {key: 'capacity_kg', labelKey: 'fields.capacityKg', type: 'number'},
       {key: 'status', labelKey: 'fields.status', type: 'select', options: statusOptions}
@@ -670,7 +486,6 @@ export const phase2Resources: Record<string, ResourceConfig> = {
     titleKey: 'resources.personnel.title',
     descriptionKey: 'resources.personnel.description',
     endpoint: '/personnel',
-    filterFields: ['user_id', 'company_id', 'farm_id', 'factory_id', 'station_id', 'contract_type', 'status'],    
     listFields: [
       'full_name',
       'user_id',
@@ -681,6 +496,15 @@ export const phase2Resources: Record<string, ResourceConfig> = {
       'grade',
       'contract_type',
       'salary',
+      'status'
+    ],
+    filterFields: [
+      'user_id',
+      'company_id',
+      'farm_id',
+      'factory_id',
+      'station_id',
+      'contract_type',
       'status'
     ],
     fields: [
@@ -715,10 +539,7 @@ export const phase2Resources: Record<string, ResourceConfig> = {
           labelKeys: ['name', 'code'],
           scopeEntityType: 'FARM'
         },
-        lookupFilter: {
-          fieldKey: 'company_id',
-          targetKey: 'company_id'
-        }
+        lookupFilter: {fieldKey: 'company_id', targetKey: 'company_id'}
       },
       {
         key: 'factory_id',
@@ -730,34 +551,23 @@ export const phase2Resources: Record<string, ResourceConfig> = {
           labelKeys: ['name', 'code'],
           scopeEntityType: 'FACTORY'
         },
-        lookupFilter: {
-          fieldKey: 'company_id',
-          targetKey: 'company_id'
-        }
+        lookupFilter: {fieldKey: 'company_id', targetKey: 'company_id'}
       },
-{
-  key: 'station_id',
-  labelKey: 'fields.stationId',
-  type: 'lookup',
-  lookup: {
-    endpoint: '/stations',
-    valueKey: 'id',
-    labelKeys: ['name', 'code'],
-    scopeEntityType: 'STATION'
-  },
-  lookupFilter: {
-    fieldKey: 'factory_id',
-    targetKey: 'factory_id'
-  }
-},
+      {
+        key: 'station_id',
+        labelKey: 'fields.stationId',
+        type: 'lookup',
+        lookup: {
+          endpoint: '/stations',
+          valueKey: 'id',
+          labelKeys: ['name', 'code'],
+          scopeEntityType: 'STATION'
+        },
+        lookupFilter: {fieldKey: 'factory_id', targetKey: 'factory_id'}
+      },
       {key: 'full_name', labelKey: 'fields.fullName', type: 'text', required: true},
       {key: 'grade', labelKey: 'fields.grade', type: 'text'},
-      {
-        key: 'contract_type',
-        labelKey: 'fields.contractType',
-        type: 'select',
-        options: contractTypeOptions
-      },
+      {key: 'contract_type', labelKey: 'fields.contractType', type: 'select', options: contractTypeOptions},
       {key: 'salary', labelKey: 'fields.salary', type: 'number'},
       {key: 'status', labelKey: 'fields.status', type: 'select', options: statusOptions}
     ]

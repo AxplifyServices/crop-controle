@@ -92,6 +92,14 @@ export function getRefreshToken() {
   return localStorage.getItem('agri_control_refresh_token');
 }
 
+export function clearSession() {
+  if (typeof window === 'undefined') return;
+
+  localStorage.removeItem('agri_control_token');
+  localStorage.removeItem('agri_control_refresh_token');
+  localStorage.removeItem('agri_control_user');
+}
+
 export function getUser(): AuthUser | null {
   if (typeof window === 'undefined') return null;
 
@@ -118,7 +126,5 @@ export async function logout() {
     // On supprime quand même la session locale.
   }
 
-  localStorage.removeItem('agri_control_token');
-  localStorage.removeItem('agri_control_refresh_token');
-  localStorage.removeItem('agri_control_user');
+  clearSession();
 }

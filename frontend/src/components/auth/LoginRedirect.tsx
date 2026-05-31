@@ -2,7 +2,14 @@
 
 import {useEffect} from 'react';
 import {useRouter} from '@/i18n/navigation';
-import {getRefreshToken, getToken, refreshSession} from '@/lib/auth';
+import {
+  clearSession,
+  fetchMe,
+  getRefreshToken,
+  getToken,
+  refreshSession,
+  updateStoredUser
+} from '@/lib/auth';
 
 export function LoginRedirect() {
   const router = useRouter();
@@ -11,25 +18,33 @@ export function LoginRedirect() {
     let mounted = true;
 
     async function init() {
-      const token = getToken();
-
-      if (token) {
-        router.replace('/dashboard');
-        return;
-      }
-
-      if (!getRefreshToken()) {
-        return;
-      }
-
       try {
-        await refreshSession();
+        const token = getToken();
+        const refreshToken = getRefreshToken();
+
+        if (!token && !refreshToken) {
+          clearSession();
+          return;
+        }
+
+        if (!token && refreshToken) {
+          await refreshSession();
+
+          if (mounted) {
+            router.replace('/dashboard');
+          }
+
+          return;
+        }
+
+        const user = await fetchMe();
+        updateStoredUser(user);
 
         if (mounted) {
           router.replace('/dashboard');
         }
       } catch {
-        // Session absente ou expirée : on laisse l'utilisateur sur login.
+        clearSession();
       }
     }
 

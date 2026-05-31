@@ -1,8 +1,10 @@
 'use client';
 
 import {useEffect, useState} from 'react';
+import {useTranslations} from 'next-intl';
 import {useRouter} from '@/i18n/navigation';
 import {
+  clearSession,
   fetchMe,
   getRefreshToken,
   getToken,
@@ -25,6 +27,7 @@ export function RequirePermission({
   children
 }: RequirePermissionProps) {
   const router = useRouter();
+  const t = useTranslations('Access');
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -41,7 +44,8 @@ export function RequirePermission({
         }
 
         if (!token) {
-          router.push('/login');
+          clearSession();
+          router.replace('/login');
           return;
         }
 
@@ -59,7 +63,8 @@ export function RequirePermission({
           setUser(freshUser);
         }
       } catch {
-        router.push('/login');
+        clearSession();
+        router.replace('/login');
         return;
       } finally {
         if (mounted) {
@@ -78,7 +83,7 @@ export function RequirePermission({
   if (loading) {
     return (
       <div className="rounded-2xl border border-slate-200 bg-white p-6 text-sm text-slate-500">
-        Chargement des accès...
+        {t('loading')}
       </div>
     );
   }
@@ -86,9 +91,12 @@ export function RequirePermission({
   if (!hasPermission(user, module, action)) {
     return (
       <div className="rounded-2xl border border-red-100 bg-red-50 p-6">
-        <h1 className="text-lg font-semibold text-red-800">Accès refusé</h1>
+        <h1 className="text-lg font-semibold text-red-800">
+          {t('deniedTitle')}
+        </h1>
+
         <p className="mt-2 text-sm text-red-700">
-          Votre profil ne dispose pas de la permission nécessaire pour accéder à ce module.
+          {t('deniedDescription')}
         </p>
       </div>
     );

@@ -75,6 +75,8 @@ export function Sidebar({
   mobileOpen: boolean;
   onCloseMobile: () => void;
 }) {
+  const tCommon = useTranslations('Common');
+
   return (
     <>
       <DesktopSidebar collapsed={collapsed} />
@@ -83,7 +85,7 @@ export function Sidebar({
         <div className="fixed inset-0 z-50 lg:hidden">
           <button
             type="button"
-            aria-label="Fermer le menu"
+            aria-label={tCommon('closeMenu')}
             className="absolute inset-0 bg-slate-950/40"
             onClick={onCloseMobile}
           />
@@ -246,8 +248,6 @@ function SidebarGroup({
 
   const [open, setOpen] = useState(() => activeByChildren);
 
-  const isOpen = open;
-
   if (!hasChildren && group.href) {
     return (
       <Link
@@ -257,9 +257,9 @@ function SidebarGroup({
         className={`flex h-11 items-center rounded-xl text-[14px] font-medium transition ${
           collapsed ? 'justify-center px-0' : 'gap-3 px-3'
         } ${
-            activeByHref
-              ? 'bg-slate-50 text-slate-900'
-              : 'bg-white text-slate-700 hover:bg-slate-50 hover:text-slate-900'
+          activeByHref
+            ? 'bg-slate-50 text-slate-900'
+            : 'bg-white text-slate-700 hover:bg-slate-50 hover:text-slate-900'
         }`}
       >
         <Icon size={18} />
@@ -295,14 +295,14 @@ function SidebarGroup({
             <ChevronRight
               size={16}
               className={`shrink-0 transition-transform ${
-                isOpen ? 'rotate-90' : ''
+                open ? 'rotate-90' : ''
               }`}
             />
           </>
         ) : null}
       </button>
 
-      {!collapsed && isOpen ? (
+      {!collapsed && open ? (
         <div className="ml-[21px] border-l border-slate-200 py-1 pl-5">
           <div className="space-y-1">
             {group.items?.map((item) => {

@@ -1,12 +1,15 @@
 import {redirect} from '@/i18n/navigation';
+import type {Locale} from '@/i18n/routing';
 
-export default function HomePage({
+export default async function HomePage({
   params
 }: {
-  params: {locale: string};
+  params: Promise<{locale: Locale}>;
 }) {
+  const {locale} = await params;
+
   redirect({
     href: '/login',
-    locale: params.locale
+    locale
   });
 }

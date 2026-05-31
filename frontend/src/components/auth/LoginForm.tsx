@@ -21,8 +21,8 @@ export function LoginForm() {
 
     try {
       const data = await login(email, password);
-      saveSession(data);
-      router.push('/dashboard');
+        saveSession(data);
+        router.replace('/dashboard');
     } catch {
       setError(t('invalidCredentials'));
     } finally {
