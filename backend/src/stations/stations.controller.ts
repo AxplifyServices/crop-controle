@@ -11,6 +11,7 @@ import {
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { PermissionsGuard } from '../common/guards/permissions.guard';
 import { RequirePermission } from '../common/decorators/require-permission.decorator';
+import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { CreateStationsDto, UpdateStationsDto } from './dto';
 import { StationsService } from './stations.service';
 
@@ -21,31 +22,35 @@ export class StationsController {
 
   @RequirePermission('stations', 'VIEW')
   @Get()
-  findAll() {
-    return this.stationsService.findAll();
+  findAll(@CurrentUser() user: any) {
+    return this.stationsService.findAll(user.sub);
   }
 
   @RequirePermission('stations', 'VIEW')
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.stationsService.findOne(id);
+  findOne(@Param('id') id: string, @CurrentUser() user: any) {
+    return this.stationsService.findOne(id, user.sub);
   }
 
   @RequirePermission('stations', 'CREATE')
   @Post()
-  create(@Body() dto: CreateStationsDto) {
-    return this.stationsService.create(dto);
+  create(@Body() dto: CreateStationsDto, @CurrentUser() user: any) {
+    return this.stationsService.create(dto, user.sub);
   }
 
   @RequirePermission('stations', 'UPDATE')
   @Patch(':id')
-  update(@Param('id') id: string, @Body() dto: UpdateStationsDto) {
-    return this.stationsService.update(id, dto);
+  update(
+    @Param('id') id: string,
+    @Body() dto: UpdateStationsDto,
+    @CurrentUser() user: any,
+  ) {
+    return this.stationsService.update(id, dto, user.sub);
   }
 
   @RequirePermission('stations', 'DELETE')
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.stationsService.remove(id);
+  remove(@Param('id') id: string, @CurrentUser() user: any) {
+    return this.stationsService.remove(id, user.sub);
   }
 }

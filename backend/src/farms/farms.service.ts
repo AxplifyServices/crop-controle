@@ -1,46 +1,93 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { AccessControlService } from '../common/access-control/access-control.service';
 import { CreateFarmsDto, UpdateFarmsDto } from './dto';
 
 @Injectable()
 export class FarmsService {
   private readonly modelName = 'farms';
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly accessControl: AccessControlService,
+  ) {}
 
   private get model() {
     return (this.prisma as any)[this.modelName];
   }
 
-  async findAll() {
+  async findAll(currentUserId: string) {
+    const scopedWhere = await this.accessControl.getScopedWhere(
+      currentUserId,
+      'FARM',
+    );
+
     return this.model.findMany({
-      where: { deleted_at: null },
+      where: {
+        deleted_at: null,
+        ...(Object.keys(scopedWhere).length > 0
+          ? {
+              AND: [scopedWhere],
+            }
+          : {}),
+      },
       orderBy: {
         created_at: 'desc',
       },
     });
   }
 
-  async findOne(id: string) {
-    const item = await this.model.findUnique({
-      where: { id },
+  async findOne(id: string, currentUserId: string) {
+    const scopedWhere = await this.accessControl.getScopedWhere(
+      currentUserId,
+      'FARM',
+    );
+
+    const item = await this.model.findFirst({
+      where: {
+        id,
+        deleted_at: null,
+        ...(Object.keys(scopedWhere).length > 0
+          ? {
+              AND: [scopedWhere],
+            }
+          : {}),
+      },
     });
 
-    if (!item || item.deleted_at) {
+    if (!item) {
       throw new NotFoundException('Enregistrement introuvable');
     }
 
     return item;
   }
 
-  async create(dto: CreateFarmsDto) {
+  async create(dto: CreateFarmsDto, currentUserId: string) {
+    await this.accessControl.assertCanAccessRecord(
+      currentUserId,
+      'COMPANY',
+      'companies',
+      dto.company_id,
+      { deleted_at: null },
+    );
+
     return this.model.create({
       data: dto,
     });
   }
 
-  async update(id: string, dto: UpdateFarmsDto) {
-    await this.findOne(id);
+  async update(id: string, dto: UpdateFarmsDto, currentUserId: string) {
+    await this.findOne(id, currentUserId);
+
+    if (dto.company_id) {
+      await this.accessControl.assertCanAccessRecord(
+        currentUserId,
+        'COMPANY',
+        'companies',
+        dto.company_id,
+        { deleted_at: null },
+      );
+    }
 
     return this.model.update({
       where: { id },
@@ -51,8 +98,8 @@ export class FarmsService {
     });
   }
 
-  async remove(id: string) {
-    await this.findOne(id);
+  async remove(id: string, currentUserId: string) {
+    await this.findOne(id, currentUserId);
 
     const [
       plots,

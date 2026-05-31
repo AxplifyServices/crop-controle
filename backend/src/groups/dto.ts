@@ -1,21 +1,22 @@
-import { Allow, IsOptional } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class CreateGroupsDto {
-  @IsOptional()
-  @Allow()
-  name?: any;
+  @IsString()
+  @IsNotEmpty()
+  name!: string;
 
   @IsOptional()
-  @Allow()
-  description?: any;
+  @IsString()
+  description?: string;
 }
 
 export class UpdateGroupsDto {
   @IsOptional()
-  @Allow()
-  name?: any;
+  @IsString()
+  @IsNotEmpty()
+  name?: string;
 
   @IsOptional()
-  @Allow()
-  description?: any;
+  @IsString()
+  description?: string;
 }

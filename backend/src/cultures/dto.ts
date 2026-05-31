@@ -1,4 +1,10 @@
-import { Allow, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import {
+  IsEnum,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+} from 'class-validator';
+import { entity_status_enum } from '@prisma/client';
 
 export class CreateCulturesDto {
   @IsString()
@@ -6,32 +12,33 @@ export class CreateCulturesDto {
   name!: string;
 
   @IsOptional()
-  @Allow()
-  code?: any;
+  @IsString()
+  code?: string;
 
   @IsOptional()
-  @Allow()
-  description?: any;
+  @IsString()
+  description?: string;
 
   @IsOptional()
-  @Allow()
-  status?: any;
+  @IsEnum(entity_status_enum)
+  status?: entity_status_enum;
 }
 
 export class UpdateCulturesDto {
   @IsOptional()
-  @Allow()
-  name?: any;
+  @IsString()
+  @IsNotEmpty()
+  name?: string;
 
   @IsOptional()
-  @Allow()
-  code?: any;
+  @IsString()
+  code?: string;
 
   @IsOptional()
-  @Allow()
-  description?: any;
+  @IsString()
+  description?: string;
 
   @IsOptional()
-  @Allow()
-  status?: any;
+  @IsEnum(entity_status_enum)
+  status?: entity_status_enum;
 }

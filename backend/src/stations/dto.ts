@@ -1,85 +1,104 @@
-import { Allow, IsOptional } from 'class-validator';
+import {
+  IsArray,
+  IsEnum,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+  IsUUID,
+} from 'class-validator';
+import { Type } from 'class-transformer';
+import { entity_status_enum } from '@prisma/client';
 
 export class CreateStationsDto {
   @IsOptional()
-  @Allow()
-  company_id?: any;
+  @IsUUID()
+  company_id?: string;
 
   @IsOptional()
-  @Allow()
-  factory_id?: any;
+  @IsUUID()
+  factory_id?: string;
+
+  @IsString()
+  @IsNotEmpty()
+  name!: string;
 
   @IsOptional()
-  @Allow()
-  name?: any;
+  @IsString()
+  code?: string;
 
   @IsOptional()
-  @Allow()
-  code?: any;
+  @Type(() => Number)
+  @IsNumber()
+  daily_capacity_kg?: number;
 
   @IsOptional()
-  @Allow()
-  daily_capacity_kg?: any;
+  @IsString()
+  location?: string;
 
   @IsOptional()
-  @Allow()
-  location?: any;
+  @Type(() => Number)
+  @IsNumber()
+  latitude?: number;
 
   @IsOptional()
-  @Allow()
-  latitude?: any;
+  @Type(() => Number)
+  @IsNumber()
+  longitude?: number;
 
   @IsOptional()
-  @Allow()
-  longitude?: any;
+  @IsArray()
+  @IsString({ each: true })
+  features?: string[];
 
   @IsOptional()
-  @Allow()
-  features?: any;
-
-  @IsOptional()
-  @Allow()
-  status?: any;
+  @IsEnum(entity_status_enum)
+  status?: entity_status_enum;
 }
 
 export class UpdateStationsDto {
   @IsOptional()
-  @Allow()
-  company_id?: any;
+  @IsUUID()
+  company_id?: string;
 
   @IsOptional()
-  @Allow()
-  factory_id?: any;
+  @IsUUID()
+  factory_id?: string;
 
   @IsOptional()
-  @Allow()
-  name?: any;
+  @IsString()
+  @IsNotEmpty()
+  name?: string;
 
   @IsOptional()
-  @Allow()
-  code?: any;
+  @IsString()
+  code?: string;
 
   @IsOptional()
-  @Allow()
-  daily_capacity_kg?: any;
+  @Type(() => Number)
+  @IsNumber()
+  daily_capacity_kg?: number;
 
   @IsOptional()
-  @Allow()
-  location?: any;
+  @IsString()
+  location?: string;
 
   @IsOptional()
-  @Allow()
-  latitude?: any;
+  @Type(() => Number)
+  @IsNumber()
+  latitude?: number;
 
   @IsOptional()
-  @Allow()
-  longitude?: any;
+  @Type(() => Number)
+  @IsNumber()
+  longitude?: number;
 
   @IsOptional()
-  @Allow()
-  features?: any;
+  @IsArray()
+  @IsString({ each: true })
+  features?: string[];
 
   @IsOptional()
-  @Allow()
-  status?: any;
+  @IsEnum(entity_status_enum)
+  status?: entity_status_enum;
 }

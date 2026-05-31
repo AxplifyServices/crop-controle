@@ -11,6 +11,7 @@ import {
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { PermissionsGuard } from '../common/guards/permissions.guard';
 import { RequirePermission } from '../common/decorators/require-permission.decorator';
+import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { CreateFarmsDto, UpdateFarmsDto } from './dto';
 import { FarmsService } from './farms.service';
 
@@ -21,31 +22,35 @@ export class FarmsController {
 
   @RequirePermission('farms', 'VIEW')
   @Get()
-  findAll() {
-    return this.farmsService.findAll();
+  findAll(@CurrentUser() user: any) {
+    return this.farmsService.findAll(user.sub);
   }
 
   @RequirePermission('farms', 'VIEW')
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.farmsService.findOne(id);
+  findOne(@Param('id') id: string, @CurrentUser() user: any) {
+    return this.farmsService.findOne(id, user.sub);
   }
 
   @RequirePermission('farms', 'CREATE')
   @Post()
-  create(@Body() dto: CreateFarmsDto) {
-    return this.farmsService.create(dto);
+  create(@Body() dto: CreateFarmsDto, @CurrentUser() user: any) {
+    return this.farmsService.create(dto, user.sub);
   }
 
   @RequirePermission('farms', 'UPDATE')
   @Patch(':id')
-  update(@Param('id') id: string, @Body() dto: UpdateFarmsDto) {
-    return this.farmsService.update(id, dto);
+  update(
+    @Param('id') id: string,
+    @Body() dto: UpdateFarmsDto,
+    @CurrentUser() user: any,
+  ) {
+    return this.farmsService.update(id, dto, user.sub);
   }
 
   @RequirePermission('farms', 'DELETE')
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.farmsService.remove(id);
+  remove(@Param('id') id: string, @CurrentUser() user: any) {
+    return this.farmsService.remove(id, user.sub);
   }
 }

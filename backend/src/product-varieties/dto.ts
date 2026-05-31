@@ -1,45 +1,52 @@
-import { Allow, IsOptional } from 'class-validator';
+import {
+  IsEnum,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  IsUUID,
+} from 'class-validator';
+import { entity_status_enum } from '@prisma/client';
 
 export class CreateProductVarietiesDto {
-  @IsOptional()
-  @Allow()
-  product_id?: any;
+  @IsUUID()
+  product_id!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  name!: string;
 
   @IsOptional()
-  @Allow()
-  name?: any;
+  @IsString()
+  code?: string;
 
   @IsOptional()
-  @Allow()
-  code?: any;
+  @IsString()
+  description?: string;
 
   @IsOptional()
-  @Allow()
-  description?: any;
-
-  @IsOptional()
-  @Allow()
-  status?: any;
+  @IsEnum(entity_status_enum)
+  status?: entity_status_enum;
 }
 
 export class UpdateProductVarietiesDto {
   @IsOptional()
-  @Allow()
-  product_id?: any;
+  @IsUUID()
+  product_id?: string;
 
   @IsOptional()
-  @Allow()
-  name?: any;
+  @IsString()
+  @IsNotEmpty()
+  name?: string;
 
   @IsOptional()
-  @Allow()
-  code?: any;
+  @IsString()
+  code?: string;
 
   @IsOptional()
-  @Allow()
-  description?: any;
+  @IsString()
+  description?: string;
 
   @IsOptional()
-  @Allow()
-  status?: any;
+  @IsEnum(entity_status_enum)
+  status?: entity_status_enum;
 }

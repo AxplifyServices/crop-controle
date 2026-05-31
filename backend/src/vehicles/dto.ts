@@ -1,77 +1,89 @@
-import { Allow, IsOptional } from 'class-validator';
+import {
+  IsEnum,
+  IsNumber,
+  IsOptional,
+  IsString,
+  IsUUID,
+} from 'class-validator';
+import { Type } from 'class-transformer';
+import { entity_status_enum, vehicle_type_enum } from '@prisma/client';
 
 export class CreateVehiclesDto {
   @IsOptional()
-  @Allow()
-  company_id?: any;
+  @IsUUID()
+  company_id?: string;
 
   @IsOptional()
-  @Allow()
-  type?: any;
+  @IsEnum(vehicle_type_enum)
+  type?: vehicle_type_enum;
 
   @IsOptional()
-  @Allow()
-  brand?: any;
+  @IsString()
+  brand?: string;
 
   @IsOptional()
-  @Allow()
-  model?: any;
+  @IsString()
+  model?: string;
 
   @IsOptional()
-  @Allow()
-  registration_number?: any;
+  @IsString()
+  registration_number?: string;
 
   @IsOptional()
-  @Allow()
-  acquisition_mode?: any;
+  @IsString()
+  acquisition_mode?: string;
 
   @IsOptional()
-  @Allow()
-  rent_monthly?: any;
+  @Type(() => Number)
+  @IsNumber()
+  rent_monthly?: number;
 
   @IsOptional()
-  @Allow()
-  capacity_kg?: any;
+  @Type(() => Number)
+  @IsNumber()
+  capacity_kg?: number;
 
   @IsOptional()
-  @Allow()
-  status?: any;
+  @IsEnum(entity_status_enum)
+  status?: entity_status_enum;
 }
 
 export class UpdateVehiclesDto {
   @IsOptional()
-  @Allow()
-  company_id?: any;
+  @IsUUID()
+  company_id?: string;
 
   @IsOptional()
-  @Allow()
-  type?: any;
+  @IsEnum(vehicle_type_enum)
+  type?: vehicle_type_enum;
 
   @IsOptional()
-  @Allow()
-  brand?: any;
+  @IsString()
+  brand?: string;
 
   @IsOptional()
-  @Allow()
-  model?: any;
+  @IsString()
+  model?: string;
 
   @IsOptional()
-  @Allow()
-  registration_number?: any;
+  @IsString()
+  registration_number?: string;
 
   @IsOptional()
-  @Allow()
-  acquisition_mode?: any;
+  @IsString()
+  acquisition_mode?: string;
 
   @IsOptional()
-  @Allow()
-  rent_monthly?: any;
+  @Type(() => Number)
+  @IsNumber()
+  rent_monthly?: number;
 
   @IsOptional()
-  @Allow()
-  capacity_kg?: any;
+  @Type(() => Number)
+  @IsNumber()
+  capacity_kg?: number;
 
   @IsOptional()
-  @Allow()
-  status?: any;
+  @IsEnum(entity_status_enum)
+  status?: entity_status_enum;
 }

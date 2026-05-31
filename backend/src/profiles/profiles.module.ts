@@ -1,13 +1,13 @@
 import { Module } from '@nestjs/common';
+import { PrismaModule } from '../prisma/prisma.module';
+import { CommonAccessModule } from '../common/common-access.module';
 import { ProfilesController } from './profiles.controller';
 import { ProfilesService } from './profiles.service';
-import { PrismaModule } from '../prisma/prisma.module';
-import { AccessControlService } from '../common/access-control/access-control.service';
 
 @Module({
-  imports: [PrismaModule],
+  imports: [PrismaModule, CommonAccessModule],
   controllers: [ProfilesController],
-  providers: [ProfilesService, AccessControlService],
+  providers: [ProfilesService],
   exports: [ProfilesService],
 })
 export class ProfilesModule {}

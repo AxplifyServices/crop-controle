@@ -11,6 +11,7 @@ import {
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { PermissionsGuard } from '../common/guards/permissions.guard';
 import { RequirePermission } from '../common/decorators/require-permission.decorator';
+import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { CreatePersonnelDto, UpdatePersonnelDto } from './dto';
 import { PersonnelService } from './personnel.service';
 
@@ -21,31 +22,35 @@ export class PersonnelController {
 
   @RequirePermission('personnel', 'VIEW')
   @Get()
-  findAll() {
-    return this.personnelService.findAll();
+  findAll(@CurrentUser() user: any) {
+    return this.personnelService.findAll(user.sub);
   }
 
   @RequirePermission('personnel', 'VIEW')
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.personnelService.findOne(id);
+  findOne(@Param('id') id: string, @CurrentUser() user: any) {
+    return this.personnelService.findOne(id, user.sub);
   }
 
   @RequirePermission('personnel', 'CREATE')
   @Post()
-  create(@Body() dto: CreatePersonnelDto) {
-    return this.personnelService.create(dto);
+  create(@Body() dto: CreatePersonnelDto, @CurrentUser() user: any) {
+    return this.personnelService.create(dto, user.sub);
   }
 
   @RequirePermission('personnel', 'UPDATE')
   @Patch(':id')
-  update(@Param('id') id: string, @Body() dto: UpdatePersonnelDto) {
-    return this.personnelService.update(id, dto);
+  update(
+    @Param('id') id: string,
+    @Body() dto: UpdatePersonnelDto,
+    @CurrentUser() user: any,
+  ) {
+    return this.personnelService.update(id, dto, user.sub);
   }
 
   @RequirePermission('personnel', 'DELETE')
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.personnelService.remove(id);
+  remove(@Param('id') id: string, @CurrentUser() user: any) {
+    return this.personnelService.remove(id, user.sub);
   }
 }

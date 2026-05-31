@@ -1,117 +1,134 @@
-import { Allow, IsOptional } from 'class-validator';
+import {
+  IsEnum,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+  IsUUID,
+} from 'class-validator';
+import { Type } from 'class-transformer';
+import { entity_status_enum, farm_category_enum } from '@prisma/client';
 
 export class CreateFarmsDto {
-  @IsOptional()
-  @Allow()
-  company_id?: any;
+  @IsUUID()
+  company_id!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  name!: string;
 
   @IsOptional()
-  @Allow()
-  name?: any;
+  @IsString()
+  code?: string;
 
   @IsOptional()
-  @Allow()
-  code?: any;
+  @IsEnum(farm_category_enum)
+  category?: farm_category_enum;
 
   @IsOptional()
-  @Allow()
-  category?: any;
+  @IsString()
+  address?: string;
 
   @IsOptional()
-  @Allow()
-  address?: any;
+  @IsString()
+  country?: string;
 
   @IsOptional()
-  @Allow()
-  country?: any;
+  @IsString()
+  city?: string;
 
   @IsOptional()
-  @Allow()
-  city?: any;
+  @IsString()
+  region?: string;
 
   @IsOptional()
-  @Allow()
-  region?: any;
+  @Type(() => Number)
+  @IsNumber()
+  latitude?: number;
 
   @IsOptional()
-  @Allow()
-  latitude?: any;
+  @Type(() => Number)
+  @IsNumber()
+  longitude?: number;
 
   @IsOptional()
-  @Allow()
-  longitude?: any;
+  @Type(() => Number)
+  @IsNumber()
+  surface_ha?: number;
 
   @IsOptional()
-  @Allow()
-  surface_ha?: any;
+  @Type(() => Number)
+  @IsNumber()
+  rent_monthly?: number;
 
   @IsOptional()
-  @Allow()
-  rent_monthly?: any;
+  @IsUUID()
+  responsible_id?: string;
 
   @IsOptional()
-  @Allow()
-  responsible_id?: any;
-
-  @IsOptional()
-  @Allow()
-  status?: any;
+  @IsEnum(entity_status_enum)
+  status?: entity_status_enum;
 }
 
 export class UpdateFarmsDto {
   @IsOptional()
-  @Allow()
-  company_id?: any;
+  @IsUUID()
+  company_id?: string;
 
   @IsOptional()
-  @Allow()
-  name?: any;
+  @IsString()
+  @IsNotEmpty()
+  name?: string;
 
   @IsOptional()
-  @Allow()
-  code?: any;
+  @IsString()
+  code?: string;
 
   @IsOptional()
-  @Allow()
-  category?: any;
+  @IsEnum(farm_category_enum)
+  category?: farm_category_enum;
 
   @IsOptional()
-  @Allow()
-  address?: any;
+  @IsString()
+  address?: string;
 
   @IsOptional()
-  @Allow()
-  country?: any;
+  @IsString()
+  country?: string;
 
   @IsOptional()
-  @Allow()
-  city?: any;
+  @IsString()
+  city?: string;
 
   @IsOptional()
-  @Allow()
-  region?: any;
+  @IsString()
+  region?: string;
 
   @IsOptional()
-  @Allow()
-  latitude?: any;
+  @Type(() => Number)
+  @IsNumber()
+  latitude?: number;
 
   @IsOptional()
-  @Allow()
-  longitude?: any;
+  @Type(() => Number)
+  @IsNumber()
+  longitude?: number;
 
   @IsOptional()
-  @Allow()
-  surface_ha?: any;
+  @Type(() => Number)
+  @IsNumber()
+  surface_ha?: number;
 
   @IsOptional()
-  @Allow()
-  rent_monthly?: any;
+  @Type(() => Number)
+  @IsNumber()
+  rent_monthly?: number;
 
   @IsOptional()
-  @Allow()
-  responsible_id?: any;
+  @IsUUID()
+  responsible_id?: string;
 
   @IsOptional()
-  @Allow()
-  status?: any;
+  @IsEnum(entity_status_enum)
+  status?: entity_status_enum;
 }

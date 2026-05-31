@@ -34,18 +34,54 @@ export class ProductsService {
   }
 
   async create(dto: CreateProductsDto) {
+    if (dto.culture_id) {
+      const culture = await this.prisma.cultures.findUnique({
+        where: {
+          id: dto.culture_id,
+        },
+      });
+
+      if (!culture) {
+        throw new BadRequestException('Culture introuvable.');
+      }
+    }
+
     return this.model.create({
-      data: dto,
+      data: {
+        name: dto.name,
+        code: dto.code,
+        culture_id: dto.culture_id,
+        description: dto.description,
+        default_unit: dto.default_unit,
+        status: dto.status,
+      },
     });
   }
 
   async update(id: string, dto: UpdateProductsDto) {
     await this.findOne(id);
 
+    if (dto.culture_id) {
+      const culture = await this.prisma.cultures.findUnique({
+        where: {
+          id: dto.culture_id,
+        },
+      });
+
+      if (!culture) {
+        throw new BadRequestException('Culture introuvable.');
+      }
+    }
+
     return this.model.update({
       where: { id },
       data: {
-        ...dto,
+        name: dto.name,
+        code: dto.code,
+        culture_id: dto.culture_id,
+        description: dto.description,
+        default_unit: dto.default_unit,
+        status: dto.status,
         updated_at: new Date(),
       },
     });

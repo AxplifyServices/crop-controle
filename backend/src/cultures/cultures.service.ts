@@ -26,16 +26,16 @@ export class CulturesService {
     return item;
   }
 
-    async create(dto: CreateCulturesDto) {
+  async create(dto: CreateCulturesDto) {
     return this.prisma.cultures.create({
-        data: {
+      data: {
         name: dto.name,
         code: dto.code,
         description: dto.description,
         status: dto.status,
-        },
+      },
     });
-    }
+  }
 
   async update(id: string, dto: UpdateCulturesDto) {
     await this.findOne(id);
@@ -43,7 +43,10 @@ export class CulturesService {
     return this.prisma.cultures.update({
       where: { id },
       data: {
-        ...dto,
+        name: dto.name,
+        code: dto.code,
+        description: dto.description,
+        status: dto.status,
         updated_at: new Date(),
       },
     });

@@ -1,85 +1,97 @@
-import { Allow, IsOptional } from 'class-validator';
+import {
+  IsEnum,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+  IsUUID,
+} from 'class-validator';
+import { Type } from 'class-transformer';
+import { entity_status_enum } from '@prisma/client';
 
 export class CreatePersonnelDto {
   @IsOptional()
-  @Allow()
-  user_id?: any;
+  @IsUUID()
+  user_id?: string;
 
   @IsOptional()
-  @Allow()
-  company_id?: any;
+  @IsUUID()
+  company_id?: string;
 
   @IsOptional()
-  @Allow()
-  farm_id?: any;
+  @IsUUID()
+  farm_id?: string;
 
   @IsOptional()
-  @Allow()
-  factory_id?: any;
+  @IsUUID()
+  factory_id?: string;
 
   @IsOptional()
-  @Allow()
-  station_id?: any;
+  @IsUUID()
+  station_id?: string;
+
+  @IsString()
+  @IsNotEmpty()
+  full_name!: string;
 
   @IsOptional()
-  @Allow()
-  full_name?: any;
+  @IsString()
+  grade?: string;
 
   @IsOptional()
-  @Allow()
-  grade?: any;
+  @IsString()
+  contract_type?: string;
 
   @IsOptional()
-  @Allow()
-  contract_type?: any;
+  @Type(() => Number)
+  @IsNumber()
+  salary?: number;
 
   @IsOptional()
-  @Allow()
-  salary?: any;
-
-  @IsOptional()
-  @Allow()
-  status?: any;
+  @IsEnum(entity_status_enum)
+  status?: entity_status_enum;
 }
 
 export class UpdatePersonnelDto {
   @IsOptional()
-  @Allow()
-  user_id?: any;
+  @IsUUID()
+  user_id?: string;
 
   @IsOptional()
-  @Allow()
-  company_id?: any;
+  @IsUUID()
+  company_id?: string;
 
   @IsOptional()
-  @Allow()
-  farm_id?: any;
+  @IsUUID()
+  farm_id?: string;
 
   @IsOptional()
-  @Allow()
-  factory_id?: any;
+  @IsUUID()
+  factory_id?: string;
 
   @IsOptional()
-  @Allow()
-  station_id?: any;
+  @IsUUID()
+  station_id?: string;
 
   @IsOptional()
-  @Allow()
-  full_name?: any;
+  @IsString()
+  @IsNotEmpty()
+  full_name?: string;
 
   @IsOptional()
-  @Allow()
-  grade?: any;
+  @IsString()
+  grade?: string;
 
   @IsOptional()
-  @Allow()
-  contract_type?: any;
+  @IsString()
+  contract_type?: string;
 
   @IsOptional()
-  @Allow()
-  salary?: any;
+  @Type(() => Number)
+  @IsNumber()
+  salary?: number;
 
   @IsOptional()
-  @Allow()
-  status?: any;
+  @IsEnum(entity_status_enum)
+  status?: entity_status_enum;
 }

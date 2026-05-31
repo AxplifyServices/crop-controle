@@ -1,74 +1,139 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { AccessControlService } from '../common/access-control/access-control.service';
 import { CreatePlotsDto, UpdatePlotsDto } from './dto';
 
 @Injectable()
 export class PlotsService {
   private readonly modelName = 'plots';
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly accessControl: AccessControlService,
+  ) {}
 
   private get model() {
     return (this.prisma as any)[this.modelName];
   }
 
-  async findAll() {
+  async findAll(currentUserId: string) {
+    const scopedWhere = await this.accessControl.getScopedWhere(
+      currentUserId,
+      'PLOT',
+    );
+
     return this.model.findMany({
-      where: { deleted_at: null },
+      where: {
+        deleted_at: null,
+        ...(Object.keys(scopedWhere).length > 0
+          ? {
+              AND: [scopedWhere],
+            }
+          : {}),
+      },
       orderBy: {
         created_at: 'desc',
       },
     });
   }
 
-  async findOne(id: string) {
-    const item = await this.model.findUnique({
-      where: { id },
+  async findOne(id: string, currentUserId: string) {
+    const scopedWhere = await this.accessControl.getScopedWhere(
+      currentUserId,
+      'PLOT',
+    );
+
+    const item = await this.model.findFirst({
+      where: {
+        id,
+        deleted_at: null,
+        ...(Object.keys(scopedWhere).length > 0
+          ? {
+              AND: [scopedWhere],
+            }
+          : {}),
+      },
     });
 
-    if (!item || item.deleted_at) {
+    if (!item) {
       throw new NotFoundException('Enregistrement introuvable');
     }
 
     return item;
   }
 
-async create(dto: CreatePlotsDto) {
-  return this.model.create({
-    data: {
-      farm_id: dto.farm_id,
-      culture_id: dto.culture_id,
-      code: dto.code,
-      name: dto.name,
-      surface_ha: dto.surface_ha,
-      status: dto.status,
-      latitude: dto.latitude,
-      longitude: dto.longitude,
-    },
-  });
-}
+  async create(dto: CreatePlotsDto, currentUserId: string) {
+    await this.accessControl.assertCanAccessRecord(
+      currentUserId,
+      'FARM',
+      'farms',
+      dto.farm_id,
+      { deleted_at: null },
+    );
 
-async update(id: string, dto: UpdatePlotsDto) {
-  await this.findOne(id);
+    if (dto.culture_id) {
+      await this.accessControl.assertCanAccessRecord(
+        currentUserId,
+        'CULTURE',
+        'cultures',
+        dto.culture_id,
+      );
+    }
 
-  return this.model.update({
-    where: { id },
-    data: {
-      farm_id: dto.farm_id,
-      culture_id: dto.culture_id,
-      code: dto.code,
-      name: dto.name,
-      surface_ha: dto.surface_ha,
-      status: dto.status,
-      latitude: dto.latitude,
-      longitude: dto.longitude,
-      updated_at: new Date(),
-    },
-  });
-}
+    return this.model.create({
+      data: {
+        farm_id: dto.farm_id,
+        culture_id: dto.culture_id,
+        code: dto.code,
+        name: dto.name,
+        surface_ha: dto.surface_ha,
+        status: dto.status,
+        latitude: dto.latitude,
+        longitude: dto.longitude,
+      },
+    });
+  }
 
-  async remove(id: string) {
-    await this.findOne(id);
+  async update(id: string, dto: UpdatePlotsDto, currentUserId: string) {
+    await this.findOne(id, currentUserId);
+
+    if (dto.farm_id) {
+      await this.accessControl.assertCanAccessRecord(
+        currentUserId,
+        'FARM',
+        'farms',
+        dto.farm_id,
+        { deleted_at: null },
+      );
+    }
+
+    if (dto.culture_id) {
+      await this.accessControl.assertCanAccessRecord(
+        currentUserId,
+        'CULTURE',
+        'cultures',
+        dto.culture_id,
+      );
+    }
+
+    return this.model.update({
+      where: { id },
+      data: {
+        farm_id: dto.farm_id,
+        culture_id: dto.culture_id,
+        code: dto.code,
+        name: dto.name,
+        surface_ha: dto.surface_ha,
+        status: dto.status,
+        latitude: dto.latitude,
+        longitude: dto.longitude,
+        updated_at: new Date(),
+      },
+    });
+  }
+
+  async remove(id: string, currentUserId: string) {
+    await this.findOne(id, currentUserId);
 
     const [
       agriculturalProjects,

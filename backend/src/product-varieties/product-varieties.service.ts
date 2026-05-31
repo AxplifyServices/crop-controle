@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateProductVarietiesDto, UpdateProductVarietiesDto } from './dto';
 
@@ -34,6 +34,16 @@ export class ProductVarietiesService {
   }
 
   async create(dto: CreateProductVarietiesDto) {
+    const product = await this.prisma.products.findUnique({
+      where: {
+        id: dto.product_id,
+      },
+    });
+
+    if (!product) {
+      throw new BadRequestException('Produit introuvable.');
+    }
+
     return this.model.create({
       data: dto,
     });
@@ -41,6 +51,18 @@ export class ProductVarietiesService {
 
   async update(id: string, dto: UpdateProductVarietiesDto) {
     await this.findOne(id);
+
+    if (dto.product_id) {
+      const product = await this.prisma.products.findUnique({
+        where: {
+          id: dto.product_id,
+        },
+      });
+
+      if (!product) {
+        throw new BadRequestException('Produit introuvable.');
+      }
+    }
 
     return this.model.update({
       where: { id },

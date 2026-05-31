@@ -1,69 +1,85 @@
-import { Allow, IsOptional } from 'class-validator';
+import {
+  IsEnum,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+  IsUUID,
+} from 'class-validator';
+import { Type } from 'class-transformer';
+import { plot_status_enum } from '@prisma/client';
 
 export class CreatePlotsDto {
-  @IsOptional()
-  @Allow()
-  farm_id?: any;
+  @IsUUID()
+  farm_id!: string;
 
   @IsOptional()
-  @Allow()
-  culture_id?: any;
+  @IsUUID()
+  culture_id?: string;
 
   @IsOptional()
-  @Allow()
-  code?: any;
+  @IsString()
+  code?: string;
 
   @IsOptional()
-  @Allow()
-  name?: any;
+  @IsString()
+  @IsNotEmpty()
+  name?: string;
 
   @IsOptional()
-  @Allow()
-  surface_ha?: any;
+  @Type(() => Number)
+  @IsNumber()
+  surface_ha?: number;
 
   @IsOptional()
-  @Allow()
-  status?: any;
+  @IsEnum(plot_status_enum)
+  status?: plot_status_enum;
 
   @IsOptional()
-  @Allow()
-  latitude?: any;
+  @Type(() => Number)
+  @IsNumber()
+  latitude?: number;
 
   @IsOptional()
-  @Allow()
-  longitude?: any;
+  @Type(() => Number)
+  @IsNumber()
+  longitude?: number;
 }
 
 export class UpdatePlotsDto {
   @IsOptional()
-  @Allow()
-  farm_id?: any;
+  @IsUUID()
+  farm_id?: string;
 
   @IsOptional()
-  @Allow()
-  culture_id?: any;
+  @IsUUID()
+  culture_id?: string;
 
   @IsOptional()
-  @Allow()
-  code?: any;
+  @IsString()
+  code?: string;
 
   @IsOptional()
-  @Allow()
-  name?: any;
+  @IsString()
+  @IsNotEmpty()
+  name?: string;
 
   @IsOptional()
-  @Allow()
-  surface_ha?: any;
+  @Type(() => Number)
+  @IsNumber()
+  surface_ha?: number;
 
   @IsOptional()
-  @Allow()
-  status?: any;
+  @IsEnum(plot_status_enum)
+  status?: plot_status_enum;
 
   @IsOptional()
-  @Allow()
-  latitude?: any;
+  @Type(() => Number)
+  @IsNumber()
+  latitude?: number;
 
   @IsOptional()
-  @Allow()
-  longitude?: any;
+  @Type(() => Number)
+  @IsNumber()
+  longitude?: number;
 }
