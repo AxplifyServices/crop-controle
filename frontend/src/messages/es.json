@@ -167,72 +167,134 @@
       "actions": "Acciones"
     }
   },
-  "AuditLogs": {
-    "section": "Administración",
-    "title": "Historial de logs",
-    "description": "Consulte las acciones realizadas en la plataforma. Cada perfil solo ve sus propios logs y los de sus perfiles descendientes.",
-    "refresh": "Actualizar",
-    "filtersTitle": "Filtros",
-    "filtersDescription": "Filtrar los logs por tipo de acción o por módulo.",
-    "all": "Todos",
-    "filter": "Filtrar",
-    "close": "Cerrar",
-"detailLabels": {
-  "summary": "Resumen",
-  "changes": "Modificaciones",
-  "technical": "Información técnica",
-  "empty": "Ningún detalle adicional.",
-  "request": "Solicitud",
-  "status": "Estado",
-  "duration": "Duración",
-  "entityId": "Identificador",
-  "ip": "Dirección IP",
-  "device": "Navegador / dispositivo"
-},
-    "latestActions": "Últimas acciones",
-    "details": "Ver detalles",
-    "noLogs": "No se encontró ningún log.",
-    "loading": "Cargando...",
-    "system": "Sistema",
-    "errors": {
-      "loading": "Error de carga."
-    },
-    "fields": {
-      "action": "Acción",
-      "module": "Módulo"
-    },
-    "placeholders": {
-      "module": "profiles, companies, farms..."
-    },
-    "actions": {
-      "login": "Conexión",
-      "view": "Consulta",
-      "create": "Creación",
-      "update": "Modificación",
-      "delete": "Eliminación",
-      "failed": "Fallido",
-      "IMPORT": "Importar",
-"MANAGE": "Gestionar",
-"ASSIGN": "Asignar",
-"APPROVE": "Aprobar",
-"REJECT": "Rechazar",
-"LOGIN": "Conexión",
-"LOGOUT": "Desconexión",
-"REFRESH": "Actualizar",
-"READ": "Leer",
-"WRITE": "Escribir",
-"RESTORE": "Restaurar",
-"ARCHIVE": "Archivar"
-    },
-    "table": {
-      "date": "Fecha",
-      "user": "Usuario",
-      "action": "Acción",
-      "module": "Módulo",
-      "ip": "IP",
-      "details": "Detalles"
-    }
+"AuditLogs": {
+  "section": "Administración",
+  "title": "Historial de acciones",
+  "description": "Consulte las acciones importantes realizadas en la plataforma.",
+  "refresh": "Actualizar",
+  "filtersTitle": "Filtros",
+  "filtersDescription": "Filtrar los logs por tipo de acción o por módulo.",
+  "all": "Todos",
+  "filter": "Filtrar",
+  "close": "Cerrar",
+  "latestActions": "Últimas acciones",
+  "details": "Ver detalles",
+  "noLogs": "No se encontró ningún log.",
+  "loading": "Cargando...",
+  "system": "Sistema",
+  "errors": {
+    "loading": "Error de carga."
   },
+  "fields": {
+    "action": "Acción",
+    "module": "Módulo"
+  },
+  "placeholders": {
+    "module": "groups, companies, farms..."
+  },
+  "actions": {
+    "login": "Conexión",
+    "view": "Consulta",
+    "create": "Creación",
+    "update": "Modificación",
+    "delete": "Eliminación",
+    "failed": "Fallido"
+  },
+  "verbs": {
+    "login": "inició sesión",
+    "create": "creó",
+    "update": "modificó",
+    "delete": "eliminó",
+    "view": "consultó",
+    "generic": "realizó la acción {action}"
+  },
+  "messages": {
+    "loginSuccess": "El usuario {actor} inició sesión.",
+    "loginFailed": "Intento de conexión fallido para {actor}.",
+    "actionFailed": "La acción {action} falló.",
+    "businessWithNameAndId": "El usuario {actor} {verb} {entity} “{name}” (ID: {id}).",
+    "businessWithName": "El usuario {actor} {verb} {entity} “{name}”.",
+    "businessWithId": "El usuario {actor} {verb} {entity} (ID: {id}).",
+    "businessSimple": "El usuario {actor} {verb} {entity}."
+  },
+  "detailLabels": {
+    "summary": "Resumen",
+    "actionSummary": "Resumen de la acción",
+    "businessInfo": "Información de negocio",
+    "changes": "Modificaciones",
+    "technical": "Información técnica",
+    "empty": "Ningún detalle adicional.",
+    "request": "Solicitud",
+    "status": "Estado",
+    "duration": "Duración",
+    "entityId": "Identificador",
+    "id": "ID",
+    "name": "Nombre",
+    "ip": "Dirección IP",
+    "device": "Navegador / dispositivo",
+    "date": "Fecha",
+    "user": "Usuario",
+    "action": "Acción",
+    "module": "Módulo",
+    "changeValue": "{oldValue} → {newValue}"
+  },
+  "pagination": {
+    "previous": "Anterior",
+    "next": "Siguiente",
+    "range": "Mostrando {start} a {end} de {total}"
+  },
+  "table": {
+    "date": "Fecha",
+    "user": "Usuario",
+    "action": "Acción",
+    "module": "Módulo",
+    "summary": "Resumen",
+    "ip": "IP",
+    "details": "Detalles"
+  },
+  "entityTypes": {
+    "auth": "Sesión",
+    "groups": "Grupo",
+    "companies": "Empresa",
+    "farms": "Finca",
+    "plots": "Parcela",
+    "factories": "Fábrica",
+    "stations": "Estación",
+    "products": "Producto",
+    "product-varieties": "Variedad de producto",
+    "vehicles": "Vehículo",
+    "personnel": "Personal",
+    "cultures": "Cultivo",
+    "profiles": "Perfil",
+    "users": "Usuario",
+    "roles": "Rol",
+    "permissions": "Permiso",
+    "geography": "Dato geográfico",
+    "legal-identifier-types": "Tipo de identificador legal",
+    "audit-logs": "Historial de acciones"
+  },
+  "entitySentenceTypes": {
+    "auth": "la sesión",
+    "groups": "el grupo",
+    "companies": "la empresa",
+    "farms": "la finca",
+    "plots": "la parcela",
+    "factories": "la fábrica",
+    "stations": "la estación",
+    "products": "el producto",
+    "product-varieties": "la variedad de producto",
+    "vehicles": "el vehículo",
+    "personnel": "el registro de personal",
+    "cultures": "el cultivo",
+    "profiles": "el perfil",
+    "users": "el usuario",
+    "roles": "el rol",
+    "permissions": "el permiso",
+    "geography": "el dato geográfico",
+    "legal-identifier-types": "el tipo de identificador legal",
+    "audit-logs": "el historial de acciones"
+  }
+},
   "App": {
     "name": "Agri-Control",
     "subtitle": "Pilotaje agrícola · Producción · Rentabilidad"

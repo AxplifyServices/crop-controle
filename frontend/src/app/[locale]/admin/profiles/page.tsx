@@ -104,6 +104,8 @@ const emptyForm: FormState = {
   scopes: []
 };
 
+const PAGE_SIZE = 15;
+
 type SupportedLocale = 'fr' | 'en' | 'es';
 
 const MODULE_LABELS: Record<SupportedLocale, Record<string, string>> = {
@@ -492,6 +494,7 @@ function ProfilesContent() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [page, setPage] = useState(1);
 
   const scopeTypes = useMemo(
     () => [
@@ -555,6 +558,21 @@ const permissionOptions = useMemo<MultiSelectOption[]>(() => {
 
     return options;
   }, [meta, scopeTypes]);
+
+  const totalPages = Math.max(1, Math.ceil(profiles.length / PAGE_SIZE));
+
+const paginatedProfiles = useMemo(() => {
+  const safePage = Math.min(page, totalPages);
+  const start = (safePage - 1) * PAGE_SIZE;
+
+  return profiles.slice(start, start + PAGE_SIZE);
+}, [profiles, page, totalPages]);
+
+useEffect(() => {
+  if (page > totalPages) {
+    setPage(totalPages);
+  }
+}, [page, totalPages]);
 
   useEffect(() => {
     setUser(getUser());
@@ -1048,7 +1066,7 @@ function getStatusLabel(status: string) {
           </thead>
 
           <tbody className="divide-y divide-slate-100">
-            {profiles.map((profile) => {
+            {paginatedProfiles.map((profile) => {
               const locked = isLockedProfile(profile);
 
               return (
@@ -1137,7 +1155,7 @@ function getStatusLabel(status: string) {
       </div>
 
       <div className="grid gap-3 bg-slate-50/60 p-3 md:hidden">
-        {profiles.map((profile) => {
+        {paginatedProfiles.map((profile) => {
           const locked = isLockedProfile(profile);
 
           return (
@@ -1163,10 +1181,68 @@ function getStatusLabel(status: string) {
           );
         })}
       </div>
+      <PaginationBar
+        page={page}
+        totalPages={totalPages}
+        totalItems={profiles.length}
+        pageSize={PAGE_SIZE}
+        onPageChange={setPage}
+      />
     </>
   )}
 </section>
     </main>
+  );
+}
+
+function PaginationBar({
+  page,
+  totalPages,
+  totalItems,
+  pageSize,
+  onPageChange
+}: {
+  page: number;
+  totalPages: number;
+  totalItems: number;
+  pageSize: number;
+  onPageChange: (page: number) => void;
+}) {
+  const start = totalItems === 0 ? 0 : (page - 1) * pageSize + 1;
+  const end = Math.min(page * pageSize, totalItems);
+
+  return (
+    <div className="flex flex-col gap-3 border-t border-slate-100 px-5 py-4 text-sm text-slate-600 sm:flex-row sm:items-center sm:justify-between">
+      <div>
+        Affichage de <span className="font-semibold text-slate-900">{start}</span> à{' '}
+        <span className="font-semibold text-slate-900">{end}</span> sur{' '}
+        <span className="font-semibold text-slate-900">{totalItems}</span>
+      </div>
+
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          disabled={page <= 1}
+          onClick={() => onPageChange(page - 1)}
+          className="rounded-xl border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          Précédent
+        </button>
+
+        <span className="rounded-xl bg-slate-100 px-3 py-2 text-xs font-semibold text-slate-700">
+          {page} / {totalPages}
+        </span>
+
+        <button
+          type="button"
+          disabled={page >= totalPages}
+          onClick={() => onPageChange(page + 1)}
+          className="rounded-xl border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          Suivant
+        </button>
+      </div>
+    </div>
   );
 }
 

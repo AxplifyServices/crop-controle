@@ -1,15 +1,16 @@
 'use client';
 
-import {useCallback, useEffect, useState} from 'react';
+import type {ReactNode} from 'react';
+import {useCallback, useEffect, useMemo, useState} from 'react';
+import {createPortal} from 'react-dom';
 import {
   CalendarClock,
   ChevronRight,
   Eye,
-  Globe2,
-  Monitor,
+  FileText,
   RefreshCcw,
   Search,
-  Server,
+  ShieldCheck,
   User,
   X
 } from 'lucide-react';
@@ -42,6 +43,8 @@ type DetailRow = {
   value: string;
 };
 
+const PAGE_SIZE = 15;
+
 export default function AuditLogsPage() {
   return (
     <RequirePermission module="audit-logs" action="VIEW">
@@ -54,9 +57,9 @@ function AuditLogsContent() {
   const t = useTranslations('AuditLogs');
 
   const safeT = useCallback(
-    (key: string, fallback: string) => {
+    (key: string, fallback: string, values?: Record<string, string | number>) => {
       try {
-        return t(key);
+        return values ? (t as any)(key, values) : t(key);
       } catch {
         return fallback;
       }
@@ -70,10 +73,16 @@ function AuditLogsContent() {
   const [error, setError] = useState('');
   const [action, setAction] = useState('');
   const [entityType, setEntityType] = useState('');
+  const [mounted, setMounted] = useState(false);
+  const [page, setPage] = useState(1);
 
   useEffect(() => {
     loadLogs();
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    setMounted(true);
   }, []);
 
   async function loadLogs() {
@@ -96,6 +105,7 @@ function AuditLogsContent() {
       );
 
       setLogs(normalizeAuditRows(data));
+      setPage(1);
     } catch (err) {
       setError(
         err instanceof Error
@@ -116,8 +126,8 @@ function AuditLogsContent() {
   }
 
   function getActionLabel(value: string) {
-    const isFailed = value.includes('_FAILED');
-    const normalized = value.replace('_FAILED', '').toLowerCase();
+    const isFailed = String(value || '').includes('_FAILED');
+    const normalized = String(value || '').replace('_FAILED', '').toLowerCase();
 
     const labels: Record<string, string> = {
       login: safeT('actions.login', 'Connexion'),
@@ -134,6 +144,24 @@ function AuditLogsContent() {
     }
 
     return label;
+  }
+
+  function getActionVerb(value: string) {
+    const normalized = String(value || '').replace('_FAILED', '').toUpperCase();
+
+    const labels: Record<string, string> = {
+      LOGIN: safeT('verbs.login', 's’est connecté'),
+      CREATE: safeT('verbs.create', 'a créé'),
+      UPDATE: safeT('verbs.update', 'a modifié'),
+      DELETE: safeT('verbs.delete', 'a supprimé'),
+      VIEW: safeT('verbs.view', 'a consulté')
+    };
+
+    return labels[normalized] || safeT(
+      'verbs.generic',
+      `a effectué l’action ${getActionLabel(value).toLowerCase()}`,
+      {action: getActionLabel(value).toLowerCase()}
+    );
   }
 
   function getActionBadgeClass(value: string) {
@@ -167,65 +195,177 @@ function AuditLogsContent() {
       return safeT('system', 'Système');
     }
 
-    const fullName = `${log.user.firstName || ''} ${log.user.lastName || ''}`.trim();
+    const fullName = normalizePersonName(log.user.firstName, log.user.lastName);
 
-    return fullName || log.user.email || safeT('system', 'Système');
+    if (fullName) {
+      return fullName;
+    }
+
+    return formatEmailAsName(log.user.email) || safeT('system', 'Système');
   }
 
-  function getRequestInfo(log: AuditLog) {
-    const source = isPlainObject(log.newValue) ? log.newValue : {};
+  function getUserSecondaryLabel(log: AuditLog) {
+    if (!log.user) {
+      return '';
+    }
 
-    return {
-      path: stringifyValue(source.path),
-      method: stringifyValue(source.method),
-      status: stringifyValue(source.status),
-      durationMs: stringifyValue(source.durationMs)
-    };
+    return log.user.jobTitle || log.user.title || '';
+  }
+
+  function getEntityName(log: AuditLog) {
+    const candidates = [
+      log.newValue?.entityLabel,
+      log.newValue?.name,
+      log.newValue?.fullName,
+      log.newValue?.full_name,
+      log.newValue?.legalName,
+      log.newValue?.legal_name,
+      log.newValue?.label,
+      log.newValue?.title,
+      log.newValue?.code,
+      log.newValue?.email,
+      log.newValue?.body?.name,
+      log.newValue?.body?.fullName,
+      log.newValue?.body?.full_name,
+      log.newValue?.body?.legalName,
+      log.newValue?.body?.legal_name,
+      log.newValue?.body?.label,
+      log.newValue?.body?.title,
+      log.newValue?.body?.code,
+      log.newValue?.body?.email,
+      log.oldValue?.entityLabel,
+      log.oldValue?.name,
+      log.oldValue?.fullName,
+      log.oldValue?.full_name,
+      log.oldValue?.legalName,
+      log.oldValue?.legal_name,
+      log.oldValue?.label,
+      log.oldValue?.title,
+      log.oldValue?.code,
+      log.oldValue?.email
+    ];
+
+    for (const candidate of candidates) {
+      const value = stringifyValue(candidate).trim();
+
+      if (value) {
+        return value;
+      }
+    }
+
+    return '';
+  }
+
+  function getEntityReference(log: AuditLog) {
+    return stringifyValue(log.entityId).trim();
+  }
+
+  function getBusinessMessage(log: AuditLog) {
+    const actor = getUserLabel(log);
+    const action = String(log.action || '').toUpperCase();
+    const isFailed = action.includes('_FAILED');
+    const entityLabel = getEntityTypeSentenceLabel(log.entityType);
+    const entityName = getEntityName(log);
+    const entityReference = getEntityReference(log);
+
+    if (isFailed) {
+      if (action.includes('LOGIN')) {
+        return safeT(
+          'messages.loginFailed',
+          `Tentative de connexion échouée pour ${actor}.`,
+          {actor}
+        );
+      }
+
+      return safeT(
+        'messages.actionFailed',
+        `L’action ${getActionLabel(log.action).toLowerCase()} a échoué.`,
+        {action: getActionLabel(log.action).toLowerCase()}
+      );
+    }
+
+    if (action.includes('LOGIN')) {
+      return safeT(
+        'messages.loginSuccess',
+        `L’utilisateur ${actor} s’est connecté.`,
+        {actor}
+      );
+    }
+
+    const verb = getActionVerb(log.action);
+
+    if (entityName && entityReference) {
+      return safeT(
+        'messages.businessWithNameAndId',
+        `L’utilisateur ${actor} ${verb} ${entityLabel} “${entityName}” (ID : ${entityReference}).`,
+        {
+          actor,
+          verb,
+          entity: entityLabel,
+          name: entityName,
+          id: entityReference
+        }
+      );
+    }
+
+    if (entityName) {
+      return safeT(
+        'messages.businessWithName',
+        `L’utilisateur ${actor} ${verb} ${entityLabel} “${entityName}”.`,
+        {
+          actor,
+          verb,
+          entity: entityLabel,
+          name: entityName
+        }
+      );
+    }
+
+    if (entityReference) {
+      return safeT(
+        'messages.businessWithId',
+        `L’utilisateur ${actor} ${verb} ${entityLabel} (ID : ${entityReference}).`,
+        {
+          actor,
+          verb,
+          entity: entityLabel,
+          id: entityReference
+        }
+      );
+    }
+
+    return safeT(
+      'messages.businessSimple',
+      `L’utilisateur ${actor} ${verb} ${entityLabel}.`,
+      {
+        actor,
+        verb,
+        entity: entityLabel
+      }
+    );
   }
 
   function getReadableDetails(log: AuditLog): DetailRow[] {
-    const request = getRequestInfo(log);
     const rows: DetailRow[] = [];
+    const entityName = getEntityName(log);
+    const entityReference = getEntityReference(log);
 
-    if (request.method || request.path) {
+    rows.push({
+      label: safeT('detailLabels.summary', 'Résumé'),
+      value: getBusinessMessage(log)
+    });
+
+    if (entityName) {
       rows.push({
-        label: safeT('detailLabels.request', 'Requête'),
-        value: [request.method, request.path].filter(Boolean).join(' ')
+        label: safeT('detailLabels.name', 'Nom'),
+        value: entityName
       });
     }
 
-    if (request.status) {
+    if (entityReference) {
       rows.push({
-        label: safeT('detailLabels.status', 'Statut'),
-        value: request.status
-      });
-    }
-
-    if (request.durationMs) {
-      rows.push({
-        label: safeT('detailLabels.duration', 'Durée'),
-        value: `${request.durationMs} ms`
-      });
-    }
-
-    if (log.entityId) {
-      rows.push({
-        label: safeT('detailLabels.entityId', 'Identifiant'),
-        value: log.entityId
-      });
-    }
-
-    if (log.ipAddress) {
-      rows.push({
-        label: safeT('detailLabels.ip', 'Adresse IP'),
-        value: log.ipAddress
-      });
-    }
-
-    if (log.userAgent) {
-      rows.push({
-        label: safeT('detailLabels.device', 'Navigateur / appareil'),
-        value: simplifyUserAgent(log.userAgent)
+        label: safeT('detailLabels.id', 'ID'),
+        value: entityReference
       });
     }
 
@@ -233,7 +373,10 @@ function AuditLogsContent() {
   }
 
   function getChangeRows(log: AuditLog): DetailRow[] {
-    if (!isPlainObject(log.oldValue) || !isPlainObject(log.newValue)) {
+    const oldValue = isPlainObject(log.oldValue) ? log.oldValue : {};
+    const newValue = isPlainObject(log.newValue) ? log.newValue : {};
+
+    if (!Object.keys(oldValue).length && !Object.keys(newValue).length) {
       return [];
     }
 
@@ -243,17 +386,28 @@ function AuditLogsContent() {
       'method',
       'params',
       'status',
-      'durationMs'
+      'durationMs',
+      'message',
+      'entityLabel',
+      'body',
+      'userAgent',
+      'ipAddress',
+      'password',
+      'passwordHash',
+      'password_hash',
+      'accessToken',
+      'refreshToken',
+      'token'
     ]);
 
     const keys = Array.from(
-      new Set([...Object.keys(log.oldValue), ...Object.keys(log.newValue)])
+      new Set([...Object.keys(oldValue), ...Object.keys(newValue)])
     ).filter((key) => !ignoredKeys.has(key));
 
     return keys
       .map((key) => {
-        const oldText = stringifyValue(log.oldValue?.[key]);
-        const newText = stringifyValue(log.newValue?.[key]);
+        const oldText = stringifyValue(oldValue?.[key]);
+        const newText = stringifyValue(newValue?.[key]);
 
         if (oldText === newText) {
           return null;
@@ -261,11 +415,67 @@ function AuditLogsContent() {
 
         return {
           label: humanize(key),
-          value: `${oldText || '-'} → ${newText || '-'}`
+          value: safeT(
+            'detailLabels.changeValue',
+            `${oldText || '-'} → ${newText || '-'}`,
+            {
+              oldValue: oldText || '-',
+              newValue: newText || '-'
+            }
+          )
         };
       })
       .filter(Boolean) as DetailRow[];
   }
+
+  function getEntityTypeLabel(entity: string) {
+    const value = String(entity || '').toLowerCase();
+
+    return safeT(`entityTypes.${value}`, humanize(entity));
+  }
+
+  function getEntityTypeSentenceLabel(entity: string) {
+    const value = String(entity || '').toLowerCase();
+
+    return safeT(`entitySentenceTypes.${value}`, getEntityTypeLabel(entity).toLowerCase());
+  }
+
+  const totalPages = Math.max(1, Math.ceil(logs.length / PAGE_SIZE));
+
+  const paginatedLogs = useMemo(() => {
+    const safePage = Math.min(page, totalPages);
+    const start = (safePage - 1) * PAGE_SIZE;
+
+    return logs.slice(start, start + PAGE_SIZE);
+  }, [logs, page, totalPages]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [action, entityType]);
+
+  useEffect(() => {
+    if (page > totalPages) {
+      setPage(totalPages);
+    }
+  }, [page, totalPages]);
+
+  const selectedLogData = useMemo(() => {
+    if (!selectedLog) {
+      return null;
+    }
+
+    return {
+      date: formatDate(selectedLog.createdAt),
+      user: getUserLabel(selectedLog),
+      action: getActionLabel(selectedLog.action),
+      actionClass: getActionBadgeClass(selectedLog.action),
+      module: getEntityTypeLabel(selectedLog.entityType),
+      message: getBusinessMessage(selectedLog),
+      detailRows: getReadableDetails(selectedLog),
+      changeRows: getChangeRows(selectedLog)
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedLog]);
 
   return (
     <main className="space-y-6">
@@ -283,7 +493,7 @@ function AuditLogsContent() {
             <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">
               {safeT(
                 'description',
-                'Consultez les actions effectuées sur la plateforme. Chaque profil voit uniquement ses propres logs et ceux de ses profils descendants.'
+                'Consultez les actions importantes effectuées sur la plateforme.'
               )}
             </p>
           </div>
@@ -326,7 +536,6 @@ function AuditLogsContent() {
             >
               <option value="">{safeT('all', 'Toutes')}</option>
               <option value="LOGIN">{safeT('actions.login', 'Connexion')}</option>
-              <option value="VIEW">{safeT('actions.view', 'Consultation')}</option>
               <option value="CREATE">{safeT('actions.create', 'Création')}</option>
               <option value="UPDATE">{safeT('actions.update', 'Modification')}</option>
               <option value="DELETE">{safeT('actions.delete', 'Suppression')}</option>
@@ -343,7 +552,7 @@ function AuditLogsContent() {
               onChange={(event) => setEntityType(event.target.value)}
               placeholder={safeT(
                 'placeholders.module',
-                'profiles, companies, farms...'
+                'groups, companies, farms...'
               )}
               className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
             />
@@ -392,8 +601,7 @@ function AuditLogsContent() {
                     <th className="px-5 py-3">{safeT('table.date', 'Date')}</th>
                     <th className="px-5 py-3">{safeT('table.user', 'Utilisateur')}</th>
                     <th className="px-5 py-3">{safeT('table.action', 'Action')}</th>
-                    <th className="px-5 py-3">{safeT('table.module', 'Module')}</th>
-                    <th className="px-5 py-3">{safeT('table.ip', 'IP')}</th>
+                    <th className="px-5 py-3">{safeT('table.summary', 'Résumé')}</th>
                     <th className="px-5 py-3 text-right">
                       {safeT('table.details', 'Détails')}
                     </th>
@@ -401,64 +609,82 @@ function AuditLogsContent() {
                 </thead>
 
                 <tbody className="divide-y divide-slate-100">
-                  {logs.map((log) => (
-                    <tr key={log.id} className="align-top hover:bg-slate-50/70">
-                      <td className="px-5 py-4 text-slate-600">
-                        {formatDate(log.createdAt)}
-                      </td>
+                  {paginatedLogs.map((log) => {
+                    const userSecondaryLabel = getUserSecondaryLabel(log);
+                    const entityName = getEntityName(log);
+                    const entityReference = getEntityReference(log);
 
-                      <td className="px-5 py-4">
-                        <div className="font-medium text-slate-950">
-                          {getUserLabel(log)}
-                        </div>
+                    return (
+                      <tr key={log.id} className="align-top hover:bg-slate-50/70">
+                        <td className="px-5 py-4 text-slate-600">
+                          {formatDate(log.createdAt)}
+                        </td>
 
-                        <div className="text-xs text-slate-500">
-                          {log.user?.email || '-'}
-                        </div>
-                      </td>
+                        <td className="px-5 py-4">
+                          <div className="font-medium text-slate-950">
+                            {getUserLabel(log)}
+                          </div>
 
-                      <td className="px-5 py-4">
-                        <span
-                          className={[
-                            'rounded-full px-2.5 py-1 text-xs font-semibold',
-                            getActionBadgeClass(log.action)
-                          ].join(' ')}
-                        >
-                          {getActionLabel(log.action)}
-                        </span>
-                      </td>
+                          {userSecondaryLabel ? (
+                            <div className="text-xs text-slate-500">
+                              {userSecondaryLabel}
+                            </div>
+                          ) : null}
+                        </td>
 
-                      <td className="px-5 py-4 text-slate-600">
-                        <div>{humanize(log.entityType)}</div>
-                        <div className="text-xs text-slate-400">
-                          {log.entityId || '-'}
-                        </div>
-                      </td>
-
-                      <td className="px-5 py-4 text-slate-600">
-                        {log.ipAddress || '-'}
-                      </td>
-
-                      <td className="px-5 py-4">
-                        <div className="flex justify-end">
-                          <button
-                            type="button"
-                            onClick={() => setSelectedLog(log)}
-                            className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
+                        <td className="px-5 py-4">
+                          <span
+                            className={[
+                              'rounded-full px-2.5 py-1 text-xs font-semibold',
+                              getActionBadgeClass(log.action)
+                            ].join(' ')}
                           >
-                            <Eye size={14} />
-                            {safeT('details', 'Voir le détail')}
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                            {getActionLabel(log.action)}
+                          </span>
+                        </td>
+
+                        <td className="px-5 py-4 text-slate-600">
+                          <div className="max-w-2xl text-sm font-medium text-slate-800">
+                            {getBusinessMessage(log)}
+                          </div>
+
+                          {entityName || entityReference ? (
+                            <div className="mt-1 text-xs text-slate-400">
+                              {[
+                                entityName
+                                  ? `${safeT('detailLabels.name', 'Nom')} : ${entityName}`
+                                  : '',
+                                entityReference
+                                  ? `${safeT('detailLabels.id', 'ID')} : ${entityReference}`
+                                  : ''
+                              ]
+                                .filter(Boolean)
+                                .join(' · ')}
+                            </div>
+                          ) : null}
+                        </td>
+
+                        <td className="px-5 py-4">
+                          <div className="flex justify-end">
+                            <button
+                              type="button"
+                              onClick={() => setSelectedLog(log)}
+                              className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
+                            >
+                              <Eye size={14} />
+                              {safeT('details', 'Voir le détail')}
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
 
             <div className="grid gap-3 bg-slate-50/60 p-3 md:hidden">
-              {logs.map((log) => (
+              {paginatedLogs.map((log) => (
                 <AuditLogMobileCard
                   key={log.id}
                   log={log}
@@ -466,39 +692,117 @@ function AuditLogsContent() {
                   actionLabel={getActionLabel(log.action)}
                   actionClass={getActionBadgeClass(log.action)}
                   userLabel={getUserLabel(log)}
+                  message={getBusinessMessage(log)}
+                  entityName={getEntityName(log)}
+                  entityReference={getEntityReference(log)}
+                  nameLabel={safeT('detailLabels.name', 'Nom')}
+                  idLabel={safeT('detailLabels.id', 'ID')}
                   detailsLabel={safeT('details', 'Voir le détail')}
                   onOpen={() => setSelectedLog(log)}
                 />
               ))}
             </div>
+
+            <PaginationBar
+              page={page}
+              totalPages={totalPages}
+              totalItems={logs.length}
+              pageSize={PAGE_SIZE}
+              previousLabel={safeT('pagination.previous', 'Précédent')}
+              nextLabel={safeT('pagination.next', 'Suivant')}
+              rangeLabel={(start, end, total) =>
+                safeT(
+                  'pagination.range',
+                  `Affichage de ${start} à ${end} sur ${total}`,
+                  {start, end, total}
+                )
+              }
+              onPageChange={setPage}
+            />
           </>
         )}
       </section>
 
-      {selectedLog ? (
-        <AuditLogDetailSheet
-          log={selectedLog}
-          title={safeT('details', 'Voir le détail')}
-          closeLabel={safeT('close', 'Fermer')}
-          dateLabel={safeT('table.date', 'Date')}
-          userLabel={safeT('table.user', 'Utilisateur')}
-          actionLabel={safeT('table.action', 'Action')}
-          moduleLabel={safeT('table.module', 'Module')}
-          detailsTitle={safeT('detailLabels.summary', 'Résumé')}
-          changesTitle={safeT('detailLabels.changes', 'Modifications')}
-          technicalTitle={safeT('detailLabels.technical', 'Informations techniques')}
-          emptyDetails={safeT('detailLabels.empty', 'Aucun détail complémentaire.')}
-          date={formatDate(selectedLog.createdAt)}
-          user={getUserLabel(selectedLog)}
-          action={getActionLabel(selectedLog.action)}
-          actionClass={getActionBadgeClass(selectedLog.action)}
-          module={humanize(selectedLog.entityType)}
-          detailRows={getReadableDetails(selectedLog)}
-          changeRows={getChangeRows(selectedLog)}
-          onClose={() => setSelectedLog(null)}
-        />
-      ) : null}
+      {mounted && selectedLog && selectedLogData
+        ? createPortal(
+            <AuditLogDetailSheet
+              title={safeT('details', 'Voir le détail')}
+              closeLabel={safeT('close', 'Fermer')}
+              date={selectedLogData.date}
+              user={selectedLogData.user}
+              action={selectedLogData.action}
+              actionClass={selectedLogData.actionClass}
+              module={selectedLogData.module}
+              message={selectedLogData.message}
+              detailRows={selectedLogData.detailRows}
+              changeRows={selectedLogData.changeRows}
+              summaryTitle={safeT('detailLabels.actionSummary', 'Résumé de l’action')}
+              businessInfoTitle={safeT('detailLabels.businessInfo', 'Informations métier')}
+              changesTitle={safeT('detailLabels.changes', 'Modifications')}
+              emptyLabel={safeT('detailLabels.empty', 'Aucun détail complémentaire.')}
+              dateLabel={safeT('detailLabels.date', 'Date')}
+              userLabel={safeT('detailLabels.user', 'Utilisateur')}
+              actionLabel={safeT('detailLabels.action', 'Action')}
+              moduleLabel={safeT('detailLabels.module', 'Module')}
+              onClose={() => setSelectedLog(null)}
+            />,
+            document.body
+          )
+        : null}
     </main>
+  );
+}
+
+function PaginationBar({
+  page,
+  totalPages,
+  totalItems,
+  pageSize,
+  previousLabel,
+  nextLabel,
+  rangeLabel,
+  onPageChange
+}: {
+  page: number;
+  totalPages: number;
+  totalItems: number;
+  pageSize: number;
+  previousLabel: string;
+  nextLabel: string;
+  rangeLabel: (start: number, end: number, total: number) => string;
+  onPageChange: (page: number) => void;
+}) {
+  const start = totalItems === 0 ? 0 : (page - 1) * pageSize + 1;
+  const end = Math.min(page * pageSize, totalItems);
+
+  return (
+    <div className="flex flex-col gap-3 border-t border-slate-100 px-5 py-4 text-sm text-slate-600 sm:flex-row sm:items-center sm:justify-between">
+      <div>{rangeLabel(start, end, totalItems)}</div>
+
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          disabled={page <= 1}
+          onClick={() => onPageChange(page - 1)}
+          className="rounded-xl border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          {previousLabel}
+        </button>
+
+        <span className="rounded-xl bg-slate-100 px-3 py-2 text-xs font-semibold text-slate-700">
+          {page} / {totalPages}
+        </span>
+
+        <button
+          type="button"
+          disabled={page >= totalPages}
+          onClick={() => onPageChange(page + 1)}
+          className="rounded-xl border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          {nextLabel}
+        </button>
+      </div>
+    </div>
   );
 }
 
@@ -508,6 +812,11 @@ function AuditLogMobileCard({
   actionLabel,
   actionClass,
   userLabel,
+  message,
+  entityName,
+  entityReference,
+  nameLabel,
+  idLabel,
   detailsLabel,
   onOpen
 }: {
@@ -516,6 +825,11 @@ function AuditLogMobileCard({
   actionLabel: string;
   actionClass: string;
   userLabel: string;
+  message: string;
+  entityName: string;
+  entityReference: string;
+  nameLabel: string;
+  idLabel: string;
   detailsLabel: string;
   onOpen: () => void;
 }) {
@@ -539,8 +853,8 @@ function AuditLogMobileCard({
             <span>{date}</span>
           </div>
 
-          <h3 className="mt-2 truncate text-base font-semibold text-slate-950">
-            {humanize(log.entityType)}
+          <h3 className="mt-2 line-clamp-3 text-base font-semibold text-slate-950">
+            {message}
           </h3>
 
           <p className="mt-1 truncate text-sm text-slate-500">
@@ -558,25 +872,21 @@ function AuditLogMobileCard({
         </span>
       </div>
 
-      <div className="mt-4 grid gap-2">
-        {log.ipAddress ? (
-          <div className="flex items-center justify-between rounded-xl bg-slate-50 px-3 py-2">
-            <span className="text-xs font-medium text-slate-500">IP</span>
-            <span className="text-xs font-semibold text-slate-800">
-              {log.ipAddress}
-            </span>
-          </div>
-        ) : null}
+      {entityName || entityReference ? (
+        <div className="mt-4 rounded-xl bg-slate-50 px-3 py-2 text-xs text-slate-500">
+          {entityName ? (
+            <div>
+              {nameLabel} : <span className="font-semibold text-slate-800">{entityName}</span>
+            </div>
+          ) : null}
 
-        {log.entityId ? (
-          <div className="flex items-center justify-between rounded-xl bg-slate-50 px-3 py-2">
-            <span className="text-xs font-medium text-slate-500">ID</span>
-            <span className="max-w-[60%] truncate text-right text-xs font-semibold text-slate-800">
-              {log.entityId}
-            </span>
-          </div>
-        ) : null}
-      </div>
+          {entityReference ? (
+            <div className={entityName ? 'mt-1' : ''}>
+              {idLabel} : <span className="font-semibold text-slate-800">{entityReference}</span>
+            </div>
+          ) : null}
+        </div>
+      ) : null}
 
       <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3">
         <span className="text-xs font-medium text-slate-500">
@@ -592,62 +902,62 @@ function AuditLogMobileCard({
 }
 
 function AuditLogDetailSheet({
-  log,
   title,
   closeLabel,
-  dateLabel,
-  userLabel,
-  actionLabel,
-  moduleLabel,
-  detailsTitle,
-  changesTitle,
-  technicalTitle,
-  emptyDetails,
   date,
   user,
   action,
   actionClass,
   module,
+  message,
   detailRows,
   changeRows,
+  summaryTitle,
+  businessInfoTitle,
+  changesTitle,
+  emptyLabel,
+  dateLabel,
+  userLabel,
+  actionLabel,
+  moduleLabel,
   onClose
 }: {
-  log: AuditLog;
   title: string;
   closeLabel: string;
-  dateLabel: string;
-  userLabel: string;
-  actionLabel: string;
-  moduleLabel: string;
-  detailsTitle: string;
-  changesTitle: string;
-  technicalTitle: string;
-  emptyDetails: string;
   date: string;
   user: string;
   action: string;
   actionClass: string;
   module: string;
+  message: string;
   detailRows: DetailRow[];
   changeRows: DetailRow[];
+  summaryTitle: string;
+  businessInfoTitle: string;
+  changesTitle: string;
+  emptyLabel: string;
+  dateLabel: string;
+  userLabel: string;
+  actionLabel: string;
+  moduleLabel: string;
   onClose: () => void;
 }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-stretch justify-end bg-slate-950/30 p-0 backdrop-blur-[2px]">
+    <div className="fixed inset-0 z-[9999] bg-slate-950/40">
       <button
         type="button"
-        className="hidden flex-1 cursor-default lg:block"
+        className="absolute inset-0 hidden cursor-default lg:block"
         onClick={onClose}
         aria-label={closeLabel}
       />
 
-      <aside className="h-full w-full overflow-y-auto bg-white shadow-2xl lg:max-w-xl">
-        <div className="sticky top-0 z-10 border-b border-slate-100 bg-white px-5 py-5">
+      <aside className="absolute inset-y-0 right-0 flex h-dvh w-full flex-col overflow-hidden bg-white shadow-2xl sm:max-w-xl">
+        <header className="shrink-0 border-b border-slate-100 bg-white px-5 py-4">
           <div className="flex items-start justify-between gap-4">
-            <div>
+            <div className="min-w-0">
               <p className="text-sm font-medium text-slate-500">{title}</p>
 
-              <h2 className="mt-1 text-xl font-semibold text-slate-950">
+              <h2 className="mt-1 truncate text-xl font-semibold text-slate-950">
                 {module}
               </h2>
             </div>
@@ -661,85 +971,72 @@ function AuditLogDetailSheet({
               <X size={20} />
             </button>
           </div>
-        </div>
+        </header>
 
-        <div className="space-y-5 px-5 py-5">
-          <section className="grid gap-3 sm:grid-cols-2">
-            <InfoTile icon={<CalendarClock size={17} />} label={dateLabel} value={date} />
-            <InfoTile icon={<User size={17} />} label={userLabel} value={user} />
-            <InfoTile
-              icon={<Server size={17} />}
-              label={moduleLabel}
-              value={module}
-            />
-            <div className="rounded-2xl border border-slate-200 p-4">
-              <div className="mb-2 text-xs font-medium text-slate-500">
-                {actionLabel}
+        <div className="flex-1 overflow-y-auto px-5 py-5">
+          <div className="space-y-5">
+            <section className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+              <div className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                <FileText size={15} />
+                <span>{summaryTitle}</span>
               </div>
 
-              <span
-                className={[
-                  'inline-flex rounded-full px-2.5 py-1 text-xs font-semibold',
-                  actionClass
-                ].join(' ')}
-              >
-                {action}
-              </span>
-            </div>
-          </section>
+              <p className="text-sm leading-6 text-slate-800">
+                {message || '-'}
+              </p>
+            </section>
 
-          <section className="rounded-2xl border border-slate-200">
-            <div className="border-b border-slate-100 px-4 py-3">
-              <h3 className="text-sm font-semibold text-slate-950">
-                {detailsTitle}
-              </h3>
-            </div>
+            <section className="grid gap-3 sm:grid-cols-2">
+              <InfoTile icon={<CalendarClock size={17} />} label={dateLabel} value={date} />
+              <InfoTile icon={<User size={17} />} label={userLabel} value={user} />
+              <InfoTile icon={<ShieldCheck size={17} />} label={actionLabel} value={action} badgeClass={actionClass} />
+              <InfoTile icon={<FileText size={17} />} label={moduleLabel} value={module} />
+            </section>
 
-            {detailRows.length > 0 ? (
-              <div className="divide-y divide-slate-100">
-                {detailRows.map((row) => (
-                  <DetailLine key={row.label} label={row.label} value={row.value} />
-                ))}
-              </div>
-            ) : (
-              <div className="px-4 py-4 text-sm text-slate-500">
-                {emptyDetails}
-              </div>
-            )}
-          </section>
-
-          {changeRows.length > 0 ? (
             <section className="rounded-2xl border border-slate-200">
               <div className="border-b border-slate-100 px-4 py-3">
                 <h3 className="text-sm font-semibold text-slate-950">
-                  {changesTitle}
+                  {businessInfoTitle}
                 </h3>
               </div>
 
-              <div className="divide-y divide-slate-100">
-                {changeRows.map((row) => (
-                  <DetailLine key={row.label} label={row.label} value={row.value} />
-                ))}
-              </div>
+              {detailRows.length > 0 ? (
+                <div className="divide-y divide-slate-100">
+                  {detailRows.map((row, index) => (
+                    <DetailLine
+                      key={`${row.label}-${index}`}
+                      label={row.label}
+                      value={row.value}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="px-4 py-4 text-sm text-slate-500">
+                  {emptyLabel}
+                </div>
+              )}
             </section>
-          ) : null}
 
-          <section className="rounded-2xl border border-slate-200">
-            <div className="border-b border-slate-100 px-4 py-3">
-              <h3 className="text-sm font-semibold text-slate-950">
-                {technicalTitle}
-              </h3>
-            </div>
+            {changeRows.length > 0 ? (
+              <section className="rounded-2xl border border-slate-200">
+                <div className="border-b border-slate-100 px-4 py-3">
+                  <h3 className="text-sm font-semibold text-slate-950">
+                    {changesTitle}
+                  </h3>
+                </div>
 
-            <div className="divide-y divide-slate-100">
-              <DetailLine label="ID log" value={log.id} />
-              <DetailLine label="Entity ID" value={log.entityId || '-'} />
-              <DetailLine
-                label="User Agent"
-                value={log.userAgent ? simplifyUserAgent(log.userAgent) : '-'}
-              />
-            </div>
-          </section>
+                <div className="divide-y divide-slate-100">
+                  {changeRows.map((row, index) => (
+                    <DetailLine
+                      key={`${row.label}-${index}`}
+                      label={row.label}
+                      value={row.value}
+                    />
+                  ))}
+                </div>
+              </section>
+            ) : null}
+          </div>
         </div>
       </aside>
     </div>
@@ -749,11 +1046,13 @@ function AuditLogDetailSheet({
 function InfoTile({
   icon,
   label,
-  value
+  value,
+  badgeClass
 }: {
-  icon: React.ReactNode;
+  icon: ReactNode;
   label: string;
   value: string;
+  badgeClass?: string;
 }) {
   return (
     <div className="rounded-2xl border border-slate-200 p-4">
@@ -762,9 +1061,20 @@ function InfoTile({
         <span>{label}</span>
       </div>
 
-      <div className="break-words text-sm font-semibold text-slate-950">
-        {value || '-'}
-      </div>
+      {badgeClass ? (
+        <span
+          className={[
+            'inline-flex rounded-full px-2.5 py-1 text-xs font-semibold',
+            badgeClass
+          ].join(' ')}
+        >
+          {value || '-'}
+        </span>
+      ) : (
+        <div className="break-words text-sm font-semibold text-slate-950">
+          {value || '-'}
+        </div>
+      )}
     </div>
   );
 }
@@ -847,26 +1157,28 @@ function humanize(value: string) {
     .replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
-function simplifyUserAgent(userAgent: string) {
-  if (!userAgent) {
-    return '-';
+function formatEmailAsName(email?: string | null) {
+  if (!email) {
+    return '';
   }
 
-  if (userAgent.includes('Chrome')) {
-    return 'Chrome';
-  }
+  const localPart = email.split('@')[0] || '';
 
-  if (userAgent.includes('Safari')) {
-    return 'Safari';
-  }
+  return localPart
+    .replace(/[._-]+/g, ' ')
+    .replace(/\b\w/g, (letter) => letter.toUpperCase())
+    .trim();
+}
 
-  if (userAgent.includes('Firefox')) {
-    return 'Firefox';
-  }
+function normalizePersonName(firstName?: string | null, lastName?: string | null) {
+  const cleanFirstName = String(firstName || '').trim();
+  const cleanLastName = String(lastName || '').trim();
 
-  if (userAgent.includes('Edge')) {
-    return 'Edge';
-  }
+  const ignoredLastNames = new Set(['cropcontrole', 'crop control', 'agricontrol', 'agri control']);
 
-  return userAgent.slice(0, 80);
+  const safeLastName = ignoredLastNames.has(cleanLastName.toLowerCase())
+    ? ''
+    : cleanLastName;
+
+  return `${cleanFirstName} ${safeLastName}`.trim();
 }

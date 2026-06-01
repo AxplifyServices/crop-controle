@@ -167,72 +167,134 @@
       "actions": "Actions"
     }
   },
-  "AuditLogs": {
-    "section": "Administration",
-    "title": "Action history",
-    "description": "View actions performed on the platform. Each profile only sees its own logs and the logs of its descendant profiles.",
-    "refresh": "Refresh",
-    "filtersTitle": "Filters",
-    "filtersDescription": "Filter logs by action type or module.",
-    "all": "All",
-    "close": "Close",
-"detailLabels": {
-  "summary": "Summary",
-  "changes": "Changes",
-  "technical": "Technical information",
-  "empty": "No additional detail.",
-  "request": "Request",
-  "status": "Status",
-  "duration": "Duration",
-  "entityId": "Identifier",
-  "ip": "IP address",
-  "device": "Browser / device"
-},
-    "filter": "Filter",
-    "latestActions": "Latest actions",
-    "details": "View details",
-    "noLogs": "No logs found.",
-    "loading": "Loading...",
-    "system": "System",
-    "errors": {
-      "loading": "Loading error."
-    },
-    "fields": {
-      "action": "Action",
-      "module": "Module"
-    },
-    "placeholders": {
-      "module": "profiles, companies, farms..."
-    },
-    "actions": {
-      "login": "Login",
-      "view": "View",
-      "create": "Create",
-      "update": "Update",
-      "delete": "Delete",
-      "failed": "Failed",
-      "IMPORT": "Import",
-"MANAGE": "Manage",
-"ASSIGN": "Assign",
-"APPROVE": "Approve",
-"REJECT": "Reject",
-"LOGIN": "Login",
-"LOGOUT": "Logout",
-"REFRESH": "Refresh",
-"READ": "Read",
-"WRITE": "Write",
-"RESTORE": "Restore",
-"ARCHIVE": "Archive"
-    },
-    "table": {
-      "date": "Date",
-      "user": "User",
-      "action": "Action",
-      "module": "Module",
-      "ip": "IP",
-      "details": "Details"
-    }
+"AuditLogs": {
+  "section": "Administration",
+  "title": "Action history",
+  "description": "View the important actions performed on the platform.",
+  "refresh": "Refresh",
+  "filtersTitle": "Filters",
+  "filtersDescription": "Filter logs by action type or module.",
+  "all": "All",
+  "filter": "Filter",
+  "close": "Close",
+  "latestActions": "Latest actions",
+  "details": "View details",
+  "noLogs": "No logs found.",
+  "loading": "Loading...",
+  "system": "System",
+  "errors": {
+    "loading": "Loading error."
   },
+  "fields": {
+    "action": "Action",
+    "module": "Module"
+  },
+  "placeholders": {
+    "module": "groups, companies, farms..."
+  },
+  "actions": {
+    "login": "Login",
+    "view": "View",
+    "create": "Creation",
+    "update": "Update",
+    "delete": "Deletion",
+    "failed": "Failed"
+  },
+  "verbs": {
+    "login": "logged in",
+    "create": "created",
+    "update": "updated",
+    "delete": "deleted",
+    "view": "viewed",
+    "generic": "performed the action {action}"
+  },
+  "messages": {
+    "loginSuccess": "User {actor} logged in.",
+    "loginFailed": "Failed login attempt for {actor}.",
+    "actionFailed": "The action {action} failed.",
+    "businessWithNameAndId": "User {actor} {verb} {entity} “{name}” (ID: {id}).",
+    "businessWithName": "User {actor} {verb} {entity} “{name}”.",
+    "businessWithId": "User {actor} {verb} {entity} (ID: {id}).",
+    "businessSimple": "User {actor} {verb} {entity}."
+  },
+  "detailLabels": {
+    "summary": "Summary",
+    "actionSummary": "Action summary",
+    "businessInfo": "Business information",
+    "changes": "Changes",
+    "technical": "Technical information",
+    "empty": "No additional detail.",
+    "request": "Request",
+    "status": "Status",
+    "duration": "Duration",
+    "entityId": "Identifier",
+    "id": "ID",
+    "name": "Name",
+    "ip": "IP address",
+    "device": "Browser / device",
+    "date": "Date",
+    "user": "User",
+    "action": "Action",
+    "module": "Module",
+    "changeValue": "{oldValue} → {newValue}"
+  },
+  "pagination": {
+    "previous": "Previous",
+    "next": "Next",
+    "range": "Showing {start} to {end} of {total}"
+  },
+  "table": {
+    "date": "Date",
+    "user": "User",
+    "action": "Action",
+    "module": "Module",
+    "summary": "Summary",
+    "ip": "IP",
+    "details": "Details"
+  },
+  "entityTypes": {
+    "auth": "Session",
+    "groups": "Group",
+    "companies": "Company",
+    "farms": "Farm",
+    "plots": "Plot",
+    "factories": "Factory",
+    "stations": "Station",
+    "products": "Product",
+    "product-varieties": "Product variety",
+    "vehicles": "Vehicle",
+    "personnel": "Personnel",
+    "cultures": "Culture",
+    "profiles": "Profile",
+    "users": "User",
+    "roles": "Role",
+    "permissions": "Permission",
+    "geography": "Geographic data",
+    "legal-identifier-types": "Legal identifier type",
+    "audit-logs": "Action history"
+  },
+  "entitySentenceTypes": {
+    "auth": "the session",
+    "groups": "the group",
+    "companies": "the company",
+    "farms": "the farm",
+    "plots": "the plot",
+    "factories": "the factory",
+    "stations": "the station",
+    "products": "the product",
+    "product-varieties": "the product variety",
+    "vehicles": "the vehicle",
+    "personnel": "the personnel record",
+    "cultures": "the culture",
+    "profiles": "the profile",
+    "users": "the user",
+    "roles": "the role",
+    "permissions": "the permission",
+    "geography": "the geographic data",
+    "legal-identifier-types": "the legal identifier type",
+    "audit-logs": "the action history"
+  }
+},
   "App": {
     "name": "Agri-Control",
     "subtitle": "Agricultural management · Production · Profitability"
