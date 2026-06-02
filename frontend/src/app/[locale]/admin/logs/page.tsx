@@ -1125,7 +1125,7 @@ function isPlainObject(value: unknown): value is Record<string, any> {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
 }
 
-function stringifyValue(value: unknown) {
+function stringifyValue(value: unknown): string {
   if (value === null || value === undefined || value === '') {
     return '';
   }

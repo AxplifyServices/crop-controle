@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateCulturesDto, UpdateCulturesDto } from './dto';
 
@@ -6,8 +6,31 @@ import { CreateCulturesDto, UpdateCulturesDto } from './dto';
 export class CulturesService {
   constructor(private readonly prisma: PrismaService) {}
 
+  private get includeRelations() {
+    return {
+      products: {
+        where: {
+          deleted_at: null,
+        },
+        select: {
+          id: true,
+          name: true,
+          code: true,
+          status: true,
+        },
+        orderBy: {
+          name: 'asc',
+        },
+      },
+    };
+  }
+
   async findAll() {
     return this.prisma.cultures.findMany({
+      where: {
+        deleted_at: null,
+      },
+      include: this.includeRelations,
       orderBy: {
         created_at: 'desc',
       },
@@ -15,8 +38,12 @@ export class CulturesService {
   }
 
   async findOne(id: string) {
-    const item = await this.prisma.cultures.findUnique({
-      where: { id },
+    const item = await this.prisma.cultures.findFirst({
+      where: {
+        id,
+        deleted_at: null,
+      },
+      include: this.includeRelations,
     });
 
     if (!item) {
@@ -34,6 +61,7 @@ export class CulturesService {
         description: dto.description,
         status: dto.status,
       },
+      include: this.includeRelations,
     });
   }
 
@@ -49,36 +77,21 @@ export class CulturesService {
         status: dto.status,
         updated_at: new Date(),
       },
+      include: this.includeRelations,
     });
   }
 
   async remove(id: string) {
     await this.findOne(id);
 
-    const [products, plots] = await Promise.all([
-      this.prisma.products.count({
-        where: {
-          culture_id: id,
-        },
-      }),
-      this.prisma.plots.count({
-        where: {
-          culture_id: id,
-          deleted_at: null,
-        },
-      }),
-    ]);
-
-    const total = products + plots;
-
-    if (total > 0) {
-      throw new BadRequestException(
-        `Suppression impossible : cette culture est liée à ${total} élément(s). Archivez-la plutôt.`,
-      );
-    }
-
-    return this.prisma.cultures.delete({
+    return this.prisma.cultures.update({
       where: { id },
+      data: {
+        status: 'ARCHIVED',
+        deleted_at: new Date(),
+        updated_at: new Date(),
+      },
+      include: this.includeRelations,
     });
   }
 }

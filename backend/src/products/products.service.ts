@@ -12,9 +12,33 @@ export class ProductsService {
     return (this.prisma as any)[this.modelName];
   }
 
+  private get includeRelations() {
+    return {
+      cultures: {
+        select: {
+          id: true,
+          name: true,
+          code: true,
+          status: true,
+        },
+      },
+      product_varieties: {
+        where: {
+          deleted_at: null,
+        },
+        orderBy: {
+          name: 'asc',
+        },
+      },
+    };
+  }
+
   async findAll() {
     return this.model.findMany({
-      where: {},
+      where: {
+        deleted_at: null,
+      },
+      include: this.includeRelations,
       orderBy: {
         created_at: 'desc',
       },
@@ -22,8 +46,12 @@ export class ProductsService {
   }
 
   async findOne(id: string) {
-    const item = await this.model.findUnique({
-      where: { id },
+    const item = await this.model.findFirst({
+      where: {
+        id,
+        deleted_at: null,
+      },
+      include: this.includeRelations,
     });
 
     if (!item) {
@@ -35,14 +63,15 @@ export class ProductsService {
 
   async create(dto: CreateProductsDto) {
     if (dto.culture_id) {
-      const culture = await this.prisma.cultures.findUnique({
+      const culture = await this.prisma.cultures.findFirst({
         where: {
           id: dto.culture_id,
+          deleted_at: null,
         },
       });
 
       if (!culture) {
-        throw new BadRequestException('Culture introuvable.');
+        throw new BadRequestException('Culture introuvable ou archivée.');
       }
     }
 
@@ -55,6 +84,7 @@ export class ProductsService {
         default_unit: dto.default_unit,
         status: dto.status,
       },
+      include: this.includeRelations,
     });
   }
 
@@ -62,14 +92,15 @@ export class ProductsService {
     await this.findOne(id);
 
     if (dto.culture_id) {
-      const culture = await this.prisma.cultures.findUnique({
+      const culture = await this.prisma.cultures.findFirst({
         where: {
           id: dto.culture_id,
+          deleted_at: null,
         },
       });
 
       if (!culture) {
-        throw new BadRequestException('Culture introuvable.');
+        throw new BadRequestException('Culture introuvable ou archivée.');
       }
     }
 
@@ -84,104 +115,21 @@ export class ProductsService {
         status: dto.status,
         updated_at: new Date(),
       },
+      include: this.includeRelations,
     });
   }
 
   async remove(id: string) {
     await this.findOne(id);
 
-    const [
-      varieties,
-      agriculturalProjects,
-      plantations,
-      harvests,
-      productions,
-      lots,
-      stockMovements,
-      farmShipmentItems,
-      factoryReceptionItems,
-      customerOrderItems,
-      invoiceItems,
-    ] = await Promise.all([
-      this.prisma.product_varieties.count({
-        where: {
-          product_id: id,
-        },
-      }),
-      this.prisma.agricultural_projects.count({
-        where: {
-          product_id: id,
-          deleted_at: null,
-        },
-      }),
-      this.prisma.plantations.count({
-        where: {
-          product_id: id,
-        },
-      }),
-      this.prisma.harvests.count({
-        where: {
-          product_id: id,
-        },
-      }),
-      this.prisma.productions.count({
-        where: {
-          product_id: id,
-        },
-      }),
-      this.prisma.lots.count({
-        where: {
-          product_id: id,
-        },
-      }),
-      this.prisma.stock_movements.count({
-        where: {
-          product_id: id,
-        },
-      }),
-      this.prisma.farm_shipment_items.count({
-        where: {
-          product_id: id,
-        },
-      }),
-      this.prisma.factory_reception_items.count({
-        where: {
-          product_id: id,
-        },
-      }),
-      this.prisma.customer_order_items.count({
-        where: {
-          product_id: id,
-        },
-      }),
-      this.prisma.invoice_items.count({
-        where: {
-          product_id: id,
-        },
-      }),
-    ]);
-
-    const total =
-      varieties +
-      agriculturalProjects +
-      plantations +
-      harvests +
-      productions +
-      lots +
-      stockMovements +
-      farmShipmentItems +
-      factoryReceptionItems +
-      customerOrderItems +
-      invoiceItems;
-
-    if (total > 0) {
-      throw new BadRequestException(
-        `Suppression impossible : ce produit est lié à ${total} élément(s). Supprimez ou archivez d'abord les éléments rattachés.`,
-      );
-    }
-
-    return this.model.delete({
+    return this.model.update({
       where: { id },
+      data: {
+        status: 'ARCHIVED',
+        deleted_at: new Date(),
+        updated_at: new Date(),
+      },
+      include: this.includeRelations,
     });
   }
 }

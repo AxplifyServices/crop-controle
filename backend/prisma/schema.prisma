@@ -862,6 +862,7 @@ model product_varieties {
   status                  entity_status_enum        @default(ACTIVE)
   created_at              DateTime                  @default(now()) @db.Timestamp(6)
   updated_at              DateTime                  @default(now()) @db.Timestamp(6)
+  deleted_at              DateTime?                 @db.Timestamp(6)
   agricultural_projects   agricultural_projects[]
   conditioning_inputs     conditioning_inputs[]
   conditioning_outputs    conditioning_outputs[]
@@ -877,6 +878,7 @@ model product_varieties {
 
   @@unique([product_id, name], map: "uq_product_variety")
   @@index([product_id], map: "idx_product_varieties_product_id")
+  @@index([deleted_at], map: "idx_product_varieties_deleted_at")
 }
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
@@ -923,6 +925,7 @@ model products {
   created_at              DateTime                  @default(now()) @db.Timestamp(6)
   updated_at              DateTime                  @default(now()) @db.Timestamp(6)
   culture_id              String?                   @db.Uuid
+  deleted_at              DateTime?                 @db.Timestamp(6)
   agricultural_projects   agricultural_projects[]
   conditioning_inputs     conditioning_inputs[]
   conditioning_outputs    conditioning_outputs[]
@@ -940,6 +943,7 @@ model products {
 
   @@index([status], map: "idx_products_status")
   @@index([culture_id], map: "idx_products_culture_id")
+  @@index([deleted_at], map: "idx_products_deleted_at")
 }
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
@@ -1318,10 +1322,12 @@ model cultures {
   status      entity_status_enum @default(ACTIVE)
   created_at  DateTime           @default(now()) @db.Timestamp(6)
   updated_at  DateTime           @default(now()) @db.Timestamp(6)
+  deleted_at  DateTime?          @db.Timestamp(6)
   plots       plots[]
   products    products[]
 
   @@index([status], map: "idx_cultures_status")
+  @@index([deleted_at], map: "idx_cultures_deleted_at")
 }
 
 enum alert_level_enum {

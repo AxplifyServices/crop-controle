@@ -12,9 +12,26 @@ export class ProductVarietiesService {
     return (this.prisma as any)[this.modelName];
   }
 
+  private get includeRelations() {
+    return {
+      products: {
+        select: {
+          id: true,
+          name: true,
+          code: true,
+          status: true,
+          culture_id: true,
+        },
+      },
+    };
+  }
+
   async findAll() {
     return this.model.findMany({
-      where: {},
+      where: {
+        deleted_at: null,
+      },
+      include: this.includeRelations,
       orderBy: {
         created_at: 'desc',
       },
@@ -22,8 +39,12 @@ export class ProductVarietiesService {
   }
 
   async findOne(id: string) {
-    const item = await this.model.findUnique({
-      where: { id },
+    const item = await this.model.findFirst({
+      where: {
+        id,
+        deleted_at: null,
+      },
+      include: this.includeRelations,
     });
 
     if (!item) {
@@ -34,18 +55,26 @@ export class ProductVarietiesService {
   }
 
   async create(dto: CreateProductVarietiesDto) {
-    const product = await this.prisma.products.findUnique({
+    const product = await this.prisma.products.findFirst({
       where: {
         id: dto.product_id,
+        deleted_at: null,
       },
     });
 
     if (!product) {
-      throw new BadRequestException('Produit introuvable.');
+      throw new BadRequestException('Produit introuvable ou archivé.');
     }
 
     return this.model.create({
-      data: dto,
+      data: {
+        product_id: dto.product_id,
+        name: dto.name,
+        code: dto.code,
+        description: dto.description,
+        status: dto.status,
+      },
+      include: this.includeRelations,
     });
   }
 
@@ -53,31 +82,43 @@ export class ProductVarietiesService {
     await this.findOne(id);
 
     if (dto.product_id) {
-      const product = await this.prisma.products.findUnique({
+      const product = await this.prisma.products.findFirst({
         where: {
           id: dto.product_id,
+          deleted_at: null,
         },
       });
 
       if (!product) {
-        throw new BadRequestException('Produit introuvable.');
+        throw new BadRequestException('Produit introuvable ou archivé.');
       }
     }
 
     return this.model.update({
       where: { id },
       data: {
-        ...dto,
+        product_id: dto.product_id,
+        name: dto.name,
+        code: dto.code,
+        description: dto.description,
+        status: dto.status,
         updated_at: new Date(),
       },
+      include: this.includeRelations,
     });
   }
 
   async remove(id: string) {
     await this.findOne(id);
 
-    return this.model.delete({
+    return this.model.update({
       where: { id },
+      data: {
+        status: 'ARCHIVED',
+        deleted_at: new Date(),
+        updated_at: new Date(),
+      },
+      include: this.includeRelations,
     });
   }
 }
