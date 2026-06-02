@@ -44,40 +44,39 @@ export class CompaniesService {
     });
   }
 
-async findOne(id: string, currentUserId: string) {
-  const scopedWhere = await this.accessControl.getScopedWhere(
-    currentUserId,
-    'COMPANY',
-  );
+  async findOne(id: string, currentUserId: string) {
+    const scopedWhere = await this.accessControl.getScopedWhere(
+      currentUserId,
+      'COMPANY',
+    );
 
-  const item = await this.model.findFirst({
-    where: {
-      id,
-      deleted_at: null,
-      ...(Object.keys(scopedWhere).length > 0
-        ? {
-            AND: [scopedWhere],
-          }
-        : {}),
-    },
-    include: {
-      company_legal_identifiers: {
-        orderBy: {
-          identifier_type: 'asc',
+    const item = await this.model.findFirst({
+      where: {
+        id,
+        deleted_at: null,
+        ...(Object.keys(scopedWhere).length > 0
+          ? {
+              AND: [scopedWhere],
+            }
+          : {}),
+      },
+      include: {
+        company_legal_identifiers: {
+          orderBy: {
+            identifier_type: 'asc',
+          },
         },
       },
-    },
-  });
+    });
 
-  if (!item) {
-    throw new NotFoundException('Enregistrement introuvable');
+    if (!item) {
+      throw new NotFoundException('Enregistrement introuvable');
+    }
+
+    return item;
   }
 
-  return item;
-}
-
   async create(dto: CreateCompaniesDto, currentUserId: string) {
-
     await this.accessControl.assertCanAccessRecord(
       currentUserId,
       'GROUP',
@@ -94,6 +93,7 @@ async findOne(id: string, currentUserId: string) {
         { deleted_at: null },
       );
     }
+
     const { legal_identifiers, ...companyData } = dto;
 
     return this.prisma.$transaction(async (tx) => {
@@ -104,7 +104,7 @@ async findOne(id: string, currentUserId: string) {
       await this.upsertLegalIdentifiers(
         tx,
         company.id,
-        companyData.country_id || companyData.country || 'MA',
+        company.country_id || company.country || 'MA',
         legal_identifiers,
       );
 
@@ -113,7 +113,11 @@ async findOne(id: string, currentUserId: string) {
           id: company.id,
         },
         include: {
-          company_legal_identifiers: true,
+          company_legal_identifiers: {
+            orderBy: {
+              identifier_type: 'asc',
+            },
+          },
         },
       });
     });
@@ -155,7 +159,7 @@ async findOne(id: string, currentUserId: string) {
       await this.upsertLegalIdentifiers(
         tx,
         company.id,
-        companyData.country_id || companyData.country || 'MA',
+        company.country_id || company.country || 'MA',
         legal_identifiers,
       );
 
@@ -164,7 +168,11 @@ async findOne(id: string, currentUserId: string) {
           id,
         },
         include: {
-          company_legal_identifiers: true,
+          company_legal_identifiers: {
+            orderBy: {
+              identifier_type: 'asc',
+            },
+          },
         },
       });
     });
@@ -173,53 +181,48 @@ async findOne(id: string, currentUserId: string) {
   async remove(id: string, currentUserId: string) {
     await this.findOne(id, currentUserId);
 
-    const [
-      childCompanies,
-      farms,
-      factories,
-      stations,
-      vehicles,
-      personnel,
-    ] = await Promise.all([
-      this.prisma.companies.count({
-        where: {
-          parent_id: id,
-          deleted_at: null,
-        },
-      }),
-      this.prisma.farms.count({
-        where: {
-          company_id: id,
-          deleted_at: null,
-        },
-      }),
-      this.prisma.factories.count({
-        where: {
-          company_id: id,
-          deleted_at: null,
-        },
-      }),
-      this.prisma.stations.count({
-        where: {
-          company_id: id,
-          deleted_at: null,
-        },
-      }),
-      this.prisma.vehicles.count({
-        where: {
-          company_id: id,
-          deleted_at: null,
-        },
-      }),
-      this.prisma.personnel.count({
-        where: {
-          company_id: id,
-          deleted_at: null,
-        },
-      }),
-    ]);
+    const [childCompanies, farms, factories, stations, vehicles, personnel] =
+      await Promise.all([
+        this.prisma.companies.count({
+          where: {
+            parent_id: id,
+            deleted_at: null,
+          },
+        }),
+        this.prisma.farms.count({
+          where: {
+            company_id: id,
+            deleted_at: null,
+          },
+        }),
+        this.prisma.factories.count({
+          where: {
+            company_id: id,
+            deleted_at: null,
+          },
+        }),
+        this.prisma.stations.count({
+          where: {
+            company_id: id,
+            deleted_at: null,
+          },
+        }),
+        this.prisma.vehicles.count({
+          where: {
+            company_id: id,
+            deleted_at: null,
+          },
+        }),
+        this.prisma.personnel.count({
+          where: {
+            company_id: id,
+            deleted_at: null,
+          },
+        }),
+      ]);
 
-    const total = childCompanies + farms + factories + stations + vehicles + personnel;
+    const total =
+      childCompanies + farms + factories + stations + vehicles + personnel;
 
     if (total > 0) {
       throw new BadRequestException(
@@ -240,38 +243,56 @@ async findOne(id: string, currentUserId: string) {
     tx: any,
     companyId: string,
     countryCodeOrId: string,
-    legalIdentifiers: any,
+    legalIdentifiers: Record<string, string | null> | Array<{
+      identifier_type?: string | null;
+      identifier_value?: string | null;
+    }> | null | undefined,
   ) {
-    if (!legalIdentifiers) return;
+    if (!legalIdentifiers) {
+      return;
+    }
 
     const countryCode = this.normalizeCountryCode(countryCodeOrId);
 
     const entries = Array.isArray(legalIdentifiers)
       ? legalIdentifiers
-      : Object.entries(legalIdentifiers).map(([identifier_type, identifier_value]) => ({
-          identifier_type,
-          identifier_value,
-        }));
+      : Object.entries(legalIdentifiers).map(
+          ([identifier_type, identifier_value]) => ({
+            identifier_type,
+            identifier_value,
+          }),
+        );
 
     for (const entry of entries) {
-      if (!entry.identifier_type) continue;
+      const identifierType = String(entry.identifier_type || '').trim();
+
+      if (!identifierType) {
+        continue;
+      }
+
+      const identifierValue =
+        entry.identifier_value === undefined ||
+        entry.identifier_value === null ||
+        String(entry.identifier_value).trim() === ''
+          ? null
+          : String(entry.identifier_value).trim();
 
       await tx.company_legal_identifiers.upsert({
         where: {
-          uq_company_legal_identifier: {
+          company_id_country_code_identifier_type: {
             company_id: companyId,
             country_code: countryCode,
-            identifier_type: entry.identifier_type,
+            identifier_type: identifierType,
           },
         },
         create: {
           company_id: companyId,
           country_code: countryCode,
-          identifier_type: entry.identifier_type,
-          identifier_value: entry.identifier_value || null,
+          identifier_type: identifierType,
+          identifier_value: identifierValue,
         },
         update: {
-          identifier_value: entry.identifier_value || null,
+          identifier_value: identifierValue,
           updated_at: new Date(),
         },
       });
@@ -279,15 +300,27 @@ async findOne(id: string, currentUserId: string) {
   }
 
   private normalizeCountryCode(countryCodeOrId: string) {
-    if (!countryCodeOrId) return 'MA';
+    if (!countryCodeOrId) {
+      return 'MA';
+    }
 
     const value = String(countryCodeOrId).trim().toUpperCase();
 
     if (value === 'COUNTRY_MA') return 'MA';
     if (value === 'COUNTRY_ES') return 'ES';
 
-    if (value === 'MAROC' || value === 'MOROCCO') return 'MA';
-    if (value === 'ESPAGNE' || value === 'SPAIN' || value === 'ESPAÑA') return 'ES';
+    if (value === 'MAROC' || value === 'MOROCCO' || value === 'MA') {
+      return 'MA';
+    }
+
+    if (
+      value === 'ESPAGNE' ||
+      value === 'SPAIN' ||
+      value === 'ESPAÑA' ||
+      value === 'ES'
+    ) {
+      return 'ES';
+    }
 
     return value;
   }

@@ -32,6 +32,10 @@ export class CreatePlotsDto {
   surface_ha?: number;
 
   @IsOptional()
+  @IsString()
+  variety?: string;
+
+  @IsOptional()
   @IsEnum(plot_status_enum)
   status?: plot_status_enum;
 
@@ -68,6 +72,10 @@ export class UpdatePlotsDto {
   @Type(() => Number)
   @IsNumber()
   surface_ha?: number;
+
+  @IsOptional()
+  @IsString()
+  variety?: string;
 
   @IsOptional()
   @IsEnum(plot_status_enum)

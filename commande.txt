@@ -8,14 +8,6 @@ cd OneDrive\Bureau\Projet Dev\Plateforme de pilotage agriculture
 ** Users :
 
 User ready: super_admin@cropcontrole.com / password123
-User ready: admin@cropcontrole.com / password123
-User ready: farmer@cropcontrole.com / password123
-User ready: farm_manager@cropcontrole.com / password123
-User ready: factory_manager@cropcontrole.com / password123
-User ready: factory_receiver@cropcontrole.com / password123
-User ready: conditioning_manager@cropcontrole.com / password123
-User ready: orders_manager@cropcontrole.com / password123
-User ready: director@cropcontrole.com / password123
 
 ** Backend :
 

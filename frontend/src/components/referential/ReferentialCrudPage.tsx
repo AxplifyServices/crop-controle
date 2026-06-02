@@ -789,15 +789,22 @@ function PaginationBar({
   pageSize: number;
   onPageChange: (page: number) => void;
 }) {
+  const t = useTranslations();
+
   const start = totalItems === 0 ? 0 : (page - 1) * pageSize + 1;
   const end = Math.min(page * pageSize, totalItems);
 
   return (
     <div className="flex flex-col gap-3 border-t border-slate-100 px-5 py-4 text-sm text-slate-600 sm:flex-row sm:items-center sm:justify-between">
       <div>
-        Affichage de <span className="font-semibold text-slate-900">{start}</span> à{' '}
-        <span className="font-semibold text-slate-900">{end}</span> sur{' '}
-        <span className="font-semibold text-slate-900">{totalItems}</span>
+        {t.rich('pagination.range', {
+          start,
+          end,
+          total: totalItems,
+          strong: (chunks) => (
+            <span className="font-semibold text-slate-900">{chunks}</span>
+          )
+        })}
       </div>
 
       <div className="flex items-center gap-2">
@@ -807,7 +814,7 @@ function PaginationBar({
           onClick={() => onPageChange(page - 1)}
           className="rounded-xl border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
         >
-          Précédent
+          {t('pagination.previous')}
         </button>
 
         <span className="rounded-xl bg-slate-100 px-3 py-2 text-xs font-semibold text-slate-700">
@@ -820,7 +827,7 @@ function PaginationBar({
           onClick={() => onPageChange(page + 1)}
           className="rounded-xl border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
         >
-          Suivant
+          {t('pagination.next')}
         </button>
       </div>
     </div>

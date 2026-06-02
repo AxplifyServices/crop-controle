@@ -113,17 +113,17 @@ const acquisitionModeOptions: ResourceOption[] = [
 
 const plotStatusSections: ResourceStatusSection[] = [
   {titleKey: 'sections.plotProduction', values: ['PRODUCTION'], defaultOpen: true},
-  {titleKey: 'sections.plotYoung', values: ['YOUNG'], defaultOpen: false},
-  {titleKey: 'sections.plotResting', values: ['RESTING'], defaultOpen: false},
-  {titleKey: 'sections.plotFallow', values: ['FALLOW'], defaultOpen: false},
+  {titleKey: 'sections.plotYoung', values: ['JEUNE'], defaultOpen: false},
+  {titleKey: 'sections.plotResting', values: ['REPOS'], defaultOpen: false},
+  {titleKey: 'sections.plotFallow', values: ['EN_FRICHE'], defaultOpen: false},
   {titleKey: 'sections.plotArchived', values: ['ARCHIVED'], defaultOpen: false}
 ];
 
 const plotStatusOptions: ResourceOption[] = [
   {labelKey: 'options.plotStatus.PRODUCTION', value: 'PRODUCTION'},
-  {labelKey: 'options.plotStatus.YOUNG', value: 'YOUNG'},
-  {labelKey: 'options.plotStatus.RESTING', value: 'RESTING'},
-  {labelKey: 'options.plotStatus.FALLOW', value: 'FALLOW'},
+  {labelKey: 'options.plotStatus.JEUNE', value: 'JEUNE'},
+  {labelKey: 'options.plotStatus.REPOS', value: 'REPOS'},
+  {labelKey: 'options.plotStatus.EN_FRICHE', value: 'EN_FRICHE'},
   {labelKey: 'options.plotStatus.ARCHIVED', value: 'ARCHIVED'}
 ];
 
@@ -250,8 +250,8 @@ export const phase2Resources: Record<string, ResourceConfig> = {
     titleKey: 'resources.plots.title',
     descriptionKey: 'resources.plots.description',
     endpoint: '/plots',
-    listFields: ['name', 'code', 'farm_id', 'surface_ha', 'culture', 'variety', 'status'],
-    filterFields: ['company_id', 'farm_id', 'culture', 'variety', 'status'],
+    listFields: ['name', 'code', 'farm_id', 'surface_ha', 'culture_id', 'variety', 'status'],
+    filterFields: ['company_id', 'farm_id', 'culture_id', 'variety', 'status'],
     statusSections: plotStatusSections,
     fields: [
       {
@@ -282,7 +282,17 @@ export const phase2Resources: Record<string, ResourceConfig> = {
       {key: 'name', labelKey: 'fields.name', type: 'text', required: true},
       {key: 'code', labelKey: 'fields.code', type: 'text'},
       {key: 'surface_ha', labelKey: 'fields.surfaceHa', type: 'number'},
-      {key: 'culture', labelKey: 'fields.culture', type: 'text'},
+      {
+        key: 'culture_id',
+        labelKey: 'fields.culture',
+        type: 'lookup',
+        lookup: {
+          endpoint: '/cultures',
+          valueKey: 'id',
+          labelKeys: ['name', 'code'],
+          scopeEntityType: 'CULTURE'
+        }
+      },
       {key: 'variety', labelKey: 'fields.variety', type: 'text'},
       {key: 'latitude', labelKey: 'fields.latitude', type: 'number'},
       {key: 'longitude', labelKey: 'fields.longitude', type: 'number'},

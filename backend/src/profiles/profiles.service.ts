@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma/prisma.service';
 import { AccessControlService } from '../common/access-control/access-control.service';
@@ -11,7 +11,27 @@ export class ProfilesService {
     private readonly accessControl: AccessControlService,
   ) {}
 
+  private getUserInclude() {
+    return {
+      users: true,
+      roles: {
+        include: {
+          role_permissions: {
+            include: {
+              permissions: true,
+            },
+          },
+        },
+      },
+      user_scopes: true,
+    };
+  }
+
   private formatUser(user: any) {
+    if (!user) {
+      throw new NotFoundException('Profil introuvable.');
+    }
+
     return {
       id: user.id,
       email: user.email,
@@ -58,13 +78,25 @@ export class ProfilesService {
     };
   }
 
+  private async findOneWithClient(client: any, id: string) {
+    const user = await client.users.findUnique({
+      where: { id },
+      include: this.getUserInclude(),
+    });
+
+    return this.formatUser(user);
+  }
+
   async findAll(currentUserId: string) {
     const currentUser = await this.accessControl.getUserWithAccess(currentUserId);
 
     let userIds: string[] | undefined;
 
     if (!this.accessControl.isSuperAdmin(currentUser)) {
-      userIds = [currentUserId, ...(await this.accessControl.getDescendantUserIds(currentUserId))];
+      userIds = [
+        currentUserId,
+        ...(await this.accessControl.getDescendantUserIds(currentUserId)),
+      ];
     }
 
     const users = await (this.prisma as any).users.findMany({
@@ -72,19 +104,7 @@ export class ProfilesService {
         deleted_at: null,
         ...(userIds ? { id: { in: userIds } } : {}),
       },
-      include: {
-        users: true,
-        roles: {
-          include: {
-            role_permissions: {
-              include: {
-                permissions: true,
-              },
-            },
-          },
-        },
-        user_scopes: true,
-      },
+      include: this.getUserInclude(),
       orderBy: {
         created_at: 'desc',
       },
@@ -98,133 +118,111 @@ export class ProfilesService {
       await this.accessControl.assertCanManageUser(currentUserId, id);
     }
 
-    const user = await (this.prisma as any).users.findUnique({
-      where: { id },
-      include: {
-        users: true,
-        roles: {
-          include: {
-            role_permissions: {
-              include: {
-                permissions: true,
-              },
-            },
-          },
-        },
-        user_scopes: true,
-      },
-    });
-
-    return this.formatUser(user);
+    return this.findOneWithClient(this.prisma as any, id);
   }
 
-async getMeta(currentUserId: string) {
-  const permissions = await this.accessControl.getGrantablePermissions(currentUserId);
-  const managers = await this.accessControl.getManageableUsers(currentUserId);
+  async getMeta(currentUserId: string) {
+    const permissions = await this.accessControl.getGrantablePermissions(currentUserId);
+    const managers = await this.accessControl.getManageableUsers(currentUserId);
 
-  const [
-    groupWhere,
-    companyWhere,
-    farmWhere,
-    factoryWhere,
-    stationWhere,
-  ] = await Promise.all([
-    this.accessControl.getScopedWhere(currentUserId, 'GROUP'),
-    this.accessControl.getScopedWhere(currentUserId, 'COMPANY'),
-    this.accessControl.getScopedWhere(currentUserId, 'FARM'),
-    this.accessControl.getScopedWhere(currentUserId, 'FACTORY'),
-    this.accessControl.getScopedWhere(currentUserId, 'STATION'),
-  ]);
+    const [groupWhere, companyWhere, farmWhere, factoryWhere, stationWhere] =
+      await Promise.all([
+        this.accessControl.getScopedWhere(currentUserId, 'GROUP'),
+        this.accessControl.getScopedWhere(currentUserId, 'COMPANY'),
+        this.accessControl.getScopedWhere(currentUserId, 'FARM'),
+        this.accessControl.getScopedWhere(currentUserId, 'FACTORY'),
+        this.accessControl.getScopedWhere(currentUserId, 'STATION'),
+      ]);
 
-  const [groups, companies, farms, factories, stations] = await Promise.all([
-    (this.prisma as any).groups.findMany({
-      where: {
-        ...(Object.keys(groupWhere).length > 0 ? { AND: [groupWhere] } : {}),
-      },
-      orderBy: { name: 'asc' },
-      select: { id: true, name: true },
-    }),
+    const [groups, companies, farms, factories, stations] = await Promise.all([
+      (this.prisma as any).groups.findMany({
+        where: {
+          ...(Object.keys(groupWhere).length > 0 ? { AND: [groupWhere] } : {}),
+        },
+        orderBy: { name: 'asc' },
+        select: { id: true, name: true },
+      }),
 
-    (this.prisma as any).companies.findMany({
-      where: {
-        deleted_at: null,
-        ...(Object.keys(companyWhere).length > 0 ? { AND: [companyWhere] } : {}),
-      },
-      orderBy: { name: 'asc' },
-      select: { id: true, name: true },
-    }),
+      (this.prisma as any).companies.findMany({
+        where: {
+          deleted_at: null,
+          ...(Object.keys(companyWhere).length > 0 ? { AND: [companyWhere] } : {}),
+        },
+        orderBy: { name: 'asc' },
+        select: { id: true, name: true },
+      }),
 
-    (this.prisma as any).farms.findMany({
-      where: {
-        deleted_at: null,
-        ...(Object.keys(farmWhere).length > 0 ? { AND: [farmWhere] } : {}),
-      },
-      orderBy: { name: 'asc' },
-      select: { id: true, name: true },
-    }),
+      (this.prisma as any).farms.findMany({
+        where: {
+          deleted_at: null,
+          ...(Object.keys(farmWhere).length > 0 ? { AND: [farmWhere] } : {}),
+        },
+        orderBy: { name: 'asc' },
+        select: { id: true, name: true },
+      }),
 
-    (this.prisma as any).factories.findMany({
-      where: {
-        deleted_at: null,
-        ...(Object.keys(factoryWhere).length > 0 ? { AND: [factoryWhere] } : {}),
-      },
-      orderBy: { name: 'asc' },
-      select: { id: true, name: true },
-    }),
+      (this.prisma as any).factories.findMany({
+        where: {
+          deleted_at: null,
+          ...(Object.keys(factoryWhere).length > 0 ? { AND: [factoryWhere] } : {}),
+        },
+        orderBy: { name: 'asc' },
+        select: { id: true, name: true },
+      }),
 
-    (this.prisma as any).stations.findMany({
-      where: {
-        deleted_at: null,
-        ...(Object.keys(stationWhere).length > 0 ? { AND: [stationWhere] } : {}),
-      },
-      orderBy: { name: 'asc' },
-      select: { id: true, name: true },
-    }),
-  ]);
+      (this.prisma as any).stations.findMany({
+        where: {
+          deleted_at: null,
+          ...(Object.keys(stationWhere).length > 0 ? { AND: [stationWhere] } : {}),
+        },
+        orderBy: { name: 'asc' },
+        select: { id: true, name: true },
+      }),
+    ]);
 
-  return {
-    permissions: permissions.map((permission: any) => ({
-      id: permission.id,
-      module: permission.module,
-      action: permission.action,
-      description: permission.description,
-    })),
-
-    managers: managers.map((user: any) => ({
-      id: user.id,
-      label: `${user.first_name} ${user.last_name} — ${
-        user.title || user.job_title || user.email
-      }`,
-    })),
-
-    scopeTargets: {
-      GROUP: groups.map((item: any) => ({
-        id: item.id,
-        label: item.name,
+    return {
+      permissions: permissions.map((permission: any) => ({
+        id: permission.id,
+        module: permission.module,
+        action: permission.action,
+        description: permission.description,
       })),
 
-      COMPANY: companies.map((item: any) => ({
-        id: item.id,
-        label: item.name,
+      managers: managers.map((user: any) => ({
+        id: user.id,
+        label: `${user.first_name} ${user.last_name} — ${
+          user.title || user.job_title || user.email
+        }`,
       })),
 
-      FARM: farms.map((item: any) => ({
-        id: item.id,
-        label: item.name,
-      })),
+      scopeTargets: {
+        GROUP: groups.map((item: any) => ({
+          id: item.id,
+          label: item.name,
+        })),
 
-      FACTORY: factories.map((item: any) => ({
-        id: item.id,
-        label: item.name,
-      })),
+        COMPANY: companies.map((item: any) => ({
+          id: item.id,
+          label: item.name,
+        })),
 
-      STATION: stations.map((item: any) => ({
-        id: item.id,
-        label: item.name,
-      })),
-    },
-  };
-}
+        FARM: farms.map((item: any) => ({
+          id: item.id,
+          label: item.name,
+        })),
+
+        FACTORY: factories.map((item: any) => ({
+          id: item.id,
+          label: item.name,
+        })),
+
+        STATION: stations.map((item: any) => ({
+          id: item.id,
+          label: item.name,
+        })),
+      },
+    };
+  }
 
   async create(currentUserId: string, dto: CreateProfileDto) {
     if (dto.assignmentType && !dto.assignmentId) {
@@ -303,7 +301,7 @@ async getMeta(currentUserId: string) {
         });
       }
 
-      return this.findOne(currentUserId, user.id);
+      return this.findOneWithClient(tx, user.id);
     });
   }
 
@@ -337,6 +335,7 @@ async getMeta(currentUserId: string) {
           status: dto.status ?? undefined,
           assignment_type: dto.assignmentType ?? undefined,
           assignment_id: dto.assignmentId ?? undefined,
+          updated_at: new Date(),
         },
       });
 
@@ -349,6 +348,10 @@ async getMeta(currentUserId: string) {
             })),
           },
         });
+
+        if (permissions.length !== dto.permissions.length) {
+          throw new BadRequestException('Certaines permissions demandées sont introuvables.');
+        }
 
         await tx.role_permissions.deleteMany({
           where: {
@@ -386,7 +389,7 @@ async getMeta(currentUserId: string) {
         }
       }
 
-      return this.findOne(currentUserId, id);
+      return this.findOneWithClient(tx, id);
     });
   }
 
@@ -398,6 +401,7 @@ async getMeta(currentUserId: string) {
       data: {
         status: 'INACTIVE',
         deleted_at: new Date(),
+        updated_at: new Date(),
       },
     });
   }

@@ -241,7 +241,7 @@
   "pagination": {
     "previous": "Anterior",
     "next": "Siguiente",
-    "range": "Mostrando {start} a {end} de {total}"
+    "range": "Mostrando <strong>{start}</strong> a <strong>{end}</strong> de <strong>{total}</strong>"
   },
   "table": {
     "date": "Fecha",
@@ -572,9 +572,9 @@
       },
       "plotStatus": {
         "PRODUCTION": "Producción",
-        "YOUNG": "Joven",
-        "RESTING": "Reposo",
-        "FALLOW": "Barbecho",
+        "JEUNE": "Joven",
+        "REPOS": "Reposo",
+        "EN_FRICHE": "En barbecho",
         "ARCHIVED": "Archivada"
       },
       "vehicleType": {

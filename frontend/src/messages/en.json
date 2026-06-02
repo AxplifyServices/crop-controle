@@ -241,7 +241,7 @@
   "pagination": {
     "previous": "Previous",
     "next": "Next",
-    "range": "Showing {start} to {end} of {total}"
+    "range": "Showing <strong>{start}</strong> to <strong>{end}</strong> of <strong>{total}</strong>"
   },
   "table": {
     "date": "Date",
@@ -572,9 +572,9 @@
       },
       "plotStatus": {
         "PRODUCTION": "Production",
-        "YOUNG": "Young",
-        "RESTING": "Resting",
-        "FALLOW": "Fallow",
+        "JEUNE": "Young",
+        "REPOS": "Resting",
+        "EN_FRICHE": "Fallow",
         "ARCHIVED": "Archived"
       },
       "vehicleType": {

@@ -16,6 +16,34 @@ export class PlotsService {
     return (this.prisma as any)[this.modelName];
   }
 
+  private get includeRelations() {
+    return {
+      cultures: {
+        select: {
+          id: true,
+          name: true,
+          code: true,
+        },
+      },
+      farms: {
+        select: {
+          id: true,
+          name: true,
+          code: true,
+          company_id: true,
+          companies: {
+            select: {
+              id: true,
+              name: true,
+              code: true,
+              group_id: true,
+            },
+          },
+        },
+      },
+    };
+  }
+
   async findAll(currentUserId: string) {
     const scopedWhere = await this.accessControl.getScopedWhere(
       currentUserId,
@@ -31,6 +59,7 @@ export class PlotsService {
             }
           : {}),
       },
+      include: this.includeRelations,
       orderBy: {
         created_at: 'desc',
       },
@@ -53,6 +82,7 @@ export class PlotsService {
             }
           : {}),
       },
+      include: this.includeRelations,
     });
 
     if (!item) {
@@ -87,10 +117,12 @@ export class PlotsService {
         code: dto.code,
         name: dto.name,
         surface_ha: dto.surface_ha,
+        variety: dto.variety,
         status: dto.status,
         latitude: dto.latitude,
         longitude: dto.longitude,
       },
+      include: this.includeRelations,
     });
   }
 
@@ -124,11 +156,13 @@ export class PlotsService {
         code: dto.code,
         name: dto.name,
         surface_ha: dto.surface_ha,
+        variety: dto.variety,
         status: dto.status,
         latitude: dto.latitude,
         longitude: dto.longitude,
         updated_at: new Date(),
       },
+      include: this.includeRelations,
     });
   }
 

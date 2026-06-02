@@ -253,7 +253,7 @@
   "pagination": {
     "previous": "Précédent",
     "next": "Suivant",
-    "range": "Affichage de {start} à {end} sur {total}"
+    "range": "Affichage de <strong>{start}</strong> à <strong>{end}</strong> sur <strong>{total}</strong>"
   },
   "table": {
     "date": "Date",
@@ -584,9 +584,9 @@
       },
       "plotStatus": {
         "PRODUCTION": "Production",
-        "YOUNG": "Jeune",
-        "RESTING": "Repos",
-        "FALLOW": "En friche",
+        "JEUNE": "Jeune",
+        "REPOS": "Repos",
+        "EN_FRICHE": "En friche",
         "ARCHIVED": "Archivée"
       },
       "vehicleType": {
