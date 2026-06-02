@@ -316,6 +316,10 @@
     "companies": "Empresas",
     "farms": "Fincas",
     "plots": "Parcelas",
+    "production": "Producción agrícola",
+    "agriculturalProjects": "Proyectos agrícolas",
+    "treatments": "Tratamientos",
+    "productions": "Producciones",
     "factories": "Fábricas",
     "products": "Productos",
     "agriculture": "Producción agrícola",
@@ -370,6 +374,32 @@
   },
   "Referential": {
     "phaseTitle": "Referencial organizativo",
+    "ressources" : {
+      "agriculturalProjects": {
+  "title": "Proyectos agrícolas",
+  "description": "Seguimiento de campañas agrícolas, parcelas, productos, variedades, plantas y temporadas."
+},
+"plantations": {
+  "title": "Plantaciones",
+  "description": "Seguimiento de plantaciones, densidades, cantidades plantadas y costes asociados."
+},
+"treatments": {
+  "title": "Tratamientos fitosanitarios",
+  "description": "Seguimiento de tratamientos, productos aplicados, dosis, superficies tratadas y costes."
+},
+"harvests": {
+  "title": "Cosechas",
+  "description": "Seguimiento de cosechas por proyecto, finca, parcela, producto, variedad y calidad."
+},
+"productions": {
+  "title": "Producciones",
+  "description": "Seguimiento de la producción agrícola, rendimiento por planta y calidad."
+},
+"charges": {
+  "title": "Costes agrícolas",
+  "description": "Seguimiento de costes por finca, proyecto, parcela y tipo de coste."
+}
+    },
     "actions": {
       "title": "Acciones",
       "refresh": "Actualizar",
@@ -399,7 +429,10 @@
       "plotYoung": "Jóvenes",
       "plotResting": "Reposo",
       "plotFallow": "En barbecho",
-      "plotArchived": "Archivadas"
+      "plotArchived": "Archivadas",
+      "projectPreparation": "Proyectos en preparación",
+"projectInProduction": "Proyectos en producción",
+"projectClosed": "Proyectos cerrados"
     },
     "details": {
       "mainInfo": "Información principal",
@@ -479,10 +512,44 @@
       "farmId": "Finca",
       "factoryId": "Fábrica",
       "stationId": "Estación",
+      "projectId": "Proyecto agrícola",
+"harvestId": "Cosecha",
+"varietyId": "Variedad",
+"season": "Temporada",
+"plantCount": "Número de plantas",
+"activePlantCount": "Plantas activas",
+"startDate": "Fecha de inicio",
+"expectedEndDate": "Fecha fin prevista",
+"endDate": "Fecha de fin",
+"plantingDate": "Fecha de plantación",
+"plantQuantity": "Cantidad plantada",
+"density": "Densidad",
+"totalCost": "Coste total",
+"currency": "Divisa",
+"observations": "Observaciones",
+"treatmentDate": "Fecha de tratamiento",
+"productType": "Tipo de producto",
+"productName": "Nombre del producto",
+"dose": "Dosis",
+"treatedSurfaceHa": "Superficie tratada ha",
+"cost": "Coste",
+"harvestDate": "Fecha de cosecha",
+"weightTotalKg": "Peso total kg",
+"team": "Equipo",
+"qualityGrade": "Calidad",
+"productionDate": "Fecha de producción",
+"quantityKg": "Cantidad kg",
+"productionPerPlant": "Producción por planta",
+"source": "Fuente",
+"label": "Etiqueta",
+"quantity": "Cantidad",
+"unit": "Unidad",
+"unitCost": "Coste unitario",
+"supplier": "Proveedor",
+"chargeDate": "Fecha de coste",
       "productId": "Producto",
       "userId": "Usuario",
       "cultureId": "Cultivo",
-      "varietyId": "Variedad",
       "legalName": "Razón social",
       "code": "Código",
       "codeInternal": "Código interno",
@@ -529,6 +596,44 @@
       "salary": "Salario"
     },
     "options": {
+      "projectStatus": {
+  "PREPARATION": "Preparación",
+  "IN_PRODUCTION": "En producción",
+  "FINISHED": "Terminado",
+  "SUSPENDED": "Suspendido",
+  "CANCELLED": "Cancelado"
+},
+"plantationCategory": {
+  "ANNUAL": "Anual",
+  "MULTI_YEAR": "Plurianual",
+  "RENEWAL": "Renovación",
+  "OTHER": "Otro"
+},
+"qualityGrade": {
+  "A": "A",
+  "B": "B",
+  "C": "C",
+  "PREMIUM": "Premium",
+  "STANDARD": "Estándar",
+  "DOWNGRADED": "Degradado",
+  "REFUSED": "Rechazado"
+},
+"chargeType": {
+  "WATER": "Agua",
+  "FERTILIZER": "Fertilizante",
+  "SEEDS": "Semillas",
+  "PLANTS": "Plantas",
+  "PHYTOSANITARY": "Fitosanitario",
+  "LABOR": "Mano de obra",
+  "ENERGY": "Energía",
+  "MATERIAL": "Material",
+  "PACKAGING": "Embalaje",
+  "INTERNAL_TRANSPORT": "Transporte interno",
+  "MAINTENANCE": "Mantenimiento",
+  "RENT": "Alquiler",
+  "LOGISTICS": "Logística",
+  "OTHER": "Otro"
+},
       "status": {
         "ACTIVE": "Activo",
         "INACTIVE": "Inactivo",

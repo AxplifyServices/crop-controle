@@ -1455,6 +1455,11 @@ function buildEditForm(config: ResourceConfig, item: RecordItem) {
       continue;
     }
 
+    if (field.type === 'date') {
+      nextForm[field.key] = normalizeDateInputValue(value);
+      continue;
+    }
+
     if (field.type === 'multiselect') {
       nextForm[field.key] = Array.isArray(value) ? value : [];
       continue;
@@ -1464,6 +1469,22 @@ function buildEditForm(config: ResourceConfig, item: RecordItem) {
   }
 
   return nextForm;
+}
+
+function normalizeDateInputValue(value: unknown) {
+  if (!value) {
+    return null;
+  }
+
+  if (typeof value === 'string') {
+    return value.slice(0, 10);
+  }
+
+  if (value instanceof Date) {
+    return value.toISOString().slice(0, 10);
+  }
+
+  return String(value).slice(0, 10);
 }
 
 function isFieldVisible(field: ResourceField, form: RecordItem) {

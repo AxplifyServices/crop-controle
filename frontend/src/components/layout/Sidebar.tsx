@@ -6,6 +6,7 @@ import {
   Building2,
   ChevronRight,
   Leaf,
+  Sprout,
   UserCog,
   X
 } from 'lucide-react';
@@ -54,6 +55,42 @@ const menuGroups: MenuGroup[] = [
       },
       {key: 'vehicles', href: '/referentiel/vehicles', module: 'vehicles'},
       {key: 'personnel', href: '/referentiel/personnel', module: 'personnel'}
+    ]
+  },
+    {
+    key: 'production',
+    icon: Sprout,
+    items: [
+      {
+        key: 'agriculturalProjects',
+        href: '/production/agricultural-projects',
+        module: 'agricultural-projects'
+      },
+      {
+        key: 'plantations',
+        href: '/production/plantations',
+        module: 'plantations'
+      },
+      {
+        key: 'treatments',
+        href: '/production/treatments',
+        module: 'treatments'
+      },
+      {
+        key: 'harvests',
+        href: '/production/harvests',
+        module: 'harvests'
+      },
+      {
+        key: 'productions',
+        href: '/production/productions',
+        module: 'productions'
+      },
+      {
+        key: 'charges',
+        href: '/production/charges',
+        module: 'charges'
+      }
     ]
   },
   {

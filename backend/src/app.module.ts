@@ -21,6 +21,14 @@ import { LegalIdentifierTypesModule } from './legal-identifier-types/legal-ident
 import { CulturesModule } from './cultures/cultures.module';
 import { ProfilesModule } from './profiles/profiles.module';
 import { AuditLogsModule } from './audit-logs/audit-logs.module';
+
+import { AgriculturalProjectsModule } from './agricultural-projects/agricultural-projects.module';
+import { PlantationsModule } from './plantations/plantations.module';
+import { TreatmentsModule } from './treatments/treatments.module';
+import { HarvestsModule } from './harvests/harvests.module';
+import { ProductionsModule } from './productions/productions.module';
+import { ChargesModule } from './charges/charges.module';
+
 import { AuditLogInterceptor } from './common/interceptors/audit-log.interceptor';
 
 @Module({
@@ -48,6 +56,13 @@ import { AuditLogInterceptor } from './common/interceptors/audit-log.interceptor
     CulturesModule,
     ProfilesModule,
     AuditLogsModule,
+
+    AgriculturalProjectsModule,
+    PlantationsModule,
+    TreatmentsModule,
+    HarvestsModule,
+    ProductionsModule,
+    ChargesModule,
   ],
   providers: [
     {

@@ -537,6 +537,162 @@ export class AccessControlService {
       return or.length > 0 ? { OR: or } : this.emptyScopeWhere();
     }
 
+    if (type === 'AGRICULTURAL_PROJECT') {
+      this.addIfNotEmpty(
+        or,
+        {
+          farms: {
+            companies: {
+              group_id: {
+                in: groupIds,
+              },
+            },
+          },
+        },
+        groupIds,
+      );
+
+      this.addIfNotEmpty(
+        or,
+        {
+          farms: {
+            company_id: {
+              in: companyIds,
+            },
+          },
+        },
+        companyIds,
+      );
+
+      this.addIfNotEmpty(or, { farm_id: { in: farmIds } }, farmIds);
+
+      return or.length > 0 ? { OR: or } : this.emptyScopeWhere();
+    }
+
+    if (type === 'PLANTATION') {
+      this.addIfNotEmpty(
+        or,
+        {
+          agricultural_projects: {
+            farms: {
+              companies: {
+                group_id: {
+                  in: groupIds,
+                },
+              },
+            },
+          },
+        },
+        groupIds,
+      );
+
+      this.addIfNotEmpty(
+        or,
+        {
+          agricultural_projects: {
+            farms: {
+              company_id: {
+                in: companyIds,
+              },
+            },
+          },
+        },
+        companyIds,
+      );
+
+      this.addIfNotEmpty(
+        or,
+        {
+          plots: {
+            farm_id: {
+              in: farmIds,
+            },
+          },
+        },
+        farmIds,
+      );
+
+      return or.length > 0 ? { OR: or } : this.emptyScopeWhere();
+    }
+
+    if (type === 'TREATMENT') {
+      this.addIfNotEmpty(
+        or,
+        {
+          plots: {
+            farms: {
+              companies: {
+                group_id: {
+                  in: groupIds,
+                },
+              },
+            },
+          },
+        },
+        groupIds,
+      );
+
+      this.addIfNotEmpty(
+        or,
+        {
+          plots: {
+            farms: {
+              company_id: {
+                in: companyIds,
+              },
+            },
+          },
+        },
+        companyIds,
+      );
+
+      this.addIfNotEmpty(
+        or,
+        {
+          plots: {
+            farm_id: {
+              in: farmIds,
+            },
+          },
+        },
+        farmIds,
+      );
+
+      return or.length > 0 ? { OR: or } : this.emptyScopeWhere();
+    }
+
+    if (type === 'HARVEST' || type === 'PRODUCTION' || type === 'CHARGE') {
+      this.addIfNotEmpty(
+        or,
+        {
+          farms: {
+            companies: {
+              group_id: {
+                in: groupIds,
+              },
+            },
+          },
+        },
+        groupIds,
+      );
+
+      this.addIfNotEmpty(
+        or,
+        {
+          farms: {
+            company_id: {
+              in: companyIds,
+            },
+          },
+        },
+        companyIds,
+      );
+
+      this.addIfNotEmpty(or, { farm_id: { in: farmIds } }, farmIds);
+
+      return or.length > 0 ? { OR: or } : this.emptyScopeWhere();
+    }
+
     /**
      * Référentiels globaux : cultures, products, product-varieties,
      * geography, legal-identifier-types.

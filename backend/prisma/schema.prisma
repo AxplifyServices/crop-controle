@@ -101,6 +101,7 @@ model charges {
   created_by_id         String?                @db.Uuid
   created_at            DateTime               @default(now()) @db.Timestamp(6)
   updated_at            DateTime               @default(now()) @db.Timestamp(6)
+  deleted_at            DateTime?              @db.Timestamp(6)
   companies             companies?             @relation(fields: [company_id], references: [id], onUpdate: NoAction, map: "fk_charges_company")
   users                 users?                 @relation(fields: [created_by_id], references: [id], onUpdate: NoAction, map: "fk_charges_created_by")
   farms                 farms                  @relation(fields: [farm_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_charges_farm")
@@ -113,6 +114,7 @@ model charges {
   @@index([farm_id], map: "idx_charges_farm_id")
   @@index([project_id], map: "idx_charges_project_id")
   @@index([type], map: "idx_charges_type")
+  @@index([deleted_at], map: "idx_charges_deleted_at")
 }
 
 model clients {
@@ -582,6 +584,7 @@ model harvests {
   created_by_id         String?               @db.Uuid
   created_at            DateTime              @default(now()) @db.Timestamp(6)
   updated_at            DateTime              @default(now()) @db.Timestamp(6)
+  deleted_at            DateTime?             @db.Timestamp(6)
   users                 users?                @relation(fields: [created_by_id], references: [id], onUpdate: NoAction, map: "fk_harvests_created_by")
   farms                 farms                 @relation(fields: [farm_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_harvests_farm")
   plots                 plots?                @relation(fields: [plot_id], references: [id], onUpdate: NoAction, map: "fk_harvests_plot")
@@ -594,6 +597,7 @@ model harvests {
   @@index([harvest_date], map: "idx_harvests_date")
   @@index([farm_id], map: "idx_harvests_farm_id")
   @@index([project_id], map: "idx_harvests_project_id")
+  @@index([deleted_at], map: "idx_harvests_deleted_at")
 }
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
@@ -813,6 +817,7 @@ model plantations {
   created_by_id         String?                   @db.Uuid
   created_at            DateTime                  @default(now()) @db.Timestamp(6)
   updated_at            DateTime                  @default(now()) @db.Timestamp(6)
+  deleted_at            DateTime?                 @db.Timestamp(6)
   users                 users?                    @relation(fields: [created_by_id], references: [id], onUpdate: NoAction, map: "fk_plantations_created_by")
   plots                 plots                     @relation(fields: [plot_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_plantations_plot")
   products              products                  @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_plantations_product")
@@ -822,6 +827,7 @@ model plantations {
   @@index([planting_date], map: "idx_plantations_planting_date")
   @@index([plot_id], map: "idx_plantations_plot_id")
   @@index([project_id], map: "idx_plantations_project_id")
+  @@index([deleted_at], map: "idx_plantations_deleted_at")
 }
 
 model plots {
@@ -900,6 +906,7 @@ model productions {
   created_by_id         String?               @db.Uuid
   created_at            DateTime              @default(now()) @db.Timestamp(6)
   updated_at            DateTime              @default(now()) @db.Timestamp(6)
+  deleted_at            DateTime?             @db.Timestamp(6)
   users                 users?                @relation(fields: [created_by_id], references: [id], onUpdate: NoAction, map: "fk_productions_created_by")
   farms                 farms                 @relation(fields: [farm_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_productions_farm")
   harvests              harvests?             @relation(fields: [harvest_id], references: [id], onUpdate: NoAction, map: "fk_productions_harvest")
@@ -912,6 +919,7 @@ model productions {
   @@index([farm_id], map: "idx_productions_farm_id")
   @@index([product_id], map: "idx_productions_product_id")
   @@index([project_id], map: "idx_productions_project_id")
+  @@index([deleted_at], map: "idx_productions_deleted_at")
 }
 
 model products {
@@ -1148,6 +1156,7 @@ model treatments {
   created_by_id         String?                @db.Uuid
   created_at            DateTime               @default(now()) @db.Timestamp(6)
   updated_at            DateTime               @default(now()) @db.Timestamp(6)
+  deleted_at            DateTime?              @db.Timestamp(6)
   users                 users?                 @relation(fields: [created_by_id], references: [id], onUpdate: NoAction, map: "fk_treatments_created_by")
   plots                 plots                  @relation(fields: [plot_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_treatments_plot")
   agricultural_projects agricultural_projects? @relation(fields: [project_id], references: [id], onUpdate: NoAction, map: "fk_treatments_project")
@@ -1155,6 +1164,7 @@ model treatments {
   @@index([treatment_date], map: "idx_treatments_date")
   @@index([plot_id], map: "idx_treatments_plot_id")
   @@index([project_id], map: "idx_treatments_project_id")
+  @@index([deleted_at], map: "idx_treatments_deleted_at")
 }
 
 model user_scopes {

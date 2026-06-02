@@ -1,4 +1,10 @@
-export type FieldType = 'text' | 'number' | 'select' | 'lookup' | 'multiselect';
+export type FieldType =
+  | 'text'
+  | 'number'
+  | 'date'
+  | 'select'
+  | 'lookup'
+  | 'multiselect';
 
 export type ResourceOption = {
   labelKey: string;

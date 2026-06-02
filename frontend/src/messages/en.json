@@ -314,6 +314,13 @@
     "referential": "Reference data",
     "groups": "Groups",
     "companies": "Companies",
+    "production": "Agricultural production",
+"agriculturalProjects": "Agricultural projects",
+
+"treatments": "Treatments",
+
+"productions": "Productions",
+
     "farms": "Farms",
     "plots": "Plots",
     "factories": "Factories",
@@ -370,6 +377,32 @@
   },
   "Referential": {
     "phaseTitle": "Organizational reference data",
+    "ressources" : {
+      "agriculturalProjects": {
+  "title": "Agricultural projects",
+  "description": "Track crop campaigns, plots, products, varieties, plants and seasons."
+},
+"plantations": {
+  "title": "Plantations",
+  "description": "Track planting operations, densities, planted quantities and related costs."
+},
+"treatments": {
+  "title": "Phytosanitary treatments",
+  "description": "Track treatments, applied products, doses, treated areas and costs."
+},
+"harvests": {
+  "title": "Harvests",
+  "description": "Track harvests by project, farm, plot, product, variety and quality."
+},
+"productions": {
+  "title": "Productions",
+  "description": "Track agricultural output, yield per plant and quality."
+},
+"charges": {
+  "title": "Agricultural costs",
+  "description": "Track costs by farm, project, plot and cost type."
+}
+    },
     "actions": {
       "title": "Actions",
       "refresh": "Refresh",
@@ -399,7 +432,10 @@
       "plotYoung": "Young",
       "plotResting": "Resting",
       "plotFallow": "Fallow",
-      "plotArchived": "Archived"
+      "plotArchived": "Archived",
+      "projectPreparation": "Projects in preparation",
+"projectInProduction": "Projects in production",
+"projectClosed": "Closed projects"
     },
     "details": {
       "mainInfo": "Main information",
@@ -479,10 +515,45 @@
       "farmId": "Farm",
       "factoryId": "Factory",
       "stationId": "Station",
+      "projectId": "Agricultural project",
+"harvestId": "Harvest",
+"varietyId": "Variety",
+"season": "Season",
+"plantCount": "Plant count",
+"activePlantCount": "Active plants",
+"startDate": "Start date",
+"expectedEndDate": "Expected end date",
+"endDate": "End date",
+"plantingDate": "Planting date",
+"plantQuantity": "Planted quantity",
+"density": "Density",
+"totalCost": "Total cost",
+"currency": "Currency",
+"observations": "Observations",
+"treatmentDate": "Treatment date",
+"productType": "Product type",
+"productName": "Product name",
+"dose": "Dose",
+"treatedSurfaceHa": "Treated area ha",
+"cost": "Cost",
+"harvestDate": "Harvest date",
+"weightTotalKg": "Total weight kg",
+"team": "Team",
+"qualityGrade": "Quality grade",
+"productionDate": "Production date",
+"quantityKg": "Quantity kg",
+"productionPerPlant": "Production per plant",
+"source": "Source",
+
+"label": "Label",
+"quantity": "Quantity",
+"unit": "Unit",
+"unitCost": "Unit cost",
+"supplier": "Supplier",
+"chargeDate": "Cost date",
       "productId": "Product",
       "userId": "User",
       "cultureId": "Crop",
-      "varietyId": "Variety",
       "legalName": "Legal name",
       "code": "Code",
       "codeInternal": "Internal code",
@@ -529,6 +600,44 @@
       "salary": "Salary"
     },
     "options": {
+      "projectStatus": {
+  "PREPARATION": "Preparation",
+  "IN_PRODUCTION": "In production",
+  "FINISHED": "Finished",
+  "SUSPENDED": "Suspended",
+  "CANCELLED": "Cancelled"
+},
+"plantationCategory": {
+  "ANNUAL": "Annual",
+  "MULTI_YEAR": "Multi-year",
+  "RENEWAL": "Renewal",
+  "OTHER": "Other"
+},
+"qualityGrade": {
+  "A": "A",
+  "B": "B",
+  "C": "C",
+  "PREMIUM": "Premium",
+  "STANDARD": "Standard",
+  "DOWNGRADED": "Downgraded",
+  "REFUSED": "Refused"
+},
+"chargeType": {
+  "WATER": "Water",
+  "FERTILIZER": "Fertilizer",
+  "SEEDS": "Seeds",
+  "PLANTS": "Plants",
+  "PHYTOSANITARY": "Phytosanitary",
+  "LABOR": "Labor",
+  "ENERGY": "Energy",
+  "MATERIAL": "Material",
+  "PACKAGING": "Packaging",
+  "INTERNAL_TRANSPORT": "Internal transport",
+  "MAINTENANCE": "Maintenance",
+  "RENT": "Rent",
+  "LOGISTICS": "Logistics",
+  "OTHER": "Other"
+},
       "status": {
         "ACTIVE": "Active",
         "INACTIVE": "Inactive",

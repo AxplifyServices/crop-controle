@@ -326,6 +326,10 @@
     "referential": "Référentiel",
     "groups": "Groupes",
     "companies": "Entreprises",
+    "production": "Production agricole",
+"agriculturalProjects": "Projets agricoles",
+"treatments": "Traitements",
+"productions": "Productions",
     "farms": "Fermes",
     "plots": "Parcelles",
     "factories": "Usines",
@@ -381,6 +385,32 @@
     "notifications": "Notifications"
   },
   "Referential": {
+    "ressources" : {
+"agriculturalProjects": {
+  "title": "Projets agricoles",
+  "description": "Suivi des campagnes agricoles, parcelles, produits, variétés, plantes et saisons."
+},
+"plantations": {
+  "title": "Plantations",
+  "description": "Suivi des plantations, densités, quantités plantées et coûts associés."
+},
+"treatments": {
+  "title": "Traitements phytosanitaires",
+  "description": "Suivi des traitements, produits appliqués, doses, surfaces traitées et coûts."
+},
+"harvests": {
+  "title": "Récoltes",
+  "description": "Suivi des récoltes par projet, ferme, parcelle, produit, variété et qualité."
+},
+"productions": {
+  "title": "Productions",
+  "description": "Suivi de la production agricole, rendement par plante et qualité."
+},
+"charges": {
+  "title": "Charges agricoles",
+  "description": "Suivi des charges par ferme, projet, parcelle et type de coût."
+}
+    },
     "phaseTitle": "Référentiel organisationnel",
     "actions": {
       "title": "Actions",
@@ -411,7 +441,10 @@
       "plotYoung": "Jeunes",
       "plotResting": "Repos",
       "plotFallow": "En friche",
-      "plotArchived": "Archivées"
+      "plotArchived": "Archivées",
+      "projectPreparation": "Projects in preparation",
+"projectInProduction": "Projects in production",
+"projectClosed": "Closed projects"
     },
     "details": {
       "mainInfo": "Informations principales",
@@ -497,6 +530,40 @@
       "varietyId": "Variété",
       "legalName": "Raison sociale",
       "code": "Code",
+      "projectId": "Projet agricole",
+"harvestId": "Récolte",
+"season": "Saison",
+"plantCount": "Nombre de plantes",
+"activePlantCount": "Plantes actives",
+"startDate": "Date de début",
+"expectedEndDate": "Date de fin prévue",
+"endDate": "Date de fin",
+"plantingDate": "Date de plantation",
+"plantQuantity": "Quantité plantée",
+"density": "Densité",
+"totalCost": "Coût total",
+"currency": "Devise",
+"observations": "Observations",
+"treatmentDate": "Date de traitement",
+"productType": "Type de produit",
+"productName": "Nom du produit",
+"dose": "Dose",
+"treatedSurfaceHa": "Surface traitée ha",
+"cost": "Coût",
+"harvestDate": "Date de récolte",
+"weightTotalKg": "Poids total kg",
+"team": "Équipe",
+"qualityGrade": "Qualité",
+"productionDate": "Date de production",
+"quantityKg": "Quantité kg",
+"productionPerPlant": "Production par plante",
+"source": "Source",
+"label": "Libellé",
+"quantity": "Quantité",
+"unit": "Unité",
+"unitCost": "Coût unitaire",
+"supplier": "Fournisseur",
+"chargeDate": "Date de charge",
       "codeInternal": "Code interne",
       "ice": "ICE",
       "iceMorocco": "ICE",
@@ -541,6 +608,44 @@
       "salary": "Salaire"
     },
     "options": {
+      "projectStatus": {
+  "PREPARATION": "Préparation",
+  "IN_PRODUCTION": "En production",
+  "FINISHED": "Terminé",
+  "SUSPENDED": "Suspendu",
+  "CANCELLED": "Annulé"
+},
+"plantationCategory": {
+  "ANNUAL": "Annuelle",
+  "MULTI_YEAR": "Pluriannuelle",
+  "RENEWAL": "Renouvellement",
+  "OTHER": "Autre"
+},
+"qualityGrade": {
+  "A": "A",
+  "B": "B",
+  "C": "C",
+  "PREMIUM": "Premium",
+  "STANDARD": "Standard",
+  "DOWNGRADED": "Déclassé",
+  "REFUSED": "Refusé"
+},
+"chargeType": {
+  "WATER": "Eau",
+  "FERTILIZER": "Engrais",
+  "SEEDS": "Semences",
+  "PLANTS": "Plants",
+  "PHYTOSANITARY": "Phytosanitaire",
+  "LABOR": "Main d’œuvre",
+  "ENERGY": "Énergie",
+  "MATERIAL": "Matériel",
+  "PACKAGING": "Emballage",
+  "INTERNAL_TRANSPORT": "Transport interne",
+  "MAINTENANCE": "Maintenance",
+  "RENT": "Loyer",
+  "LOGISTICS": "Logistique",
+  "OTHER": "Autre"
+},
       "status": {
         "ACTIVE": "Actif",
         "INACTIVE": "Inactif",
