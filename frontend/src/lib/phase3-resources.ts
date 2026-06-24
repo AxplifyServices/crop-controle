@@ -38,13 +38,22 @@ const plantationCategoryOptions: ResourceOption[] = [
 ];
 
 const qualityGradeOptions: ResourceOption[] = [
-  {labelKey: 'options.qualityGrade.A', value: 'A'},
-  {labelKey: 'options.qualityGrade.B', value: 'B'},
-  {labelKey: 'options.qualityGrade.C', value: 'C'},
-  {labelKey: 'options.qualityGrade.PREMIUM', value: 'PREMIUM'},
-  {labelKey: 'options.qualityGrade.STANDARD', value: 'STANDARD'},
-  {labelKey: 'options.qualityGrade.DOWNGRADED', value: 'DOWNGRADED'},
-  {labelKey: 'options.qualityGrade.REFUSED', value: 'REFUSED'}
+  {
+    labelKey: 'options.qualityGrade.PREMIUM',
+    value: 'PREMIUM'
+  },
+  {
+    labelKey: 'options.qualityGrade.STANDARD',
+    value: 'STANDARD'
+  },
+  {
+    labelKey: 'options.qualityGrade.DOWNGRADED',
+    value: 'DOWNGRADED'
+  },
+  {
+    labelKey: 'options.qualityGrade.REFUSED',
+    value: 'REFUSED'
+  }
 ];
 
 const chargeTypeOptions: ResourceOption[] = [
@@ -62,6 +71,21 @@ const chargeTypeOptions: ResourceOption[] = [
   {labelKey: 'options.chargeType.RENT', value: 'RENT'},
   {labelKey: 'options.chargeType.LOGISTICS', value: 'LOGISTICS'},
   {labelKey: 'options.chargeType.OTHER', value: 'OTHER'}
+];
+
+const currencyOptions: ResourceOption[] = [
+  {
+    labelKey: 'options.currency.MAD',
+    value: 'MAD'
+  },
+  {
+    labelKey: 'options.currency.EUR',
+    value: 'EUR'
+  },
+  {
+    labelKey: 'options.currency.USD',
+    value: 'USD'
+  }
 ];
 
 export const phase3Resources: Record<string, ResourceConfig> = {
@@ -178,69 +202,60 @@ export const phase3Resources: Record<string, ResourceConfig> = {
       'category',
       'total_cost'
     ],
-    filterFields: ['project_id', 'plot_id', 'product_id', 'variety_id', 'category'],
-    fields: [
-      {
-        key: 'project_id',
-        labelKey: 'fields.projectId',
-        type: 'lookup',
-        required: true,
-        lookup: {
-          endpoint: '/agricultural-projects',
-          valueKey: 'id',
-          labelKeys: ['name', 'season']
-        }
-      },
-      {
-        key: 'plot_id',
-        labelKey: 'fields.plotId',
-        type: 'lookup',
-        required: true,
-        lookup: {
-          endpoint: '/plots',
-          valueKey: 'id',
-          labelKeys: ['name', 'code'],
-          scopeEntityType: 'PLOT'
-        }
-      },
-      {
-        key: 'product_id',
-        labelKey: 'fields.productId',
-        type: 'lookup',
-        required: true,
-        lookup: {
-          endpoint: '/products',
-          valueKey: 'id',
-          labelKeys: ['name', 'code']
-        }
-      },
-      {
-        key: 'variety_id',
-        labelKey: 'fields.varietyId',
-        type: 'lookup',
-        lookup: {
-          endpoint: '/product-varieties',
-          valueKey: 'id',
-          labelKeys: ['name', 'code']
-        },
-        lookupFilter: {
-          fieldKey: 'product_id',
-          targetKey: 'product_id'
-        }
-      },
-      {key: 'planting_date', labelKey: 'fields.plantingDate', type: 'date', required: true},
-      {key: 'plant_quantity', labelKey: 'fields.plantQuantity', type: 'number', required: true},
-      {key: 'density', labelKey: 'fields.density', type: 'number'},
-      {
-        key: 'category',
-        labelKey: 'fields.category',
-        type: 'select',
-        options: plantationCategoryOptions
-      },
-      {key: 'total_cost', labelKey: 'fields.totalCost', type: 'number'},
-      {key: 'currency', labelKey: 'fields.currency', type: 'text'},
-      {key: 'observations', labelKey: 'fields.observations', type: 'text'}
-    ]
+    filterFields: ['project_id', 'category'],
+fields: [
+  {
+    key: 'project_id',
+    labelKey: 'fields.projectId',
+    type: 'lookup',
+    required: true,
+    lookup: {
+      endpoint: '/agricultural-projects',
+      valueKey: 'id',
+      labelKeys: ['name', 'season']
+    }
+  },
+  {
+    key: 'planting_date',
+    labelKey: 'fields.plantingDate',
+    type: 'date',
+    required: true
+  },
+  {
+    key: 'plant_quantity',
+    labelKey: 'fields.plantQuantity',
+    type: 'number',
+    required: true
+  },
+  {
+    key: 'density',
+    labelKey: 'fields.density',
+    type: 'number'
+  },
+  {
+    key: 'category',
+    labelKey: 'fields.category',
+    type: 'select',
+    options: plantationCategoryOptions
+  },
+  {
+    key: 'total_cost',
+    labelKey: 'fields.totalCost',
+    type: 'number'
+  },
+  {
+    key: 'currency',
+    labelKey: 'fields.currency',
+    type: 'select',
+    options: currencyOptions,
+    defaultValue: 'MAD'
+  },
+  {
+    key: 'observations',
+    labelKey: 'fields.observations',
+    type: 'text'
+  }
+]
   },
 
   treatments: {
@@ -258,7 +273,7 @@ export const phase3Resources: Record<string, ResourceConfig> = {
       'treated_surface_ha',
       'cost'
     ],
-    filterFields: ['plot_id', 'project_id', 'product_type'],
+    filterFields: ['project_id', 'product_type'],
     fields: [
       {
         key: 'project_id',
@@ -270,25 +285,20 @@ export const phase3Resources: Record<string, ResourceConfig> = {
           labelKeys: ['name', 'season']
         }
       },
-      {
-        key: 'plot_id',
-        labelKey: 'fields.plotId',
-        type: 'lookup',
-        required: true,
-        lookup: {
-          endpoint: '/plots',
-          valueKey: 'id',
-          labelKeys: ['name', 'code'],
-          scopeEntityType: 'PLOT'
-        }
-      },
+
       {key: 'treatment_date', labelKey: 'fields.treatmentDate', type: 'date', required: true},
       {key: 'product_type', labelKey: 'fields.productType', type: 'text'},
       {key: 'product_name', labelKey: 'fields.productName', type: 'text'},
       {key: 'dose', labelKey: 'fields.dose', type: 'text'},
       {key: 'treated_surface_ha', labelKey: 'fields.treatedSurfaceHa', type: 'number'},
       {key: 'cost', labelKey: 'fields.cost', type: 'number'},
-      {key: 'currency', labelKey: 'fields.currency', type: 'text'},
+      {
+  key: 'currency',
+  labelKey: 'fields.currency',
+  type: 'select',
+  options: currencyOptions,
+  defaultValue: 'MAD'
+},
       {key: 'observations', labelKey: 'fields.observations', type: 'text'}
     ]
   },
@@ -307,89 +317,48 @@ export const phase3Resources: Record<string, ResourceConfig> = {
       'weight_total_kg',
       'quality_grade'
     ],
-    filterFields: [
-      'project_id',
-      'farm_id',
-      'plot_id',
-      'product_id',
-      'variety_id',
-      'quality_grade'
-    ],
-    fields: [
-      {
-        key: 'project_id',
-        labelKey: 'fields.projectId',
-        type: 'lookup',
-        required: true,
-        lookup: {
-          endpoint: '/agricultural-projects',
-          valueKey: 'id',
-          labelKeys: ['name', 'season']
-        }
-      },
-      {
-        key: 'farm_id',
-        labelKey: 'fields.farmId',
-        type: 'lookup',
-        required: true,
-        lookup: {
-          endpoint: '/farms',
-          valueKey: 'id',
-          labelKeys: ['name', 'code'],
-          scopeEntityType: 'FARM'
-        }
-      },
-      {
-        key: 'plot_id',
-        labelKey: 'fields.plotId',
-        type: 'lookup',
-        lookup: {
-          endpoint: '/plots',
-          valueKey: 'id',
-          labelKeys: ['name', 'code'],
-          scopeEntityType: 'PLOT'
-        },
-        lookupFilter: {
-          fieldKey: 'farm_id',
-          targetKey: 'farm_id'
-        }
-      },
-      {
-        key: 'product_id',
-        labelKey: 'fields.productId',
-        type: 'lookup',
-        required: true,
-        lookup: {
-          endpoint: '/products',
-          valueKey: 'id',
-          labelKeys: ['name', 'code']
-        }
-      },
-      {
-        key: 'variety_id',
-        labelKey: 'fields.varietyId',
-        type: 'lookup',
-        lookup: {
-          endpoint: '/product-varieties',
-          valueKey: 'id',
-          labelKeys: ['name', 'code']
-        },
-        lookupFilter: {
-          fieldKey: 'product_id',
-          targetKey: 'product_id'
-        }
-      },
-      {key: 'harvest_date', labelKey: 'fields.harvestDate', type: 'date', required: true},
-      {key: 'weight_total_kg', labelKey: 'fields.weightTotalKg', type: 'number', required: true},
-      {key: 'team', labelKey: 'fields.team', type: 'text'},
-      {
-        key: 'quality_grade',
-        labelKey: 'fields.qualityGrade',
-        type: 'select',
-        options: qualityGradeOptions
-      },
-      {key: 'observations', labelKey: 'fields.observations', type: 'text'}
-    ]
+filterFields: ['project_id', 'quality_grade'],
+fields: [
+  {
+    key: 'project_id',
+    labelKey: 'fields.projectId',
+    type: 'lookup',
+    required: true,
+    lookup: {
+      endpoint: '/agricultural-projects',
+      valueKey: 'id',
+      labelKeys: ['name', 'season']
+    }
+  },
+  {
+    key: 'harvest_date',
+    labelKey: 'fields.harvestDate',
+    type: 'date',
+    required: true
+  },
+  {
+    key: 'weight_total_kg',
+    labelKey: 'fields.weightTotalKg',
+    type: 'number',
+    required: true
+  },
+  {
+    key: 'team',
+    labelKey: 'fields.team',
+    type: 'text'
+  },
+  {
+    key: 'quality_grade',
+    labelKey: 'fields.qualityGrade',
+    type: 'select',
+    options: qualityGradeOptions
+  },
+  {
+    key: 'observations',
+    labelKey: 'fields.observations',
+    type: 'text'
+  }
+]
   },
 
   productions: {
@@ -587,7 +556,13 @@ export const phase3Resources: Record<string, ResourceConfig> = {
       {key: 'unit', labelKey: 'fields.unit', type: 'text'},
       {key: 'unit_cost', labelKey: 'fields.unitCost', type: 'number'},
       {key: 'total_cost', labelKey: 'fields.totalCost', type: 'number'},
-      {key: 'currency', labelKey: 'fields.currency', type: 'text'},
+    {
+  key: 'currency',
+  labelKey: 'fields.currency',
+  type: 'select',
+  options: currencyOptions,
+  defaultValue: 'MAD'
+},
       {key: 'supplier', labelKey: 'fields.supplier', type: 'text'},
       {key: 'charge_date', labelKey: 'fields.chargeDate', type: 'date', required: true},
       {key: 'description', labelKey: 'fields.description', type: 'text'}

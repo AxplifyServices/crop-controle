@@ -98,87 +98,120 @@ export class PlantationsService {
     return item;
   }
 
-  async create(dto: CreatePlantationsDto, currentUserId: string) {
-    const project = await this.phase3Common.assertProject(
-      currentUserId,
-      dto.project_id,
-    );
+async create(dto: CreatePlantationsDto, currentUserId: string) {
+  const data = await this.phase3Common.buildDataFromProject(
+    currentUserId,
+    {
+      project_id: dto.project_id,
+      planting_date: new Date(dto.planting_date),
+      plant_quantity: dto.plant_quantity,
+      density: dto.density,
+      category: dto.category,
+      total_cost: dto.total_cost,
+      currency: dto.currency || 'MAD',
+      observations: dto.observations,
+      created_by_id: currentUserId,
+    },
+  );
 
-    await this.phase3Common.assertPlot(currentUserId, dto.plot_id);
-    await this.phase3Common.assertProduct(dto.product_id);
-    await this.phase3Common.assertVariety(dto.variety_id, dto.product_id);
+  await this.phase3Common.assertPlot(
+    currentUserId,
+    data.plot_id,
+  );
 
-    await this.phase3Common.validateProjectConsistency({
-      farmId: project?.farm_id,
-      plotId: dto.plot_id,
-      productId: dto.product_id,
-      varietyId: dto.variety_id,
-    });
+  await this.phase3Common.assertProduct(data.product_id);
 
-    return this.prisma.plantations.create({
-      data: {
-        project_id: dto.project_id,
-        plot_id: dto.plot_id,
-        product_id: dto.product_id,
-        variety_id: dto.variety_id,
-        planting_date: new Date(dto.planting_date),
-        plant_quantity: dto.plant_quantity,
-        density: dto.density,
-        category: dto.category,
-        total_cost: dto.total_cost,
-        currency: dto.currency,
-        observations: dto.observations,
-        created_by_id: currentUserId,
-      },
-      include: this.includeRelations,
-    });
-  }
+  await this.phase3Common.assertVariety(
+    data.variety_id,
+    data.product_id,
+  );
 
-  async update(id: string, dto: UpdatePlantationsDto, currentUserId: string) {
-    const existing = await this.findOne(id, currentUserId);
+  await this.phase3Common.validateProjectConsistency({
+    currentUserId,
+    projectId: data.project_id,
+    farmId: data.farm_id,
+    plotId: data.plot_id,
+    productId: data.product_id,
+    varietyId: data.variety_id,
+  });
 
-    const projectId = dto.project_id ?? existing.project_id;
-    const plotId = dto.plot_id ?? existing.plot_id;
-    const productId = dto.product_id ?? existing.product_id;
-    const varietyId = dto.variety_id ?? existing.variety_id;
+  return this.prisma.plantations.create({
+    data: {
+      project_id: data.project_id,
+      plot_id: data.plot_id,
+      product_id: data.product_id,
+      variety_id: data.variety_id,
+      planting_date: data.planting_date,
+      plant_quantity: data.plant_quantity,
+      density: data.density,
+      category: data.category,
+      total_cost: data.total_cost,
+      currency: data.currency,
+      observations: data.observations,
+      created_by_id: data.created_by_id,
+    },
+    include: this.includeRelations,
+  });
+}
 
-    const project = await this.phase3Common.assertProject(
-      currentUserId,
-      projectId,
-    );
+async update(
+  id: string,
+  dto: UpdatePlantationsDto,
+  currentUserId: string,
+) {
+  const existing = await this.findOne(id, currentUserId);
 
-    await this.phase3Common.assertPlot(currentUserId, plotId);
-    await this.phase3Common.assertProduct(productId);
-    await this.phase3Common.assertVariety(varietyId, productId);
+  const projectId = dto.project_id ?? existing.project_id;
 
-    await this.phase3Common.validateProjectConsistency({
-      farmId: project?.farm_id,
-      plotId,
-      productId,
-      varietyId,
-    });
+  const context = await this.phase3Common.buildDataFromProject(
+    currentUserId,
+    {
+      project_id: projectId,
+    },
+  );
 
-    return this.prisma.plantations.update({
-      where: { id },
-      data: {
-        project_id: dto.project_id,
-        plot_id: dto.plot_id,
-        product_id: dto.product_id,
-        variety_id: dto.variety_id,
-        planting_date: dto.planting_date
-          ? new Date(dto.planting_date)
-          : undefined,
-        plant_quantity: dto.plant_quantity,
-        density: dto.density,
-        category: dto.category,
-        total_cost: dto.total_cost,
-        currency: dto.currency,
-        observations: dto.observations,
-        updated_at: new Date(),
-      },
-      include: this.includeRelations,
-    });
-  }
+  await this.phase3Common.assertPlot(
+    currentUserId,
+    context.plot_id,
+  );
+
+  await this.phase3Common.assertProduct(context.product_id);
+
+  await this.phase3Common.assertVariety(
+    context.variety_id,
+    context.product_id,
+  );
+
+  await this.phase3Common.validateProjectConsistency({
+    currentUserId,
+    projectId,
+    farmId: context.farm_id,
+    plotId: context.plot_id,
+    productId: context.product_id,
+    varietyId: context.variety_id,
+  });
+
+  return this.prisma.plantations.update({
+    where: {id},
+    data: {
+      project_id: projectId,
+      plot_id: context.plot_id,
+      product_id: context.product_id,
+      variety_id: context.variety_id,
+      planting_date: dto.planting_date
+        ? new Date(dto.planting_date)
+        : undefined,
+      plant_quantity: dto.plant_quantity,
+      density: dto.density,
+      category: dto.category,
+      total_cost: dto.total_cost,
+      currency: dto.currency,
+      observations: dto.observations,
+      updated_at: new Date(),
+    },
+    include: this.includeRelations,
+  });
+}
 
   async remove(id: string, currentUserId: string) {
     await this.findOne(id, currentUserId);

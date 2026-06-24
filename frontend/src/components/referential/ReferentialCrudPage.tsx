@@ -251,14 +251,60 @@ function ReferentialCrudContent({config}: {config: ResourceConfig}) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+useEffect(() => {
+  if (!openForm) {
+    return;
+  }
+
+  const previousOverflow = document.body.style.overflow;
+
+  document.body.style.overflow = 'hidden';
+
+  return () => {
+    document.body.style.overflow = previousOverflow;
+  };
+}, [openForm]);
+
+useEffect(() => {
+  if (!openForm) {
+    return;
+  }
+
+  function handleEscape(event: KeyboardEvent) {
+    if (event.key === 'Escape' && !saving) {
+      setForm({});
+      setEditingId(null);
+      setOpenForm(false);
+    }
+  }
+
+  window.addEventListener('keydown', handleEscape);
+
+  return () => {
+    window.removeEventListener('keydown', handleEscape);
+  };
+}, [openForm, saving]);
+
   function resetForm() {
     setForm({});
     setEditingId(null);
     setOpenForm(false);
   }
 
+  function buildDefaultForm(config: ResourceConfig) {
+    const initialForm: RecordItem = {};
+
+    for (const field of config.fields) {
+      if (field.defaultValue !== undefined) {
+        initialForm[field.key] = field.defaultValue;
+      }
+    }
+
+    return initialForm;
+  }
+
   function startCreate() {
-    setForm({});
+    setForm(buildDefaultForm(config));
     setEditingId(null);
     setOpenForm(true);
   }
@@ -267,11 +313,6 @@ function ReferentialCrudContent({config}: {config: ResourceConfig}) {
     setForm(buildEditForm(config, item));
     setEditingId(item.id);
     setOpenForm(true);
-
-    window.scrollTo({
-      top: 0,
-      behavior: 'smooth'
-    });
   }
 
   function setFieldValue(field: ResourceField, value: string | string[]) {
@@ -508,27 +549,59 @@ function ReferentialCrudContent({config}: {config: ResourceConfig}) {
         </div>
       ) : null}
 
-      {openForm ? (
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-slate-950">
-              {editingId ? t('actions.edit') : t('actions.new')}
-            </h2>
-
-            <button
-              type="button"
-              onClick={resetForm}
-              className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-800"
-              aria-label={t('actions.cancel')}
-            >
-              <X size={18} />
-            </button>
-          </div>
-
-          <form
-            onSubmit={submitForm}
-            className="grid gap-4 md:grid-cols-2 xl:grid-cols-3"
+{openForm ? (
+  <div
+    className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/50 p-0 backdrop-blur-[2px] sm:items-center sm:p-4"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="referential-form-title"
+    onMouseDown={(event) => {
+      if (event.target === event.currentTarget && !saving) {
+        resetForm();
+      }
+    }}
+  >
+    <div
+      className="
+        flex h-[100dvh] w-full flex-col overflow-hidden bg-white
+        shadow-2xl
+        sm:h-auto sm:max-h-[92vh] sm:max-w-5xl sm:rounded-2xl
+      "
+      onMouseDown={(event) => event.stopPropagation()}
+    >
+      <div className="flex shrink-0 items-center justify-between border-b border-slate-200 px-4 py-4 sm:px-6">
+        <div>
+          <h2
+            id="referential-form-title"
+            className="text-lg font-semibold text-slate-950"
           >
+            {editingId
+              ? t('actions.edit')
+              : t('actions.new')}
+          </h2>
+
+          <p className="mt-1 text-sm text-slate-500">
+            {t(config.titleKey)}
+          </p>
+        </div>
+
+        <button
+          type="button"
+          onClick={resetForm}
+          disabled={saving}
+          className="flex h-10 w-10 items-center justify-center rounded-xl text-slate-500 transition hover:bg-slate-100 hover:text-slate-800 disabled:opacity-50"
+          aria-label={t('actions.cancel')}
+        >
+          <X size={20} />
+        </button>
+      </div>
+
+      <form
+        onSubmit={submitForm}
+        className="flex min-h-0 flex-1 flex-col"
+      >
+        <div className="min-h-0 flex-1 overflow-y-auto px-4 py-5 sm:px-6">
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {visibleFormFields.map((field) => (
               <FieldInput
                 key={field.key}
@@ -538,30 +611,38 @@ function ReferentialCrudContent({config}: {config: ResourceConfig}) {
                 currentRecordId={editingId}
                 lookupOptions={lookupOptions}
                 geographyOptions={geographyOptions}
-                onChange={(value) => setFieldValue(field, value)}
+                onChange={(value) =>
+                  setFieldValue(field, value)
+                }
               />
             ))}
-
-            <div className="flex items-end gap-2 md:col-span-2 xl:col-span-3">
-              <button
-                type="submit"
-                disabled={saving}
-                className="rounded-xl bg-emerald-700 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-800 disabled:opacity-60"
-              >
-                {saving ? t('messages.saving') : t('actions.save')}
-              </button>
-
-              <button
-                type="button"
-                onClick={resetForm}
-                className="rounded-xl border border-slate-200 px-5 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
-              >
-                {t('actions.cancel')}
-              </button>
-            </div>
-          </form>
+          </div>
         </div>
-      ) : null}
+
+        <div className="flex shrink-0 flex-col-reverse gap-2 border-t border-slate-200 bg-white px-4 py-4 sm:flex-row sm:justify-end sm:px-6">
+          <button
+            type="button"
+            onClick={resetForm}
+            disabled={saving}
+            className="h-11 rounded-xl border border-slate-200 px-5 text-sm font-medium text-slate-700 transition hover:bg-slate-50 disabled:opacity-50"
+          >
+            {t('actions.cancel')}
+          </button>
+
+          <button
+            type="submit"
+            disabled={saving}
+            className="h-11 rounded-xl bg-emerald-700 px-5 text-sm font-semibold text-white transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {saving
+              ? t('messages.saving')
+              : t('actions.save')}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+) : null}
 
       <div className="space-y-5">
         {sectionGroups.map((section, index) => (
@@ -885,6 +966,8 @@ function RecordsTable({
       setPage(totalPages);
     }
   }, [page, totalPages]);
+
+
 
   return (
     <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">

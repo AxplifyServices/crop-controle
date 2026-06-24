@@ -7,22 +7,12 @@ import {
   IsString,
   IsUUID,
 } from 'class-validator';
-import { Type } from 'class-transformer';
-import { plantation_category_enum } from '@prisma/client';
+import {Type} from 'class-transformer';
+import {plantation_category_enum} from '@prisma/client';
 
 export class CreatePlantationsDto {
   @IsUUID()
   project_id!: string;
-
-  @IsUUID()
-  plot_id!: string;
-
-  @IsUUID()
-  product_id!: string;
-
-  @IsOptional()
-  @IsUUID()
-  variety_id?: string;
 
   @IsDateString()
   planting_date!: string;
@@ -58,18 +48,6 @@ export class UpdatePlantationsDto {
   @IsOptional()
   @IsUUID()
   project_id?: string;
-
-  @IsOptional()
-  @IsUUID()
-  plot_id?: string;
-
-  @IsOptional()
-  @IsUUID()
-  product_id?: string;
-
-  @IsOptional()
-  @IsUUID()
-  variety_id?: string;
 
   @IsOptional()
   @IsDateString()

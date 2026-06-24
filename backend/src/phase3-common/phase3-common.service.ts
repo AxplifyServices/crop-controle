@@ -268,25 +268,51 @@ export class Phase3CommonService {
     }
   }
 
-  async buildDataFromProject(currentUserId: string, data: Record<string, any>) {
-    if (!data.project_id) {
-      return data;
-    }
-
-    const project = await this.assertProject(currentUserId, data.project_id);
-
-    if (!project) {
-      return data;
-    }
-
-    return {
-      ...data,
-      farm_id: data.farm_id || project.farm_id,
-      plot_id: data.plot_id || project.plot_id,
-      product_id: data.product_id || project.product_id,
-      variety_id: data.variety_id || project.variety_id,
-    };
+async buildDataFromProject(
+  currentUserId: string,
+  data: Record<string, any>,
+) {
+  if (!data.project_id) {
+    return data;
   }
+
+  const project = await this.assertProject(
+    currentUserId,
+    data.project_id,
+  );
+
+  if (!project) {
+    return data;
+  }
+
+  return {
+    ...data,
+    farm_id: project.farm_id,
+    plot_id: project.plot_id,
+    product_id: project.product_id,
+    variety_id: project.variety_id,
+  };
+}
+
+async buildCompanyFromFarm(
+  currentUserId: string,
+  data: Record<string, any>,
+) {
+  if (!data.farm_id) {
+    return data;
+  }
+
+  const farm = await this.assertFarm(currentUserId, data.farm_id);
+
+  if (!farm) {
+    return data;
+  }
+
+  return {
+    ...data,
+    company_id: farm.company_id,
+  };
+}
 
   async buildDataFromHarvest(currentUserId: string, data: Record<string, any>) {
     if (!data.harvest_id) {

@@ -5,15 +5,11 @@ import {
   IsString,
   IsUUID,
 } from 'class-validator';
-import { Type } from 'class-transformer';
+import {Type} from 'class-transformer';
 
 export class CreateTreatmentsDto {
-  @IsOptional()
   @IsUUID()
-  project_id?: string;
-
-  @IsUUID()
-  plot_id!: string;
+  project_id!: string;
 
   @IsDateString()
   treatment_date!: string;
@@ -53,10 +49,6 @@ export class UpdateTreatmentsDto {
   @IsOptional()
   @IsUUID()
   project_id?: string;
-
-  @IsOptional()
-  @IsUUID()
-  plot_id?: string;
 
   @IsOptional()
   @IsDateString()

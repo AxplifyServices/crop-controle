@@ -81,54 +81,87 @@ export class TreatmentsService {
     return item;
   }
 
-  async create(dto: CreateTreatmentsDto, currentUserId: string) {
-    await this.phase3Common.assertProject(currentUserId, dto.project_id);
-    await this.phase3Common.assertPlot(currentUserId, dto.plot_id);
+async create(dto: CreateTreatmentsDto, currentUserId: string) {
+  const data = await this.phase3Common.buildDataFromProject(
+    currentUserId,
+    {
+      project_id: dto.project_id,
+      treatment_date: new Date(dto.treatment_date),
+      product_type: dto.product_type,
+      product_name: dto.product_name,
+      dose: dto.dose,
+      treated_surface_ha: dto.treated_surface_ha,
+      cost: dto.cost,
+      currency: dto.currency || 'MAD',
+      observations: dto.observations,
+      created_by_id: currentUserId,
+    },
+  );
 
-    return this.prisma.treatments.create({
-      data: {
-        project_id: dto.project_id,
-        plot_id: dto.plot_id,
-        treatment_date: new Date(dto.treatment_date),
-        product_type: dto.product_type,
-        product_name: dto.product_name,
-        dose: dto.dose,
-        treated_surface_ha: dto.treated_surface_ha,
-        cost: dto.cost,
-        currency: dto.currency,
-        observations: dto.observations,
-        created_by_id: currentUserId,
-      },
-      include: this.includeRelations,
-    });
-  }
+  await this.phase3Common.assertPlot(
+    currentUserId,
+    data.plot_id,
+  );
 
-  async update(id: string, dto: UpdateTreatmentsDto, currentUserId: string) {
-    await this.findOne(id, currentUserId);
+  return this.prisma.treatments.create({
+    data: {
+      project_id: data.project_id,
+      plot_id: data.plot_id,
+      treatment_date: data.treatment_date,
+      product_type: data.product_type,
+      product_name: data.product_name,
+      dose: data.dose,
+      treated_surface_ha: data.treated_surface_ha,
+      cost: data.cost,
+      currency: data.currency,
+      observations: data.observations,
+      created_by_id: data.created_by_id,
+    },
+    include: this.includeRelations,
+  });
+}
 
-    await this.phase3Common.assertProject(currentUserId, dto.project_id);
-    await this.phase3Common.assertPlot(currentUserId, dto.plot_id);
+async update(
+  id: string,
+  dto: UpdateTreatmentsDto,
+  currentUserId: string,
+) {
+  const existing = await this.findOne(id, currentUserId);
 
-    return this.prisma.treatments.update({
-      where: { id },
-      data: {
-        project_id: dto.project_id,
-        plot_id: dto.plot_id,
-        treatment_date: dto.treatment_date
-          ? new Date(dto.treatment_date)
-          : undefined,
-        product_type: dto.product_type,
-        product_name: dto.product_name,
-        dose: dto.dose,
-        treated_surface_ha: dto.treated_surface_ha,
-        cost: dto.cost,
-        currency: dto.currency,
-        observations: dto.observations,
-        updated_at: new Date(),
-      },
-      include: this.includeRelations,
-    });
-  }
+  const projectId = dto.project_id ?? existing.project_id;
+
+  const context = await this.phase3Common.buildDataFromProject(
+    currentUserId,
+    {
+      project_id: projectId,
+    },
+  );
+
+  await this.phase3Common.assertPlot(
+    currentUserId,
+    context.plot_id,
+  );
+
+  return this.prisma.treatments.update({
+    where: {id},
+    data: {
+      project_id: projectId,
+      plot_id: context.plot_id,
+      treatment_date: dto.treatment_date
+        ? new Date(dto.treatment_date)
+        : undefined,
+      product_type: dto.product_type,
+      product_name: dto.product_name,
+      dose: dto.dose,
+      treated_surface_ha: dto.treated_surface_ha,
+      cost: dto.cost,
+      currency: dto.currency,
+      observations: dto.observations,
+      updated_at: new Date(),
+    },
+    include: this.includeRelations,
+  });
+}
 
   async remove(id: string, currentUserId: string) {
     await this.findOne(id, currentUserId);

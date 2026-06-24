@@ -116,6 +116,12 @@ export class ChargesService {
     };
 
     data = await this.phase3Common.buildDataFromProject(currentUserId, data);
+
+    data = await this.phase3Common.buildCompanyFromFarm(
+      currentUserId,
+      data,
+    );    
+
     data = this.phase3Common.computeTotalCost(data);
 
     await this.phase3Common.assertCompany(currentUserId, data.company_id);
@@ -175,6 +181,14 @@ return this.prisma.charges.create({
     );
 
     data = await this.phase3Common.buildDataFromProject(currentUserId, data);
+
+    data = await this.phase3Common.buildCompanyFromFarm(
+      currentUserId,
+      {
+        ...data,
+        farm_id: data.farm_id ?? existing.farm_id,
+      },
+    );
 
     const nextFarmId = data.farm_id ?? existing.farm_id;
     const nextPlotId = data.plot_id ?? existing.plot_id;

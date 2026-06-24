@@ -665,6 +665,11 @@
         "SUSPENDED": "Suspendido",
         "CANCELLED": "Cancelado"
       },
+      "currency": {
+  "MAD": "MAD — Dírham marroquí",
+  "EUR": "EUR — Euro",
+  "USD": "USD — Dólar estadounidense"
+},
       "plantationCategory": {
         "ANNUAL": "Anual",
         "MULTI_YEAR": "Plurianual",

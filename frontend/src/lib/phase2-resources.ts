@@ -16,6 +16,7 @@ export type ResourceField = {
   key: string;
   labelKey: string;
   type: FieldType;
+  defaultValue?: string | number | string[];
   geographyLevel?: 'country' | 'region' | 'city';
   required?: boolean;
   persist?: boolean;

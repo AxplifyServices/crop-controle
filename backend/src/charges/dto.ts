@@ -14,8 +14,9 @@ export class CreateChargesDto {
   @IsUUID()
   company_id?: string;
 
-  @IsUUID()
-  farm_id!: string;
+@IsOptional()
+@IsUUID()
+farm_id?: string;
 
   @IsOptional()
   @IsUUID()
