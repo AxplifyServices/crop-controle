@@ -22,7 +22,7 @@ export default function LoginPage() {
               {tApp('name')}
             </h1>
             <p className="text-[14px] text-emerald-900">
-              {tApp('subtitle')}
+              {tApp('tagline')}
             </p>
           </div>
         </div>
@@ -41,7 +41,7 @@ export default function LoginPage() {
         </div>
 
         <p className="absolute bottom-10 left-12 text-[14px] text-emerald-950/75">
-          {tApp('subtitle')}
+          {tApp('tagline')}
         </p>
       </section>
 
@@ -60,7 +60,7 @@ export default function LoginPage() {
               {tApp('name')}
             </h1>
             <p className="text-[12px] text-emerald-900">
-              {tApp('subtitle')}
+              {tApp('tagline')}
             </p>
           </div>
         </div>

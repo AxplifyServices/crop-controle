@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateCulturesDto, UpdateCulturesDto } from './dto';
 
@@ -6,7 +7,7 @@ import { CreateCulturesDto, UpdateCulturesDto } from './dto';
 export class CulturesService {
   constructor(private readonly prisma: PrismaService) {}
 
-  private get includeRelations() {
+  private get includeRelations(): Prisma.culturesInclude {
     return {
       products: {
         where: {

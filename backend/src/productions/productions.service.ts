@@ -154,10 +154,25 @@ export class ProductionsService {
       varietyId: data.variety_id,
     });
 
-    return this.prisma.productions.create({
-      data,
-      include: this.includeRelations,
-    });
+return this.prisma.productions.create({
+  data: {
+    harvest_id: data.harvest_id,
+    farm_id: data.farm_id,
+    project_id: data.project_id,
+    plot_id: data.plot_id,
+    product_id: data.product_id,
+    variety_id: data.variety_id,
+    production_date: data.production_date,
+    quantity_kg: data.quantity_kg,
+    quality_grade: data.quality_grade,
+    active_plant_count: data.active_plant_count,
+    production_per_plant: data.production_per_plant,
+    source: data.source,
+    observations: data.observations,
+    created_by_id: data.created_by_id,
+  },
+  include: this.includeRelations,
+});
   }
 
   async update(id: string, dto: UpdateProductionsDto, currentUserId: string) {

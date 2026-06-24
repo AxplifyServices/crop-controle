@@ -437,7 +437,7 @@ function ReferentialCrudContent({config}: {config: ResourceConfig}) {
                 className="inline-flex h-10 items-center gap-2 rounded-xl bg-emerald-700 px-4 text-sm font-semibold text-white transition hover:bg-emerald-800"
               >
                 <Plus size={16} />
-                {t('actions.add')}
+                {t('actions.new')}
               </button>
             ) : null}
           </div>
@@ -512,7 +512,7 @@ function ReferentialCrudContent({config}: {config: ResourceConfig}) {
         <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-lg font-semibold text-slate-950">
-              {editingId ? t('actions.edit') : t('actions.add')}
+              {editingId ? t('actions.edit') : t('actions.new')}
             </h2>
 
             <button
@@ -789,7 +789,7 @@ function PaginationBar({
   pageSize: number;
   onPageChange: (page: number) => void;
 }) {
-  const t = useTranslations();
+  const t = useTranslations('Referential');
 
   const start = totalItems === 0 ? 0 : (page - 1) * pageSize + 1;
   const end = Math.min(page * pageSize, totalItems);
@@ -961,7 +961,7 @@ function RecordsTable({
                             type="button"
                             onClick={() => onInfo(item)}
                             className="rounded-lg p-2 text-slate-500 transition hover:bg-blue-50 hover:text-blue-700"
-                            title={t('actions.info')}
+                            title={t('actions.details')}
                           >
                             <Info size={16} />
                           </button>
@@ -1188,7 +1188,7 @@ function MobileRecordCard({
           className="inline-flex h-9 flex-1 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
         >
           <Info size={15} />
-          {t('actions.info')}
+          {t('actions.details')}
         </button>
 
         {canUpdate ? (
@@ -1253,7 +1253,7 @@ function DetailSheet({
           <div className="flex items-start justify-between gap-4">
             <div>
               <p className="text-sm font-medium text-slate-500">
-                {t('actions.info')}
+                {t('actions.details')}
               </p>
 
               <h2 className="mt-1 text-xl font-semibold text-slate-950">
@@ -1417,7 +1417,7 @@ function FieldInput({
           onChange={(event) => onChange(event.target.value)}
           className={inputClass}
         >
-          <option value="">{t('actions.select')}</option>
+          <option value="">{t('filters.choosePlaceholder')}</option>
 
           {options.map((option) => (
             <option key={option.value} value={option.value}>

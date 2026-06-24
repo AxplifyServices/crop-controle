@@ -1,8 +1,9 @@
-{"Access": {
-  "loading": "Chargement des accès...",
-  "deniedTitle": "Accès refusé",
-  "deniedDescription": "Votre profil ne dispose pas de la permission nécessaire pour accéder à ce module."
-},
+{
+  "Access": {
+    "loading": "Chargement des accès...",
+    "deniedTitle": "Accès refusé",
+    "deniedDescription": "Votre profil ne dispose pas de la permission nécessaire pour accéder à ce module."
+  },
   "Profiles": {
     "section": "Administration",
     "title": "Gestion des profils",
@@ -10,12 +11,17 @@
     "refresh": "Actualiser",
     "newProfile": "Nouveau profil",
     "locked": "Protégé",
-"lockedProfile": "Profil protégé",
-"status": {
-  "ACTIVE": "Actif",
-  "INACTIVE": "Inactif",
-  "ARCHIVED": "Archivé",
-  "SUSPENDED": "Suspendu"
+    "lockedProfile": "Profil protégé",
+    "status": {
+      "ACTIVE": "Actif",
+      "INACTIVE": "Inactif",
+      "ARCHIVED": "Archivé",
+      "SUSPENDED": "Suspendu"
+    },
+    "pagination": {
+  "previous": "Précédent",
+  "next": "Suivant",
+  "range": "Affichage de <strong>{start}</strong> à <strong>{end}</strong> sur <strong>{total}</strong>"
 },
     "existingProfiles": "Profils existants",
     "createTitle": "Créer un profil",
@@ -80,27 +86,27 @@
       "edit": "Modifier",
       "delete": "Supprimer",
       "IMPORT": "Importer",
-"MANAGE": "Gérer",
-"ASSIGN": "Affecter",
-"APPROVE": "Approuver",
-"REJECT": "Rejeter",
-"LOGIN": "Connexion",
-"LOGOUT": "Déconnexion",
-"REFRESH": "Rafraîchir",
-"READ": "Lire",
-"WRITE": "Écrire",
-"RESTORE": "Restaurer",
-"ARCHIVE": "Archiver"
+      "MANAGE": "Gérer",
+      "ASSIGN": "Affecter",
+      "APPROVE": "Approuver",
+      "REJECT": "Rejeter",
+      "LOGIN": "Connexion",
+      "LOGOUT": "Déconnexion",
+      "REFRESH": "Rafraîchir",
+      "READ": "Lire",
+      "WRITE": "Écrire",
+      "RESTORE": "Restaurer",
+      "ARCHIVE": "Archiver"
     },
     "modules": {
       "profiles": "Gestion des profils",
       "auth": "Authentification",
-"geography": "Géographie",
-"legal-identifier-types": "Types d’identifiants légaux",
-"imports": "Imports",
-"exports": "Exports",
-"settings": "Paramètres",
-"notifications": "Notifications",
+      "geography": "Géographie",
+      "legal-identifier-types": "Types d’identifiants légaux",
+      "imports": "Imports",
+      "exports": "Exports",
+      "settings": "Paramètres",
+      "notifications": "Notifications",
       "audit-logs": "Historique des actions",
       "users": "Utilisateurs",
       "roles": "Rôles",
@@ -136,12 +142,12 @@
       "users": "Administration",
       "roles": "Administration",
       "auth": "Sécurité",
-"geography": "Référentiel",
-"legal-identifier-types": "Référentiel",
-"imports": "Administration",
-"exports": "Administration",
-"settings": "Administration",
-"notifications": "Pilotage",
+      "geography": "Référentiel",
+      "legal-identifier-types": "Référentiel",
+      "imports": "Administration",
+      "exports": "Administration",
+      "settings": "Administration",
+      "notifications": "Pilotage",
       "permissions": "Administration",
       "groups": "Référentiel",
       "companies": "Référentiel",
@@ -179,147 +185,147 @@
       "actions": "Actions"
     }
   },
-"AuditLogs": {
-  "section": "Administration",
-  "title": "Historique des logs",
-  "description": "Consultez les actions importantes effectuées sur la plateforme.",
-  "refresh": "Actualiser",
-  "filtersTitle": "Filtres",
-  "filtersDescription": "Filtrez les logs par type d’action ou par module.",
-  "all": "Toutes",
-  "filter": "Filtrer",
-  "close": "Fermer",
-  "latestActions": "Dernières actions",
-  "details": "Voir le détail",
-  "noLogs": "Aucun log trouvé.",
-  "loading": "Chargement...",
-  "system": "Système",
-  "errors": {
-    "loading": "Erreur de chargement."
+  "AuditLogs": {
+    "section": "Administration",
+    "title": "Historique des logs",
+    "description": "Consultez les actions importantes effectuées sur la plateforme.",
+    "refresh": "Actualiser",
+    "filtersTitle": "Filtres",
+    "filtersDescription": "Filtrez les logs par type d’action ou par module.",
+    "all": "Toutes",
+    "filter": "Filtrer",
+    "close": "Fermer",
+    "latestActions": "Dernières actions",
+    "details": "Voir le détail",
+    "noLogs": "Aucun log trouvé.",
+    "loading": "Chargement...",
+    "system": "Système",
+    "errors": {
+      "loading": "Erreur de chargement."
+    },
+    "fields": {
+      "action": "Action",
+      "module": "Module"
+    },
+    "placeholders": {
+      "module": "groups, companies, farms..."
+    },
+    "actions": {
+      "login": "Connexion",
+      "view": "Consultation",
+      "create": "Création",
+      "update": "Modification",
+      "delete": "Suppression",
+      "failed": "Échec"
+    },
+    "verbs": {
+      "login": "s’est connecté",
+      "create": "a créé",
+      "update": "a modifié",
+      "delete": "a supprimé",
+      "view": "a consulté",
+      "generic": "a effectué l’action {action}"
+    },
+    "messages": {
+      "loginSuccess": "L’utilisateur {actor} s’est connecté.",
+      "loginFailed": "Tentative de connexion échouée pour {actor}.",
+      "actionFailed": "L’action {action} a échoué.",
+      "businessWithNameAndId": "L’utilisateur {actor} {verb} {entity} “{name}” (ID : {id}).",
+      "businessWithName": "L’utilisateur {actor} {verb} {entity} “{name}”.",
+      "businessWithId": "L’utilisateur {actor} {verb} {entity} (ID : {id}).",
+      "businessSimple": "L’utilisateur {actor} {verb} {entity}."
+    },
+    "detailLabels": {
+      "summary": "Résumé",
+      "actionSummary": "Résumé de l’action",
+      "businessInfo": "Informations métier",
+      "changes": "Modifications",
+      "technical": "Informations techniques",
+      "empty": "Aucun détail complémentaire.",
+      "request": "Requête",
+      "status": "Statut",
+      "duration": "Durée",
+      "entityId": "Identifiant",
+      "id": "ID",
+      "name": "Nom",
+      "ip": "Adresse IP",
+      "device": "Navigateur / appareil",
+      "date": "Date",
+      "user": "Utilisateur",
+      "action": "Action",
+      "module": "Module",
+      "changeValue": "{oldValue} → {newValue}"
+    },
+    "pagination": {
+      "previous": "Précédent",
+      "next": "Suivant",
+      "range": "Affichage de <strong>{start}</strong> à <strong>{end}</strong> sur <strong>{total}</strong>"
+    },
+    "table": {
+      "date": "Date",
+      "user": "Utilisateur",
+      "action": "Action",
+      "module": "Module",
+      "summary": "Résumé",
+      "ip": "IP",
+      "details": "Détails"
+    },
+    "entityTypes": {
+      "auth": "Session",
+      "groups": "Groupe",
+      "companies": "Entreprise",
+      "farms": "Ferme",
+      "plots": "Parcelle",
+      "factories": "Usine",
+      "stations": "Station",
+      "products": "Produit",
+      "product-varieties": "Variété de produit",
+      "vehicles": "Véhicule",
+      "personnel": "Personnel",
+      "cultures": "Culture",
+      "profiles": "Profil",
+      "users": "Utilisateur",
+      "roles": "Rôle",
+      "permissions": "Permission",
+      "geography": "Donnée géographique",
+      "legal-identifier-types": "Type d’identifiant légal",
+      "audit-logs": "Historique des logs"
+    },
+    "entitySentenceTypes": {
+      "auth": "la session",
+      "groups": "le groupe",
+      "companies": "l’entreprise",
+      "farms": "la ferme",
+      "plots": "la parcelle",
+      "factories": "l’usine",
+      "stations": "la station",
+      "products": "le produit",
+      "product-varieties": "la variété de produit",
+      "vehicles": "le véhicule",
+      "personnel": "le membre du personnel",
+      "cultures": "la culture",
+      "profiles": "le profil",
+      "users": "l’utilisateur",
+      "roles": "le rôle",
+      "permissions": "la permission",
+      "geography": "la donnée géographique",
+      "legal-identifier-types": "le type d’identifiant légal",
+      "audit-logs": "l’historique des logs"
+    }
   },
-  "fields": {
-    "action": "Action",
-    "module": "Module"
-  },
-  "placeholders": {
-    "module": "groups, companies, farms..."
-  },
-  "actions": {
-    "login": "Connexion",
-    "view": "Consultation",
-    "create": "Création",
-    "update": "Modification",
-    "delete": "Suppression",
-    "failed": "Échec"
-  },
-  "verbs": {
-    "login": "s’est connecté",
-    "create": "a créé",
-    "update": "a modifié",
-    "delete": "a supprimé",
-    "view": "a consulté",
-    "generic": "a effectué l’action {action}"
-  },
-  "messages": {
-    "loginSuccess": "L’utilisateur {actor} s’est connecté.",
-    "loginFailed": "Tentative de connexion échouée pour {actor}.",
-    "actionFailed": "L’action {action} a échoué.",
-    "businessWithNameAndId": "L’utilisateur {actor} {verb} {entity} “{name}” (ID : {id}).",
-    "businessWithName": "L’utilisateur {actor} {verb} {entity} “{name}”.",
-    "businessWithId": "L’utilisateur {actor} {verb} {entity} (ID : {id}).",
-    "businessSimple": "L’utilisateur {actor} {verb} {entity}."
-  },
-  "detailLabels": {
-    "summary": "Résumé",
-    "actionSummary": "Résumé de l’action",
-    "businessInfo": "Informations métier",
-    "changes": "Modifications",
-    "technical": "Informations techniques",
-    "empty": "Aucun détail complémentaire.",
-    "request": "Requête",
-    "status": "Statut",
-    "duration": "Durée",
-    "entityId": "Identifiant",
-    "id": "ID",
-    "name": "Nom",
-    "ip": "Adresse IP",
-    "device": "Navigateur / appareil",
-    "date": "Date",
-    "user": "Utilisateur",
-    "action": "Action",
-    "module": "Module",
-    "changeValue": "{oldValue} → {newValue}"
-  },
-  "pagination": {
-    "previous": "Précédent",
-    "next": "Suivant",
-    "range": "Affichage de <strong>{start}</strong> à <strong>{end}</strong> sur <strong>{total}</strong>"
-  },
-  "table": {
-    "date": "Date",
-    "user": "Utilisateur",
-    "action": "Action",
-    "module": "Module",
-    "summary": "Résumé",
-    "ip": "IP",
-    "details": "Détails"
-  },
-  "entityTypes": {
-    "auth": "Session",
-    "groups": "Groupe",
-    "companies": "Entreprise",
-    "farms": "Ferme",
-    "plots": "Parcelle",
-    "factories": "Usine",
-    "stations": "Station",
-    "products": "Produit",
-    "product-varieties": "Variété de produit",
-    "vehicles": "Véhicule",
-    "personnel": "Personnel",
-    "cultures": "Culture",
-    "profiles": "Profil",
-    "users": "Utilisateur",
-    "roles": "Rôle",
-    "permissions": "Permission",
-    "geography": "Donnée géographique",
-    "legal-identifier-types": "Type d’identifiant légal",
-    "audit-logs": "Historique des logs"
-  },
-  "entitySentenceTypes": {
-    "auth": "la session",
-    "groups": "le groupe",
-    "companies": "l’entreprise",
-    "farms": "la ferme",
-    "plots": "la parcelle",
-    "factories": "l’usine",
-    "stations": "la station",
-    "products": "le produit",
-    "product-varieties": "la variété de produit",
-    "vehicles": "le véhicule",
-    "personnel": "le personnel",
-    "cultures": "la culture",
-    "profiles": "le profil",
-    "users": "l’utilisateur",
-    "roles": "le rôle",
-    "permissions": "la permission",
-    "geography": "la donnée géographique",
-    "legal-identifier-types": "le type d’identifiant légal",
-    "audit-logs": "l’historique des logs"
-  }
-},
   "App": {
-    "name": "Agri-Control",
-    "subtitle": "Pilotage agricole · Production · Rentabilité"
+    "name": "Agri Control",
+    "tagline": "Plateforme de pilotage agricole"
   },
   "Auth": {
     "loginTitle": "Connexion",
-    "loginSubtitle": "Connectez-vous pour accéder à votre espace",
+    "loginSubtitle": "Accédez à votre espace de pilotage.",
     "email": "Email",
     "password": "Mot de passe",
     "submit": "Se connecter",
     "loading": "Connexion...",
-    "invalidCredentials": "Email ou mot de passe incorrect.",
-    "genericError": "Une erreur est survenue."
+    "error": "Identifiants invalides.",
+    "logout": "Déconnexion"
   },
   "Navigation": {
     "dashboard": "Tableau de bord",
@@ -327,9 +333,9 @@
     "groups": "Groupes",
     "companies": "Entreprises",
     "production": "Production agricole",
-"agriculturalProjects": "Projets agricoles",
-"treatments": "Traitements",
-"productions": "Productions",
+    "agriculturalProjects": "Projets agricoles",
+    "treatments": "Traitements",
+    "productions": "Productions",
     "farms": "Fermes",
     "plots": "Parcelles",
     "factories": "Usines",
@@ -362,31 +368,50 @@
     "vehicles": "Véhicules",
     "personnel": "Personnel"
   },
-  "Dashboard": {
-    "date": "Aujourd’hui",
-    "title": "Tableau de bord",
-    "empty": "Tableau de bord vide pour le moment.",
-    "production": "Production totale",
-    "cost": "Coût total",
-    "margin": "Marge",
-    "quality": "Score qualité",
-    "activeModules": "Modules actifs",
-    "incidents": "Alertes"
-  },
+"Dashboard": {
+  "date": "Aujourd’hui",
+  "title": "Tableau de bord",
+  "empty": "Tableau de bord vide pour le moment.",
+  "production": "Production totale",
+  "cost": "Coût total",
+  "margin": "Marge",
+  "quality": "Score qualité",
+  "activeModules": "Modules actifs",
+  "incidents": "Alertes"
+},
   "Common": {
-    "logout": "Déconnexion",
-    "language": "Langue",
-    "french": "Français",
-    "english": "Anglais",
-    "spanish": "Espagnol",
     "menu": "Menu",
-    "openMenu": "Ouvrir le menu",
     "closeMenu": "Fermer le menu",
-    "notifications": "Notifications"
+    "openMenu": "Ouvrir le menu",
+    "collapseMenu": "Réduire le menu",
+    "expandMenu": "Déployer le menu",
+    "notifications": "Notifications",
+    "language": "Langue",
+    "search": "Rechercher",
+    "clear": "Effacer",
+    "confirm": "Confirmer",
+    "cancel": "Annuler",
+    "save": "Enregistrer",
+    "edit": "Modifier",
+    "delete": "Supprimer",
+    "refresh": "Actualiser",
+    "actions": "Actions",
+    "loading": "Chargement...",
+    "yes": "Oui",
+    "no": "Non"
   },
   "Referential": {
-    "ressources" : {
-"agriculturalProjects": {
+    "phaseTitle": "Référentiel organisationnel",
+    "pagination": {
+  "previous": "Précédent",
+  "next": "Suivant",
+  "range": "Affichage de <strong>{start}</strong> à <strong>{end}</strong> sur <strong>{total}</strong>"
+},
+    "farmId": "Ferme",
+"plotId": "Parcelle",
+"factoryId": "Usine",
+    "ressources": {
+      "agriculturalProjects": {
   "title": "Projets agricoles",
   "description": "Suivi des campagnes agricoles, parcelles, produits, variétés, plantes et saisons."
 },
@@ -409,24 +434,23 @@
 "charges": {
   "title": "Charges agricoles",
   "description": "Suivi des charges par ferme, projet, parcelle et type de coût."
-}
-    },
-    "phaseTitle": "Référentiel organisationnel",
+}},
     "actions": {
-      "title": "Actions",
-      "refresh": "Actualiser",
-      "add": "Ajouter",
+      "new": "Nouveau",
       "edit": "Modifier",
       "delete": "Supprimer",
       "save": "Enregistrer",
       "cancel": "Annuler",
-      "select": "Sélectionner",
-      "info": "Infos",
-      "close": "Fermer"
+      "refresh": "Actualiser",
+      "details": "Détails",
+      "close": "Fermer",
+      "title": "Actions"
     },
     "filters": {
       "title": "Filtres",
-      "description": "Afficher ou masquer les filtres de recherche.",
+      "mobileButton": "Filtres",
+      "description": "Affichez ou masquez les filtres pour affiner les résultats.",
+      "active": "Filtres actifs",
       "multiSelectDescription": "Sélectionnez une ou plusieurs valeurs pour affiner la liste.",
       "reset": "Réinitialiser les filtres",
       "noOptions": "Aucune option disponible",
@@ -442,9 +466,9 @@
       "plotResting": "Repos",
       "plotFallow": "En friche",
       "plotArchived": "Archivées",
-      "projectPreparation": "Projects in preparation",
-"projectInProduction": "Projects in production",
-"projectClosed": "Closed projects"
+      "projectPreparation": "Projets en préparation",
+      "projectInProduction": "Projets en production",
+      "projectClosed": "Projets clôturés"
     },
     "details": {
       "mainInfo": "Informations principales",
@@ -513,6 +537,30 @@
       "personnel": {
         "title": "Personnel",
         "description": "Personnel opérationnel rattaché aux entités."
+      },
+      "agriculturalProjects": {
+        "title": "Projets agricoles",
+        "description": "Suivez les projets agricoles par ferme, parcelle, produit, variété, saison et état d’avancement."
+      },
+      "plantations": {
+        "title": "Plantations",
+        "description": "Déclarez les plantations, le nombre de plants, la densité, la catégorie et les coûts associés."
+      },
+      "treatments": {
+        "title": "Traitements phytosanitaires",
+        "description": "Suivez les traitements appliqués par parcelle et projet agricole : produit, dose, surface traitée et coût."
+      },
+      "harvests": {
+        "title": "Récoltes",
+        "description": "Enregistrez les récoltes par projet, ferme, parcelle, produit, variété, quantité et qualité."
+      },
+      "productions": {
+        "title": "Productions",
+        "description": "Analysez les quantités produites, la production par plante, la qualité et les sources de production."
+      },
+      "charges": {
+        "title": "Charges agricoles",
+        "description": "Suivez les charges par ferme, projet, parcelle et type de dépense afin de préparer le coût par plante et le coût par kg."
       }
     },
     "fields": {
@@ -531,39 +579,39 @@
       "legalName": "Raison sociale",
       "code": "Code",
       "projectId": "Projet agricole",
-"harvestId": "Récolte",
-"season": "Saison",
-"plantCount": "Nombre de plantes",
-"activePlantCount": "Plantes actives",
-"startDate": "Date de début",
-"expectedEndDate": "Date de fin prévue",
-"endDate": "Date de fin",
-"plantingDate": "Date de plantation",
-"plantQuantity": "Quantité plantée",
-"density": "Densité",
-"totalCost": "Coût total",
-"currency": "Devise",
-"observations": "Observations",
-"treatmentDate": "Date de traitement",
-"productType": "Type de produit",
-"productName": "Nom du produit",
-"dose": "Dose",
-"treatedSurfaceHa": "Surface traitée ha",
-"cost": "Coût",
-"harvestDate": "Date de récolte",
-"weightTotalKg": "Poids total kg",
-"team": "Équipe",
-"qualityGrade": "Qualité",
-"productionDate": "Date de production",
-"quantityKg": "Quantité kg",
-"productionPerPlant": "Production par plante",
-"source": "Source",
-"label": "Libellé",
-"quantity": "Quantité",
-"unit": "Unité",
-"unitCost": "Coût unitaire",
-"supplier": "Fournisseur",
-"chargeDate": "Date de charge",
+      "harvestId": "Récolte",
+      "season": "Saison",
+      "plantCount": "Nombre de plantes",
+      "activePlantCount": "Plantes actives",
+      "startDate": "Date de début",
+      "expectedEndDate": "Date de fin prévue",
+      "endDate": "Date de fin",
+      "plantingDate": "Date de plantation",
+      "plantQuantity": "Quantité plantée",
+      "density": "Densité",
+      "totalCost": "Coût total",
+      "currency": "Devise",
+      "observations": "Observations",
+      "treatmentDate": "Date de traitement",
+      "productType": "Type de produit",
+      "productName": "Nom du produit",
+      "dose": "Dose",
+      "treatedSurfaceHa": "Surface traitée ha",
+      "cost": "Coût",
+      "harvestDate": "Date de récolte",
+      "weightTotalKg": "Poids total kg",
+      "team": "Équipe",
+      "qualityGrade": "Qualité",
+      "productionDate": "Date de production",
+      "quantityKg": "Quantité kg",
+      "productionPerPlant": "Production par plante",
+      "source": "Source",
+      "label": "Libellé",
+      "quantity": "Quantité",
+      "unit": "Unité",
+      "unitCost": "Coût unitaire",
+      "supplier": "Fournisseur",
+      "chargeDate": "Date de charge",
       "codeInternal": "Code interne",
       "ice": "ICE",
       "iceMorocco": "ICE",
@@ -588,7 +636,7 @@
       "responsibleId": "Responsable",
       "status": "Statut",
       "category": "Catégorie",
-      "surfaceHa": "Surface HA",
+      "surfaceHa": "Surface ha",
       "rentMonthly": "Loyer mensuel",
       "culture": "Culture",
       "variety": "Variété",
@@ -605,47 +653,48 @@
       "fullName": "Nom complet",
       "grade": "Grade",
       "contractType": "Type contrat",
-      "salary": "Salaire"
+      "salary": "Salaire",
+      "plotId": "Parcelle"
     },
     "options": {
       "projectStatus": {
-  "PREPARATION": "Préparation",
-  "IN_PRODUCTION": "En production",
-  "FINISHED": "Terminé",
-  "SUSPENDED": "Suspendu",
-  "CANCELLED": "Annulé"
-},
-"plantationCategory": {
-  "ANNUAL": "Annuelle",
-  "MULTI_YEAR": "Pluriannuelle",
-  "RENEWAL": "Renouvellement",
-  "OTHER": "Autre"
-},
-"qualityGrade": {
-  "A": "A",
-  "B": "B",
-  "C": "C",
-  "PREMIUM": "Premium",
-  "STANDARD": "Standard",
-  "DOWNGRADED": "Déclassé",
-  "REFUSED": "Refusé"
-},
-"chargeType": {
-  "WATER": "Eau",
-  "FERTILIZER": "Engrais",
-  "SEEDS": "Semences",
-  "PLANTS": "Plants",
-  "PHYTOSANITARY": "Phytosanitaire",
-  "LABOR": "Main d’œuvre",
-  "ENERGY": "Énergie",
-  "MATERIAL": "Matériel",
-  "PACKAGING": "Emballage",
-  "INTERNAL_TRANSPORT": "Transport interne",
-  "MAINTENANCE": "Maintenance",
-  "RENT": "Loyer",
-  "LOGISTICS": "Logistique",
-  "OTHER": "Autre"
-},
+        "PREPARATION": "Préparation",
+        "IN_PRODUCTION": "En production",
+        "FINISHED": "Terminé",
+        "SUSPENDED": "Suspendu",
+        "CANCELLED": "Annulé"
+      },
+      "plantationCategory": {
+        "ANNUAL": "Annuelle",
+        "MULTI_YEAR": "Pluriannuelle",
+        "RENEWAL": "Renouvellement",
+        "OTHER": "Autre"
+      },
+      "qualityGrade": {
+        "A": "A",
+        "B": "B",
+        "C": "C",
+        "PREMIUM": "Premium",
+        "STANDARD": "Standard",
+        "DOWNGRADED": "Déclassé",
+        "REFUSED": "Refusé"
+      },
+      "chargeType": {
+        "WATER": "Eau",
+        "FERTILIZER": "Engrais",
+        "SEEDS": "Semences",
+        "PLANTS": "Plants",
+        "PHYTOSANITARY": "Phytosanitaire",
+        "LABOR": "Main d’œuvre",
+        "ENERGY": "Énergie",
+        "MATERIAL": "Matériel",
+        "PACKAGING": "Emballage",
+        "INTERNAL_TRANSPORT": "Transport interne",
+        "MAINTENANCE": "Maintenance",
+        "RENT": "Loyer",
+        "LOGISTICS": "Logistique",
+        "OTHER": "Autre"
+      },
       "status": {
         "ACTIVE": "Actif",
         "INACTIVE": "Inactif",

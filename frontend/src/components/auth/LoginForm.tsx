@@ -24,7 +24,7 @@ export function LoginForm() {
         saveSession(data);
         router.replace('/dashboard');
     } catch {
-      setError(t('invalidCredentials'));
+       setError(t('error'));
     } finally {
       setLoading(false);
     }

@@ -25,7 +25,7 @@ const modules = [
   'audit-logs',
 
   /**
-   * Référentiel organisationnel actuel
+   * Phase 2 — Référentiel organisationnel
    */
   'groups',
   'companies',
@@ -40,13 +40,23 @@ const modules = [
   'personnel',
 
   /**
-   * Référentiels techniques actuels
+   * Référentiels techniques
    */
   'geography',
   'legal-identifier-types',
 
   /**
-   * Pilotage actuel
+   * Phase 3 — Production agricole
+   */
+  'agricultural-projects',
+  'plantations',
+  'treatments',
+  'harvests',
+  'productions',
+  'charges',
+
+  /**
+   * Pilotage actuel / futur reporting
    */
   'dashboards',
 ] as const;
@@ -69,13 +79,13 @@ async function main() {
       name: 'super_admin',
     },
     update: {
-      description: 'Accès complet à toute la plateforme.',
+      description: 'Full access to the entire platform.',
       is_system_role: true,
       updated_at: new Date(),
     },
     create: {
       name: 'super_admin',
-      description: 'Accès complet à toute la plateforme.',
+      description: 'Full access to the entire platform.',
       is_system_role: true,
     },
   });
@@ -91,9 +101,9 @@ async function main() {
             action,
           },
         },
-        update: {
-          description: `${action} permission on ${moduleName}`,
-        },
+update: {
+  description: `${action} permission on ${moduleName}`,
+},
         create: {
           module: moduleName,
           action,

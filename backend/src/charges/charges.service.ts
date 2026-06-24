@@ -128,10 +128,26 @@ export class ChargesService {
       plotId: data.plot_id,
     });
 
-    return this.prisma.charges.create({
-      data,
-      include: this.includeRelations,
-    });
+return this.prisma.charges.create({
+  data: {
+    company_id: data.company_id,
+    farm_id: data.farm_id,
+    project_id: data.project_id,
+    plot_id: data.plot_id,
+    type: data.type,
+    label: data.label,
+    quantity: data.quantity,
+    unit: data.unit,
+    unit_cost: data.unit_cost,
+    total_cost: data.total_cost,
+    currency: data.currency,
+    supplier: data.supplier,
+    charge_date: data.charge_date,
+    description: data.description,
+    created_by_id: data.created_by_id,
+  },
+  include: this.includeRelations,
+});
   }
 
   async update(id: string, dto: UpdateChargesDto, currentUserId: string) {

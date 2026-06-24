@@ -1,18 +1,24 @@
-{"Access": {
-  "loading": "Loading access rights...",
-  "deniedTitle": "Access denied",
-  "deniedDescription": "Your profile does not have the required permission to access this module."
-},
+{
+  "Access": {
+    "loading": "Loading access rights...",
+    "deniedTitle": "Access denied",
+    "deniedDescription": "Your profile does not have the required permission to access this module."
+  },
   "Profiles": {
     "section": "Administration",
     "title": "Profile management",
     "locked": "Protected",
-"lockedProfile": "Protected profile",
-"status": {
-  "ACTIVE": "Active",
-  "INACTIVE": "Inactive",
-  "ARCHIVED": "Archived",
-  "SUSPENDED": "Suspended"
+    "lockedProfile": "Protected profile",
+    "status": {
+      "ACTIVE": "Active",
+      "INACTIVE": "Inactive",
+      "ARCHIVED": "Archived",
+      "SUSPENDED": "Suspended"
+    },
+    "pagination": {
+  "previous": "Previous",
+  "next": "Next",
+  "range": "Showing <strong>{start}</strong> to <strong>{end}</strong> of <strong>{total}</strong>"
 },
     "description": "Create profiles with permissions, scopes and reporting manager. A user can only grant permissions they already have.",
     "refresh": "Refresh",
@@ -22,11 +28,11 @@
     "editTitle": "Edit profile",
     "formDescription": "Available permissions and scopes are limited to your own access rights.",
     "permissionsTitle": "Allowed features",
-    "permissionsDescription": "Select the business actions this profile will be allowed to use.",
+    "permissionsDescription": "Select the business actions this profile can use.",
     "permissionsLabel": "Features",
     "permissionsPlaceholder": "Choose one or more features",
     "scopesTitle": "Allowed scopes",
-    "scopesDescription": "A parent scope grants access to the entities that depend on it.",
+    "scopesDescription": "A parent scope gives access to the elements that depend on it.",
     "scopesLabel": "Scopes",
     "scopesPlaceholder": "Choose one or more scopes",
     "save": "Save",
@@ -59,7 +65,7 @@
       "notProvided": "Not provided"
     },
     "placeholders": {
-      "title": "E.g. Division director",
+      "title": "E.g. Business unit director",
       "jobTitle": "E.g. Quality manager"
     },
     "scopeTypes": {
@@ -67,7 +73,7 @@
       "company": "Company",
       "farm": "Farm",
       "factory": "Factory",
-      "station": "Station / Unit"
+      "station": "Station / UC"
     },
     "actions": {
       "VIEW": "View",
@@ -78,27 +84,39 @@
       "EXPORT": "Export",
       "ADMIN": "Administer",
       "edit": "Edit",
-      "delete": "Delete"
+      "delete": "Delete",
+      "IMPORT": "Import",
+      "MANAGE": "Manage",
+      "ASSIGN": "Assign",
+      "APPROVE": "Approve",
+      "REJECT": "Reject",
+      "LOGIN": "Login",
+      "LOGOUT": "Logout",
+      "REFRESH": "Refresh",
+      "READ": "Read",
+      "WRITE": "Write",
+      "RESTORE": "Restore",
+      "ARCHIVE": "Archive"
     },
     "modules": {
       "profiles": "Profile management",
-      "audit-logs": "Action history",
+      "auth": "Authentication",
+      "geography": "Geography",
+      "legal-identifier-types": "Legal identifier types",
+      "imports": "Imports",
+      "exports": "Exports",
+      "settings": "Settings",
+      "notifications": "Notifications",
+      "audit-logs": "Audit logs",
       "users": "Users",
       "roles": "Roles",
-      "auth": "Authentication",
-"geography": "Geography",
-"legal-identifier-types": "Legal identifier types",
-"imports": "Imports",
-"exports": "Exports",
-"settings": "Settings",
-"notifications": "Notifications",
       "permissions": "Permissions",
       "groups": "Groups",
       "companies": "Companies",
       "farms": "Farms",
       "plots": "Plots",
       "factories": "Factories",
-      "stations": "Stations / Units",
+      "stations": "Stations / UC",
       "personnel": "Personnel",
       "vehicles": "Vehicles",
       "products": "Products",
@@ -112,7 +130,7 @@
       "charges": "Costs",
       "shipments": "Farm-factory shipments",
       "receptions": "Factory receptions",
-      "conditioning": "Packaging",
+      "conditioning": "Conditioning",
       "alerts": "Alerts",
       "dashboard": "Dashboard",
       "dashboards": "Dashboards",
@@ -124,24 +142,24 @@
       "users": "Administration",
       "roles": "Administration",
       "auth": "Security",
-"geography": "Reference data",
-"legal-identifier-types": "Reference data",
-"imports": "Administration",
-"exports": "Administration",
-"settings": "Administration",
-"notifications": "Management",
+      "geography": "Referential",
+      "legal-identifier-types": "Referential",
+      "imports": "Administration",
+      "exports": "Administration",
+      "settings": "Administration",
+      "notifications": "Management",
       "permissions": "Administration",
-      "groups": "Reference data",
-      "companies": "Reference data",
-      "farms": "Reference data",
-      "plots": "Reference data",
-      "factories": "Reference data",
-      "stations": "Reference data",
-      "personnel": "Reference data",
-      "vehicles": "Reference data",
-      "products": "Reference data",
-      "product-varieties": "Reference data",
-      "cultures": "Reference data",
+      "groups": "Referential",
+      "companies": "Referential",
+      "farms": "Referential",
+      "plots": "Referential",
+      "factories": "Referential",
+      "stations": "Referential",
+      "personnel": "Referential",
+      "vehicles": "Referential",
+      "products": "Referential",
+      "product-varieties": "Referential",
+      "cultures": "Referential",
       "agricultural-projects": "Agricultural production",
       "plantations": "Agricultural production",
       "treatments": "Agricultural production",
@@ -167,160 +185,157 @@
       "actions": "Actions"
     }
   },
-"AuditLogs": {
-  "section": "Administration",
-  "title": "Action history",
-  "description": "View the important actions performed on the platform.",
-  "refresh": "Refresh",
-  "filtersTitle": "Filters",
-  "filtersDescription": "Filter logs by action type or module.",
-  "all": "All",
-  "filter": "Filter",
-  "close": "Close",
-  "latestActions": "Latest actions",
-  "details": "View details",
-  "noLogs": "No logs found.",
-  "loading": "Loading...",
-  "system": "System",
-  "errors": {
-    "loading": "Loading error."
+  "AuditLogs": {
+    "section": "Administration",
+    "title": "Audit logs",
+    "description": "Review the important actions performed on the platform.",
+    "refresh": "Refresh",
+    "filtersTitle": "Filters",
+    "filtersDescription": "Filter logs by action type or module.",
+    "all": "All",
+    "filter": "Filter",
+    "close": "Close",
+    "latestActions": "Latest actions",
+    "details": "View details",
+    "noLogs": "No logs found.",
+    "loading": "Loading...",
+    "system": "System",
+    "errors": {
+      "loading": "Loading error."
+    },
+    "fields": {
+      "action": "Action",
+      "module": "Module"
+    },
+    "placeholders": {
+      "module": "groups, companies, farms..."
+    },
+    "actions": {
+      "login": "Login",
+      "view": "View",
+      "create": "Creation",
+      "update": "Update",
+      "delete": "Deletion",
+      "failed": "Failure"
+    },
+    "verbs": {
+      "login": "logged in",
+      "create": "created",
+      "update": "updated",
+      "delete": "deleted",
+      "view": "viewed",
+      "generic": "performed action {action}"
+    },
+    "messages": {
+      "loginSuccess": "User {actor} logged in.",
+      "loginFailed": "Failed login attempt for {actor}.",
+      "actionFailed": "Action {action} failed.",
+      "businessWithNameAndId": "User {actor} {verb} {entity} “{name}” (ID: {id}).",
+      "businessWithName": "User {actor} {verb} {entity} “{name}”.",
+      "businessWithId": "User {actor} {verb} {entity} (ID: {id}).",
+      "businessSimple": "User {actor} {verb} {entity}."
+    },
+    "detailLabels": {
+      "summary": "Summary",
+      "actionSummary": "Action summary",
+      "businessInfo": "Business information",
+      "changes": "Changes",
+      "technical": "Technical information",
+      "empty": "No additional details.",
+      "request": "Request",
+      "status": "Status",
+      "duration": "Duration",
+      "entityId": "Identifier",
+      "id": "ID",
+      "name": "Name",
+      "ip": "IP address",
+      "device": "Browser / device",
+      "date": "Date",
+      "user": "User",
+      "action": "Action",
+      "module": "Module",
+      "changeValue": "{oldValue} → {newValue}"
+    },
+    "pagination": {
+      "previous": "Previous",
+      "next": "Next",
+      "range": "Showing <strong>{start}</strong> to <strong>{end}</strong> of <strong>{total}</strong>"
+    },
+    "table": {
+      "date": "Date",
+      "user": "User",
+      "action": "Action",
+      "module": "Module",
+      "summary": "Summary",
+      "ip": "IP",
+      "details": "Details"
+    },
+    "entityTypes": {
+      "auth": "Session",
+      "groups": "Group",
+      "companies": "Company",
+      "farms": "Farm",
+      "plots": "Plot",
+      "factories": "Factory",
+      "stations": "Station",
+      "products": "Product",
+      "product-varieties": "Product variety",
+      "vehicles": "Vehicle",
+      "personnel": "Personnel member",
+      "cultures": "Crop",
+      "profiles": "Profile",
+      "users": "User",
+      "roles": "Role",
+      "permissions": "Permission",
+      "geography": "Geography data",
+      "legal-identifier-types": "Legal identifier type",
+      "audit-logs": "Audit log"
+    },
+    "entitySentenceTypes": {
+      "auth": "the session",
+      "groups": "the group",
+      "companies": "the company",
+      "farms": "the farm",
+      "plots": "the plot",
+      "factories": "the factory",
+      "stations": "the station",
+      "products": "the product",
+      "product-varieties": "the product variety",
+      "vehicles": "the vehicle",
+      "personnel": "the personnel member",
+      "cultures": "the crop",
+      "profiles": "the profile",
+      "users": "the user",
+      "roles": "the role",
+      "permissions": "the permission",
+      "geography": "the geography data",
+      "legal-identifier-types": "the legal identifier type",
+      "audit-logs": "the audit log"
+    }
   },
-  "fields": {
-    "action": "Action",
-    "module": "Module"
-  },
-  "placeholders": {
-    "module": "groups, companies, farms..."
-  },
-  "actions": {
-    "login": "Login",
-    "view": "View",
-    "create": "Creation",
-    "update": "Update",
-    "delete": "Deletion",
-    "failed": "Failed"
-  },
-  "verbs": {
-    "login": "logged in",
-    "create": "created",
-    "update": "updated",
-    "delete": "deleted",
-    "view": "viewed",
-    "generic": "performed the action {action}"
-  },
-  "messages": {
-    "loginSuccess": "User {actor} logged in.",
-    "loginFailed": "Failed login attempt for {actor}.",
-    "actionFailed": "The action {action} failed.",
-    "businessWithNameAndId": "User {actor} {verb} {entity} “{name}” (ID: {id}).",
-    "businessWithName": "User {actor} {verb} {entity} “{name}”.",
-    "businessWithId": "User {actor} {verb} {entity} (ID: {id}).",
-    "businessSimple": "User {actor} {verb} {entity}."
-  },
-  "detailLabels": {
-    "summary": "Summary",
-    "actionSummary": "Action summary",
-    "businessInfo": "Business information",
-    "changes": "Changes",
-    "technical": "Technical information",
-    "empty": "No additional detail.",
-    "request": "Request",
-    "status": "Status",
-    "duration": "Duration",
-    "entityId": "Identifier",
-    "id": "ID",
-    "name": "Name",
-    "ip": "IP address",
-    "device": "Browser / device",
-    "date": "Date",
-    "user": "User",
-    "action": "Action",
-    "module": "Module",
-    "changeValue": "{oldValue} → {newValue}"
-  },
-  "pagination": {
-    "previous": "Previous",
-    "next": "Next",
-    "range": "Showing <strong>{start}</strong> to <strong>{end}</strong> of <strong>{total}</strong>"
-  },
-  "table": {
-    "date": "Date",
-    "user": "User",
-    "action": "Action",
-    "module": "Module",
-    "summary": "Summary",
-    "ip": "IP",
-    "details": "Details"
-  },
-  "entityTypes": {
-    "auth": "Session",
-    "groups": "Group",
-    "companies": "Company",
-    "farms": "Farm",
-    "plots": "Plot",
-    "factories": "Factory",
-    "stations": "Station",
-    "products": "Product",
-    "product-varieties": "Product variety",
-    "vehicles": "Vehicle",
-    "personnel": "Personnel",
-    "cultures": "Culture",
-    "profiles": "Profile",
-    "users": "User",
-    "roles": "Role",
-    "permissions": "Permission",
-    "geography": "Geographic data",
-    "legal-identifier-types": "Legal identifier type",
-    "audit-logs": "Action history"
-  },
-  "entitySentenceTypes": {
-    "auth": "the session",
-    "groups": "the group",
-    "companies": "the company",
-    "farms": "the farm",
-    "plots": "the plot",
-    "factories": "the factory",
-    "stations": "the station",
-    "products": "the product",
-    "product-varieties": "the product variety",
-    "vehicles": "the vehicle",
-    "personnel": "the personnel record",
-    "cultures": "the culture",
-    "profiles": "the profile",
-    "users": "the user",
-    "roles": "the role",
-    "permissions": "the permission",
-    "geography": "the geographic data",
-    "legal-identifier-types": "the legal identifier type",
-    "audit-logs": "the action history"
-  }
-},
   "App": {
-    "name": "Agri-Control",
-    "subtitle": "Agricultural management · Production · Profitability"
+    "name": "Agri Control",
+    "tagline": "Agricultural management platform"
   },
   "Auth": {
     "loginTitle": "Login",
-    "loginSubtitle": "Sign in to access your workspace",
+    "loginSubtitle": "Access your management workspace.",
     "email": "Email",
     "password": "Password",
     "submit": "Sign in",
     "loading": "Signing in...",
-    "invalidCredentials": "Invalid email or password.",
-    "genericError": "An error occurred."
+    "error": "Invalid credentials.",
+    "logout": "Logout"
   },
   "Navigation": {
     "dashboard": "Dashboard",
-    "referential": "Reference data",
+    "referential": "Referential",
     "groups": "Groups",
     "companies": "Companies",
     "production": "Agricultural production",
-"agriculturalProjects": "Agricultural projects",
-
-"treatments": "Treatments",
-
-"productions": "Productions",
-
+    "agriculturalProjects": "Agricultural projects",
+    "treatments": "Treatments",
+    "productions": "Productions",
     "farms": "Farms",
     "plots": "Plots",
     "factories": "Factories",
@@ -330,12 +345,12 @@
     "plantations": "Plantations",
     "harvests": "Harvests",
     "profiles": "Profiles",
-    "logs": "Action history",
+    "logs": "Audit logs",
     "charges": "Costs",
     "factoryFlow": "Factory flow",
     "shipments": "Shipments",
     "receptions": "Receptions",
-    "conditioning": "Packaging",
+    "conditioning": "Conditioning",
     "commercial": "Sales",
     "clients": "Clients",
     "orders": "Orders",
@@ -347,47 +362,65 @@
     "users": "Users",
     "roles": "Roles",
     "settings": "Settings",
-    "stations": "UC stations",
+    "stations": "Stations UC",
     "cultures": "Crops",
     "productVarieties": "Varieties",
     "vehicles": "Vehicles",
     "personnel": "Personnel"
   },
-  "Dashboard": {
-    "date": "Today",
-    "title": "Dashboard",
-    "empty": "Dashboard is empty for now.",
-    "production": "Total production",
-    "cost": "Total cost",
-    "margin": "Margin",
-    "quality": "Quality score",
-    "activeModules": "Active modules",
-    "incidents": "Alerts"
-  },
+ "Dashboard": {
+  "date": "Today",
+  "title": "Dashboard",
+  "empty": "Dashboard is empty for now.",
+  "production": "Total production",
+  "cost": "Total cost",
+  "margin": "Margin",
+  "quality": "Quality score",
+  "activeModules": "Active modules",
+  "incidents": "Alerts"
+},
   "Common": {
-    "logout": "Logout",
-    "language": "Language",
-    "french": "French",
-    "english": "English",
-    "spanish": "Spanish",
     "menu": "Menu",
-    "openMenu": "Open menu",
+    "notifications": "Notifications",
     "closeMenu": "Close menu",
-    "notifications": "Notifications"
+    "openMenu": "Open menu",
+    "collapseMenu": "Collapse menu",
+    "expandMenu": "Expand menu",
+    "language": "Language",
+    "search": "Search",
+    "clear": "Clear",
+    "confirm": "Confirm",
+    "cancel": "Cancel",
+    "save": "Save",
+    "edit": "Edit",
+    "delete": "Delete",
+    "refresh": "Refresh",
+    "actions": "Actions",
+    "loading": "Loading...",
+    "yes": "Yes",
+    "no": "No"
   },
   "Referential": {
-    "phaseTitle": "Organizational reference data",
-    "ressources" : {
-      "agriculturalProjects": {
+    "phaseTitle": "Organizational referential",
+    "pagination": {
+  "previous": "Previous",
+  "next": "Next",
+  "range": "Showing <strong>{start}</strong> to <strong>{end}</strong> of <strong>{total}</strong>"
+},
+    "farmId": "Farm",
+"plotId": "Plot",
+"factoryId": "Factory",
+    "ressources": {
+"agriculturalProjects": {
   "title": "Agricultural projects",
-  "description": "Track crop campaigns, plots, products, varieties, plants and seasons."
+  "description": "Track agricultural campaigns, plots, products, varieties, plants and seasons."
 },
 "plantations": {
   "title": "Plantations",
-  "description": "Track planting operations, densities, planted quantities and related costs."
+  "description": "Track planting operations, densities, planted quantities and associated costs."
 },
 "treatments": {
-  "title": "Phytosanitary treatments",
+  "title": "Crop treatments",
   "description": "Track treatments, applied products, doses, treated areas and costs."
 },
 "harvests": {
@@ -396,7 +429,7 @@
 },
 "productions": {
   "title": "Productions",
-  "description": "Track agricultural output, yield per plant and quality."
+  "description": "Track agricultural production, production per plant and quality."
 },
 "charges": {
   "title": "Agricultural costs",
@@ -404,20 +437,21 @@
 }
     },
     "actions": {
-      "title": "Actions",
-      "refresh": "Refresh",
-      "add": "Add",
+      "new": "New",
       "edit": "Edit",
       "delete": "Delete",
       "save": "Save",
       "cancel": "Cancel",
-      "select": "Select",
-      "info": "Info",
-      "close": "Close"
+      "refresh": "Refresh",
+      "details": "Details",
+      "close": "Close",
+      "title": "Actions"
     },
     "filters": {
       "title": "Filters",
-      "description": "Show or hide search filters.",
+      "mobileButton": "Filters",
+      "description": "Show or hide filters to refine the results.",
+      "active": "Active filters",
       "multiSelectDescription": "Select one or more values to refine the list.",
       "reset": "Reset filters",
       "noOptions": "No option available",
@@ -434,8 +468,8 @@
       "plotFallow": "Fallow",
       "plotArchived": "Archived",
       "projectPreparation": "Projects in preparation",
-"projectInProduction": "Projects in production",
-"projectClosed": "Closed projects"
+      "projectInProduction": "Projects in production",
+      "projectClosed": "Closed projects"
     },
     "details": {
       "mainInfo": "Main information",
@@ -448,42 +482,42 @@
     "messages": {
       "loading": "Loading...",
       "saving": "Saving...",
-      "empty": "No record found.",
+      "empty": "No records.",
       "readOnly": "Read only",
       "confirmDelete": "Confirm deletion / deactivation?",
       "loadError": "Loading error",
       "saveError": "Saving error",
       "deleteError": "Deletion error",
       "multiSelectHelp": "Hold Ctrl or Cmd to select multiple values.",
-      "geographyLoadError": "Unable to load geography data.",
-      "geographyLoadErrorWithReason": "Unable to load geography data: {reason}",
+      "geographyLoadError": "Unable to load geography.",
+      "geographyLoadErrorWithReason": "Unable to load geography: {reason}",
       "lookupLoadWarning": "Some dropdown lists could not be loaded: {details}",
       "apiError": "API error"
     },
     "resources": {
       "groups": {
         "title": "Groups",
-        "description": "Owner groups or holdings that structure the organization."
+        "description": "Owner groups or holdings structuring the organization."
       },
       "companies": {
         "title": "Companies",
-        "description": "Companies attached to groups and used for access scopes."
+        "description": "Companies linked to groups and used for access scopes."
       },
       "farms": {
         "title": "Farms",
-        "description": "Internal, TPG or partner farms attached to companies."
+        "description": "Internal, TPG or partner farms linked to companies."
       },
       "plots": {
         "title": "Plots",
-        "description": "Agricultural plots attached to farms."
+        "description": "Agricultural plots linked to farms."
       },
       "factories": {
         "title": "Factories",
         "description": "Industrial sites or processing units."
       },
       "stations": {
-        "title": "Stations / Units",
-        "description": "Packaging, sorting, calibration or freezing stations."
+        "title": "Stations / UC",
+        "description": "Conditioning, sorting, calibration or freezing stations."
       },
       "cultures": {
         "title": "Crops",
@@ -491,11 +525,11 @@
       },
       "products": {
         "title": "Products",
-        "description": "Agricultural products tracked in the platform."
+        "description": "Agricultural products monitored in the platform."
       },
       "productVarieties": {
         "title": "Varieties",
-        "description": "Varieties attached to agricultural products."
+        "description": "Varieties linked to agricultural products."
       },
       "vehicles": {
         "title": "Vehicles",
@@ -503,7 +537,31 @@
       },
       "personnel": {
         "title": "Personnel",
-        "description": "Operational personnel attached to entities."
+        "description": "Operational personnel linked to entities."
+      },
+      "agriculturalProjects": {
+        "title": "Agricultural projects",
+        "description": "Track agricultural projects by farm, plot, product, variety, season and progress status."
+      },
+      "plantations": {
+        "title": "Plantations",
+        "description": "Record plantations, plant count, density, category and related costs."
+      },
+      "treatments": {
+        "title": "Phytosanitary treatments",
+        "description": "Track treatments applied by plot and agricultural project: product, dose, treated area and cost."
+      },
+      "harvests": {
+        "title": "Harvests",
+        "description": "Record harvests by project, farm, plot, product, variety, quantity and quality."
+      },
+      "productions": {
+        "title": "Productions",
+        "description": "Analyze produced quantities, production per plant, quality and production sources."
+      },
+      "charges": {
+        "title": "Agricultural costs",
+        "description": "Track costs by farm, project, plot and expense type to prepare cost per plant and cost per kg analysis."
       }
     },
     "fields": {
@@ -515,56 +573,55 @@
       "farmId": "Farm",
       "factoryId": "Factory",
       "stationId": "Station",
-      "projectId": "Agricultural project",
-"harvestId": "Harvest",
-"varietyId": "Variety",
-"season": "Season",
-"plantCount": "Plant count",
-"activePlantCount": "Active plants",
-"startDate": "Start date",
-"expectedEndDate": "Expected end date",
-"endDate": "End date",
-"plantingDate": "Planting date",
-"plantQuantity": "Planted quantity",
-"density": "Density",
-"totalCost": "Total cost",
-"currency": "Currency",
-"observations": "Observations",
-"treatmentDate": "Treatment date",
-"productType": "Product type",
-"productName": "Product name",
-"dose": "Dose",
-"treatedSurfaceHa": "Treated area ha",
-"cost": "Cost",
-"harvestDate": "Harvest date",
-"weightTotalKg": "Total weight kg",
-"team": "Team",
-"qualityGrade": "Quality grade",
-"productionDate": "Production date",
-"quantityKg": "Quantity kg",
-"productionPerPlant": "Production per plant",
-"source": "Source",
-
-"label": "Label",
-"quantity": "Quantity",
-"unit": "Unit",
-"unitCost": "Unit cost",
-"supplier": "Supplier",
-"chargeDate": "Cost date",
       "productId": "Product",
       "userId": "User",
       "cultureId": "Crop",
+      "varietyId": "Variety",
       "legalName": "Legal name",
       "code": "Code",
+      "projectId": "Agricultural project",
+      "harvestId": "Harvest",
+      "season": "Season",
+      "plantCount": "Plant count",
+      "activePlantCount": "Active plants",
+      "startDate": "Start date",
+      "expectedEndDate": "Expected end date",
+      "endDate": "End date",
+      "plantingDate": "Planting date",
+      "plantQuantity": "Planted quantity",
+      "density": "Density",
+      "totalCost": "Total cost",
+      "currency": "Currency",
+      "observations": "Observations",
+      "treatmentDate": "Treatment date",
+      "productType": "Product type",
+      "productName": "Product name",
+      "dose": "Dose",
+      "treatedSurfaceHa": "Treated area ha",
+      "cost": "Cost",
+      "harvestDate": "Harvest date",
+      "weightTotalKg": "Total weight kg",
+      "team": "Team",
+      "qualityGrade": "Quality grade",
+      "productionDate": "Production date",
+      "quantityKg": "Quantity kg",
+      "productionPerPlant": "Production per plant",
+      "source": "Source",
+      "label": "Label",
+      "quantity": "Quantity",
+      "unit": "Unit",
+      "unitCost": "Unit cost",
+      "supplier": "Supplier",
+      "chargeDate": "Cost date",
       "codeInternal": "Internal code",
       "ice": "ICE",
       "iceMorocco": "ICE",
       "taxId": "Tax ID / NIF",
       "taxIdMorocco": "Tax ID",
       "taxIdSpain": "NIF / CIF",
-      "rc": "Commercial register",
-      "rcMorocco": "Commercial register",
-      "rcSpain": "Registro Mercantil",
+      "rc": "Trade register",
+      "rcMorocco": "Trade register",
+      "rcSpain": "Commercial registry",
       "cnss": "CNSS / Social security",
       "cnssMorocco": "CNSS",
       "socialSecuritySpain": "Social security",
@@ -580,7 +637,7 @@
       "responsibleId": "Responsible person",
       "status": "Status",
       "category": "Category",
-      "surfaceHa": "Surface HA",
+      "surfaceHa": "Surface ha",
       "rentMonthly": "Monthly rent",
       "culture": "Crop",
       "variety": "Variety",
@@ -597,55 +654,56 @@
       "fullName": "Full name",
       "grade": "Grade",
       "contractType": "Contract type",
-      "salary": "Salary"
+      "salary": "Salary",
+      "plotId": "Plot"
     },
     "options": {
       "projectStatus": {
-  "PREPARATION": "Preparation",
-  "IN_PRODUCTION": "In production",
-  "FINISHED": "Finished",
-  "SUSPENDED": "Suspended",
-  "CANCELLED": "Cancelled"
-},
-"plantationCategory": {
-  "ANNUAL": "Annual",
-  "MULTI_YEAR": "Multi-year",
-  "RENEWAL": "Renewal",
-  "OTHER": "Other"
-},
-"qualityGrade": {
-  "A": "A",
-  "B": "B",
-  "C": "C",
-  "PREMIUM": "Premium",
-  "STANDARD": "Standard",
-  "DOWNGRADED": "Downgraded",
-  "REFUSED": "Refused"
-},
-"chargeType": {
-  "WATER": "Water",
-  "FERTILIZER": "Fertilizer",
-  "SEEDS": "Seeds",
-  "PLANTS": "Plants",
-  "PHYTOSANITARY": "Phytosanitary",
-  "LABOR": "Labor",
-  "ENERGY": "Energy",
-  "MATERIAL": "Material",
-  "PACKAGING": "Packaging",
-  "INTERNAL_TRANSPORT": "Internal transport",
-  "MAINTENANCE": "Maintenance",
-  "RENT": "Rent",
-  "LOGISTICS": "Logistics",
-  "OTHER": "Other"
-},
+        "PREPARATION": "Preparation",
+        "IN_PRODUCTION": "In production",
+        "FINISHED": "Finished",
+        "SUSPENDED": "Suspended",
+        "CANCELLED": "Cancelled"
+      },
+      "plantationCategory": {
+        "ANNUAL": "Annual",
+        "MULTI_YEAR": "Multi-year",
+        "RENEWAL": "Renewal",
+        "OTHER": "Other"
+      },
+      "qualityGrade": {
+        "A": "A",
+        "B": "B",
+        "C": "C",
+        "PREMIUM": "Premium",
+        "STANDARD": "Standard",
+        "DOWNGRADED": "Downgraded",
+        "REFUSED": "Refused"
+      },
+      "chargeType": {
+        "WATER": "Water",
+        "FERTILIZER": "Fertilizer",
+        "SEEDS": "Seeds",
+        "PLANTS": "Plants",
+        "PHYTOSANITARY": "Phytosanitary",
+        "LABOR": "Labor",
+        "ENERGY": "Energy",
+        "MATERIAL": "Equipment",
+        "PACKAGING": "Packaging",
+        "INTERNAL_TRANSPORT": "Internal transport",
+        "MAINTENANCE": "Maintenance",
+        "RENT": "Rent",
+        "LOGISTICS": "Logistics",
+        "OTHER": "Other"
+      },
       "status": {
         "ACTIVE": "Active",
         "INACTIVE": "Inactive",
         "ARCHIVED": "Archived"
       },
       "contractType": {
-        "PERMANENT": "Permanent contract",
-        "FIXED_TERM": "Fixed-term contract",
+        "PERMANENT": "Permanent",
+        "FIXED_TERM": "Fixed-term",
         "SEASONAL": "Seasonal",
         "TEMPORARY": "Temporary",
         "INTERNSHIP": "Internship",
@@ -677,7 +735,7 @@
       "farmCategory": {
         "OWNED": "Owned farm",
         "TPG": "TPG",
-        "THIRD_PARTY": "Third-party"
+        "THIRD_PARTY": "Third party"
       },
       "plotStatus": {
         "PRODUCTION": "Production",

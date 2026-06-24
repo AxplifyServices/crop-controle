@@ -17,6 +17,7 @@ export function Topbar({
 }) {
   const router = useRouter();
   const t = useTranslations('Common');
+  const tAuth = useTranslations('Auth');
 
   async function handleLogout() {
     await logout();
@@ -66,11 +67,11 @@ export function Topbar({
           </span>
         </button>
 
-        <button
-          type="button"
-          onClick={handleLogout}
-          title={t('logout')}
-          aria-label={t('logout')}
+<button
+  type="button"
+  onClick={handleLogout}
+  title={tAuth('logout')}
+  aria-label={tAuth('logout')}
           className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-950 text-white transition hover:bg-emerald-700"
         >
           <LogOut size={16} />

@@ -56,7 +56,7 @@ export class Phase3CommonService {
     });
 
     if (!product) {
-      throw new BadRequestException('Produit introuvable ou archivé.');
+      throw new BadRequestException('Product not found or archived.');
     }
 
     return product;
@@ -75,7 +75,7 @@ export class Phase3CommonService {
 
     if (!variety) {
       throw new BadRequestException(
-        'Variété introuvable, archivée ou incohérente avec le produit.',
+        'Variety not found, archived, or inconsistent with the selected product.',
       );
     }
 
@@ -100,7 +100,7 @@ export class Phase3CommonService {
 
     if (!project) {
       throw new BadRequestException(
-        'Projet agricole introuvable, archivé ou hors périmètre.',
+        'Agricultural project not found, archived, or outside your access scope.',
       );
     }
 
@@ -125,7 +125,7 @@ export class Phase3CommonService {
 
     if (!harvest) {
       throw new BadRequestException(
-        'Récolte introuvable, archivée ou hors périmètre.',
+        'Harvest not found, archived, or outside your access scope.',
       );
     }
 
@@ -138,12 +138,115 @@ export class Phase3CommonService {
     return this.accessControl.findUserOrThrow(responsibleId);
   }
 
+  async validateFarmCompanyConsistency(params: {
+    companyId?: string | null;
+    farmId?: string | null;
+  }) {
+    if (!params.companyId || !params.farmId) {
+      return;
+    }
+
+    const farm = await this.prisma.farms.findFirst({
+      where: {
+        id: params.farmId,
+        company_id: params.companyId,
+        deleted_at: null,
+      },
+    });
+
+    if (!farm) {
+      throw new BadRequestException(
+        'The selected farm does not belong to the selected company.',
+      );
+    }
+  }
+
   async validateProjectConsistency(params: {
+    currentUserId?: string;
+    projectId?: string | null;
+    harvestId?: string | null;
     farmId?: string | null;
     plotId?: string | null;
     productId?: string | null;
     varietyId?: string | null;
   }) {
+    let project: any = null;
+    let harvest: any = null;
+
+    if (params.currentUserId && params.projectId) {
+      project = await this.assertProject(params.currentUserId, params.projectId);
+    }
+
+    if (params.currentUserId && params.harvestId) {
+      harvest = await this.assertHarvest(params.currentUserId, params.harvestId);
+    }
+
+    if (harvest) {
+      if (params.projectId && harvest.project_id !== params.projectId) {
+        throw new BadRequestException(
+          'The selected harvest does not belong to the selected agricultural project.',
+        );
+      }
+
+      if (params.farmId && harvest.farm_id !== params.farmId) {
+        throw new BadRequestException(
+          'The selected harvest does not belong to the selected farm.',
+        );
+      }
+
+      if (params.plotId && harvest.plot_id && harvest.plot_id !== params.plotId) {
+        throw new BadRequestException(
+          'The selected harvest does not belong to the selected plot.',
+        );
+      }
+
+      if (params.productId && harvest.product_id !== params.productId) {
+        throw new BadRequestException(
+          'The selected harvest does not match the selected product.',
+        );
+      }
+
+      if (
+        params.varietyId &&
+        harvest.variety_id &&
+        harvest.variety_id !== params.varietyId
+      ) {
+        throw new BadRequestException(
+          'The selected harvest does not match the selected variety.',
+        );
+      }
+    }
+
+    if (project) {
+      if (params.farmId && project.farm_id !== params.farmId) {
+        throw new BadRequestException(
+          'The selected farm does not match the selected agricultural project.',
+        );
+      }
+
+      if (params.plotId && project.plot_id && project.plot_id !== params.plotId) {
+        throw new BadRequestException(
+          'The selected plot does not match the selected agricultural project.',
+        );
+      }
+
+      if (params.productId && project.product_id !== params.productId) {
+        throw new BadRequestException(
+          'The selected product does not match the selected agricultural project.',
+        );
+      }
+
+      if (
+        params.varietyId &&
+        project.variety_id &&
+        project.variety_id !== params.varietyId
+      ) {
+        throw new BadRequestException(
+          'The selected variety does not match the selected agricultural project.',
+        );
+      }
+    }
+
     if (params.plotId && params.farmId) {
       const plot = await this.prisma.plots.findFirst({
         where: {
@@ -155,7 +258,7 @@ export class Phase3CommonService {
 
       if (!plot) {
         throw new BadRequestException(
-          'La parcelle sélectionnée ne correspond pas à la ferme sélectionnée.',
+          'The selected plot does not belong to the selected farm.',
         );
       }
     }
@@ -206,8 +309,12 @@ export class Phase3CommonService {
     };
   }
 
-  computeProductionPerPlant(data: Record<string, any>) {
+  computeProductionPerPlant(
+    data: Record<string, any>,
+    options: { forceRecompute?: boolean } = {},
+  ) {
     if (
+      !options.forceRecompute &&
       data.production_per_plant !== undefined &&
       data.production_per_plant !== null
     ) {
@@ -225,12 +332,33 @@ export class Phase3CommonService {
     };
   }
 
-  computeTotalCost(data: Record<string, any>) {
+  computeTotalCost(
+    data: Record<string, any>,
+    options: { forceRecompute?: boolean } = {},
+  ) {
+    if (
+      options.forceRecompute &&
+      data.quantity !== undefined &&
+      data.quantity !== null &&
+      data.unit_cost !== undefined &&
+      data.unit_cost !== null
+    ) {
+      return {
+        ...data,
+        total_cost: Number(data.quantity) * Number(data.unit_cost),
+      };
+    }
+
     if (data.total_cost !== undefined && data.total_cost !== null) {
       return data;
     }
 
-    if (data.quantity !== undefined && data.unit_cost !== undefined) {
+    if (
+      data.quantity !== undefined &&
+      data.quantity !== null &&
+      data.unit_cost !== undefined &&
+      data.unit_cost !== null
+    ) {
       return {
         ...data,
         total_cost: Number(data.quantity) * Number(data.unit_cost),
@@ -238,7 +366,7 @@ export class Phase3CommonService {
     }
 
     throw new BadRequestException(
-      'Le coût total est obligatoire si la quantité et le coût unitaire ne sont pas renseignés.',
+      'Total cost is required when quantity and unit cost are not both provided.',
     );
   }
 }
