@@ -330,6 +330,7 @@
   "Navigation": {
     "dashboard": "Tableau de bord",
     "referential": "Référentiel",
+    "plantMovements": "Suivi du peuplement",
     "groups": "Groupes",
     "companies": "Entreprises",
     "production": "Production agricole",
@@ -498,6 +499,10 @@
         "title": "Groupes",
         "description": "Groupes propriétaires ou holdings qui structurent l'organisation."
       },
+      "plantMovements": {
+  "title": "Suivi du peuplement",
+  "description": "Suivi des mortalités, arrachages, plantes non productives, réactivations et ajustements."
+},
       "companies": {
         "title": "Entreprises",
         "description": "Sociétés rattachées aux groupes et utilisées pour les périmètres d'accès."
@@ -567,6 +572,22 @@
       "name": "Nom",
       "description": "Description",
       "groupId": "Groupe",
+      "plannedPlantCount": "Nombre de plantes prévu",
+"initialPlantedCount": "Nombre initialement planté",
+"totalPlantedCount": "Nombre total historiquement planté",
+"plantedPlantCount": "Nombre de plantes plantées",
+"activePlantCount": "Plantes actives",
+"totalLossCount": "Total des pertes",
+"plantingCompletionRate": "Taux de plantation (%)",
+"survivalRate": "Taux de survie (%)",
+"plannedDensityPerHa": "Densité prévue (plantes/ha)",
+"actualDensityPerHa": "Densité réelle (plantes/ha)",
+"plantedSurfaceHa": "Surface plantée (ha)",
+"plantationOperationType": "Type de plantation",
+"movementDate": "Date du mouvement",
+"plantMovementType": "Type de mouvement",
+"affectedPlantCount": "Nombre de plantes concernées",
+"reason": "Motif",
       "parentCompanyId": "Entreprise mère",
       "companyId": "Entreprise",
       "farmId": "Ferme",
@@ -582,7 +603,6 @@
       "harvestId": "Récolte",
       "season": "Saison",
       "plantCount": "Nombre de plantes",
-      "activePlantCount": "Plantes actives",
       "startDate": "Date de début",
       "expectedEndDate": "Date de fin prévue",
       "endDate": "Date de fin",
@@ -664,6 +684,19 @@
         "SUSPENDED": "Suspendu",
         "CANCELLED": "Annulé"
       },
+      "plantationOperationType": {
+  "INITIAL": "Plantation initiale",
+  "REPLACEMENT": "Replantation de remplacement",
+  "ADDITIONAL": "Plantation additionnelle"
+},
+"plantMovementType": {
+  "MORTALITY": "Mortalité",
+  "UPROOTING": "Arrachage",
+  "NON_PRODUCTIVE": "Plantes non productives",
+  "REACTIVATION": "Réactivation",
+  "POSITIVE_ADJUSTMENT": "Ajustement positif",
+  "NEGATIVE_ADJUSTMENT": "Ajustement négatif"
+},
       "currency": {
   "MAD": "MAD — Dirham marocain",
   "EUR": "EUR — Euro",

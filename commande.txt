@@ -29,6 +29,11 @@ git push origin main
 
 git commit --allow-empty -m "trigger deploy"
 
-MDP PostgreSQL serveur :
+** MDP PostgreSQL serveur :
 
 22072001Zak
+
+** Nom base de données local :
+gam_erp_db
+
+psql -U postgres -d gam_erp_db -f database/schema/019_plant_population_tracking.sql

@@ -141,7 +141,8 @@ const MODULE_LABELS: Record<SupportedLocale, Record<string, string>> = {
     alerts: 'Alertes',
     dashboard: 'Tableau de bord',
     dashboards: 'Tableaux de bord',
-    reports: 'Reporting'
+    reports: 'Reporting',
+    'plant-movements': 'Suivi du peuplement',
   },
   en: {
     auth: 'Authentication',
@@ -175,7 +176,8 @@ const MODULE_LABELS: Record<SupportedLocale, Record<string, string>> = {
     alerts: 'Alerts',
     dashboard: 'Dashboard',
     dashboards: 'Dashboards',
-    reports: 'Reports'
+    reports: 'Reports',
+    'plant-movements': 'Plant population monitoring',
   },
   es: {
     auth: 'Autenticación',
@@ -209,7 +211,8 @@ const MODULE_LABELS: Record<SupportedLocale, Record<string, string>> = {
     alerts: 'Alertas',
     dashboard: 'Panel de control',
     dashboards: 'Paneles de control',
-    reports: 'Informes'
+    reports: 'Informes',
+    'plant-movements': 'Seguimiento de la población vegetal',
   }
 };
 

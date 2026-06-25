@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { AccessControlService } from '../common/access-control/access-control.service';
 import { Phase3CommonService } from '../phase3-common/phase3-common.service';
@@ -98,125 +102,155 @@ export class PlantationsService {
     return item;
   }
 
-async create(dto: CreatePlantationsDto, currentUserId: string) {
-  const data = await this.phase3Common.buildDataFromProject(
-    currentUserId,
-    {
-      project_id: dto.project_id,
-      planting_date: new Date(dto.planting_date),
-      plant_quantity: dto.plant_quantity,
-      density: dto.density,
-      category: dto.category,
-      total_cost: dto.total_cost,
-      currency: dto.currency || 'MAD',
-      observations: dto.observations,
-      created_by_id: currentUserId,
-    },
-  );
+  async create(
+    dto: CreatePlantationsDto,
+    currentUserId: string,
+  ) {
+    const context =
+      await this.phase3Common.buildDataFromProject(
+        currentUserId,
+        {
+          project_id: dto.project_id,
+        },
+      );
 
-  await this.phase3Common.assertPlot(
-    currentUserId,
-    data.plot_id,
-  );
+    if (!context.plot_id) {
+      throw new BadRequestException(
+        'Le projet agricole doit être lié à une parcelle.',
+      );
+    }
 
-  await this.phase3Common.assertProduct(data.product_id);
+    const densityPerHa =
+      dto.planted_surface_ha &&
+      dto.planted_surface_ha > 0
+        ? dto.plant_quantity / dto.planted_surface_ha
+        : null;
 
-  await this.phase3Common.assertVariety(
-    data.variety_id,
-    data.product_id,
-  );
+    const plantation = await this.prisma.plantations.create({
+      data: {
+        project_id: dto.project_id,
+        plot_id: context.plot_id,
+        product_id: context.product_id,
+        variety_id: context.variety_id,
 
-  await this.phase3Common.validateProjectConsistency({
-    currentUserId,
-    projectId: data.project_id,
-    farmId: data.farm_id,
-    plotId: data.plot_id,
-    productId: data.product_id,
-    varietyId: data.variety_id,
-  });
+        planting_date: new Date(dto.planting_date),
 
-  return this.prisma.plantations.create({
-    data: {
-      project_id: data.project_id,
-      plot_id: data.plot_id,
-      product_id: data.product_id,
-      variety_id: data.variety_id,
-      planting_date: data.planting_date,
-      plant_quantity: data.plant_quantity,
-      density: data.density,
-      category: data.category,
-      total_cost: data.total_cost,
-      currency: data.currency,
-      observations: data.observations,
-      created_by_id: data.created_by_id,
-    },
-    include: this.includeRelations,
-  });
-}
+        plant_quantity: dto.plant_quantity,
 
-async update(
-  id: string,
-  dto: UpdatePlantationsDto,
-  currentUserId: string,
-) {
-  const existing = await this.findOne(id, currentUserId);
+        planted_surface_ha: dto.planted_surface_ha,
 
-  const projectId = dto.project_id ?? existing.project_id;
+        density_per_ha: densityPerHa,
 
-  const context = await this.phase3Common.buildDataFromProject(
-    currentUserId,
-    {
-      project_id: projectId,
-    },
-  );
+        operation_type: dto.operation_type,
 
-  await this.phase3Common.assertPlot(
-    currentUserId,
-    context.plot_id,
-  );
+        total_cost: dto.total_cost,
 
-  await this.phase3Common.assertProduct(context.product_id);
+        currency: dto.currency || 'MAD',
 
-  await this.phase3Common.assertVariety(
-    context.variety_id,
-    context.product_id,
-  );
+        observations: dto.observations,
 
-  await this.phase3Common.validateProjectConsistency({
-    currentUserId,
-    projectId,
-    farmId: context.farm_id,
-    plotId: context.plot_id,
-    productId: context.product_id,
-    varietyId: context.variety_id,
-  });
+        created_by_id: currentUserId,
+      },
+      include: this.includeRelations,
+    });
 
-  return this.prisma.plantations.update({
-    where: {id},
-    data: {
-      project_id: projectId,
-      plot_id: context.plot_id,
-      product_id: context.product_id,
-      variety_id: context.variety_id,
-      planting_date: dto.planting_date
-        ? new Date(dto.planting_date)
-        : undefined,
-      plant_quantity: dto.plant_quantity,
-      density: dto.density,
-      category: dto.category,
-      total_cost: dto.total_cost,
-      currency: dto.currency,
-      observations: dto.observations,
-      updated_at: new Date(),
-    },
-    include: this.includeRelations,
-  });
-}
+    await this.phase3Common.recalculateProjectActivePlantCount(
+      dto.project_id,
+    );
+
+    return plantation;
+  }
+
+  async update(
+    id: string,
+    dto: UpdatePlantationsDto,
+    currentUserId: string,
+  ) {
+    const existing = await this.findOne(id, currentUserId);
+
+    const projectId =
+      dto.project_id ?? existing.project_id;
+
+    const context =
+      await this.phase3Common.buildDataFromProject(
+        currentUserId,
+        {
+          project_id: projectId,
+        },
+      );
+
+    if (!context.plot_id) {
+      throw new BadRequestException(
+        'Le projet agricole doit être lié à une parcelle.',
+      );
+    }
+
+    const plantQuantity =
+      dto.plant_quantity ?? existing.plant_quantity;
+
+    const plantedSurfaceHa =
+      dto.planted_surface_ha !== undefined
+        ? dto.planted_surface_ha
+        : existing.planted_surface_ha
+          ? Number(existing.planted_surface_ha)
+          : undefined;
+
+    const densityPerHa =
+      plantedSurfaceHa && plantedSurfaceHa > 0
+        ? plantQuantity / plantedSurfaceHa
+        : null;
+
+    const updated = await this.prisma.plantations.update({
+      where: { id },
+      data: {
+        project_id: projectId,
+        plot_id: context.plot_id,
+        product_id: context.product_id,
+        variety_id: context.variety_id,
+
+        planting_date: dto.planting_date
+          ? new Date(dto.planting_date)
+          : undefined,
+
+        plant_quantity: dto.plant_quantity,
+
+        planted_surface_ha: dto.planted_surface_ha,
+
+        density_per_ha: densityPerHa,
+
+        operation_type: dto.operation_type,
+
+        total_cost: dto.total_cost,
+
+        currency: dto.currency,
+
+        observations: dto.observations,
+
+        updated_at: new Date(),
+      },
+      include: this.includeRelations,
+    });
+
+    await this.phase3Common.recalculateProjectActivePlantCount(
+      projectId,
+    );
+
+    if (existing.project_id !== projectId) {
+      await this.phase3Common.recalculateProjectActivePlantCount(
+        existing.project_id,
+      );
+    }
+
+    return updated;
+  }
 
   async remove(id: string, currentUserId: string) {
-    await this.findOne(id, currentUserId);
+    const existing = await this.findOne(
+      id,
+      currentUserId,
+    );
 
-    return this.prisma.plantations.update({
+    const deleted = await this.prisma.plantations.update({
       where: { id },
       data: {
         deleted_at: new Date(),
@@ -224,5 +258,11 @@ async update(
       },
       include: this.includeRelations,
     });
+
+    await this.phase3Common.recalculateProjectActivePlantCount(
+      existing.project_id,
+    );
+
+    return deleted;
   }
 }

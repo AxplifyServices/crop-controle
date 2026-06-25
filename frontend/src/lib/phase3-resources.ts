@@ -30,11 +30,46 @@ const projectStatusSections: ResourceStatusSection[] = [
   }
 ];
 
-const plantationCategoryOptions: ResourceOption[] = [
-  {labelKey: 'options.plantationCategory.ANNUAL', value: 'ANNUAL'},
-  {labelKey: 'options.plantationCategory.MULTI_YEAR', value: 'MULTI_YEAR'},
-  {labelKey: 'options.plantationCategory.RENEWAL', value: 'RENEWAL'},
-  {labelKey: 'options.plantationCategory.OTHER', value: 'OTHER'}
+const plantationOperationTypeOptions: ResourceOption[] = [
+  {
+    labelKey: 'options.plantationOperationType.INITIAL',
+    value: 'INITIAL'
+  },
+  {
+    labelKey: 'options.plantationOperationType.REPLACEMENT',
+    value: 'REPLACEMENT'
+  },
+  {
+    labelKey: 'options.plantationOperationType.ADDITIONAL',
+    value: 'ADDITIONAL'
+  }
+];
+
+const plantMovementTypeOptions: ResourceOption[] = [
+  {
+    labelKey: 'options.plantMovementType.MORTALITY',
+    value: 'MORTALITY'
+  },
+  {
+    labelKey: 'options.plantMovementType.UPROOTING',
+    value: 'UPROOTING'
+  },
+  {
+    labelKey: 'options.plantMovementType.NON_PRODUCTIVE',
+    value: 'NON_PRODUCTIVE'
+  },
+  {
+    labelKey: 'options.plantMovementType.REACTIVATION',
+    value: 'REACTIVATION'
+  },
+  {
+    labelKey: 'options.plantMovementType.POSITIVE_ADJUSTMENT',
+    value: 'POSITIVE_ADJUSTMENT'
+  },
+  {
+    labelKey: 'options.plantMovementType.NEGATIVE_ADJUSTMENT',
+    value: 'NEGATIVE_ADJUSTMENT'
+  }
 ];
 
 const qualityGradeOptions: ResourceOption[] = [
@@ -162,8 +197,67 @@ export const phase3Resources: Record<string, ResourceConfig> = {
       },
       {key: 'name', labelKey: 'fields.name', type: 'text', required: true},
       {key: 'season', labelKey: 'fields.season', type: 'text'},
-      {key: 'plant_count', labelKey: 'fields.plantCount', type: 'number'},
-      {key: 'active_plant_count', labelKey: 'fields.activePlantCount', type: 'number'},
+{
+  key: 'planned_plant_count',
+  labelKey: 'fields.plannedPlantCount',
+  type: 'number'
+},
+{
+  key: 'initial_planted_count',
+  labelKey: 'fields.initialPlantedCount',
+  type: 'number',
+  persist: false,
+  readOnly: true
+},
+{
+  key: 'total_planted_count',
+  labelKey: 'fields.totalPlantedCount',
+  type: 'number',
+  persist: false,
+  readOnly: true
+},
+{
+  key: 'active_plant_count',
+  labelKey: 'fields.activePlantCount',
+  type: 'number',
+  persist: false,
+  readOnly: true
+},
+{
+  key: 'total_loss_count',
+  labelKey: 'fields.totalLossCount',
+  type: 'number',
+  persist: false,
+  readOnly: true
+},
+{
+  key: 'planting_completion_rate',
+  labelKey: 'fields.plantingCompletionRate',
+  type: 'number',
+  persist: false,
+  readOnly: true
+},
+{
+  key: 'survival_rate',
+  labelKey: 'fields.survivalRate',
+  type: 'number',
+  persist: false,
+  readOnly: true
+},
+{
+  key: 'planned_density_per_ha',
+  labelKey: 'fields.plannedDensityPerHa',
+  type: 'number',
+  persist: false,
+  readOnly: true
+},
+{
+  key: 'actual_density_per_ha',
+  labelKey: 'fields.actualDensityPerHa',
+  type: 'number',
+  persist: false,
+  readOnly: true
+},
       {key: 'surface_ha', labelKey: 'fields.surfaceHa', type: 'number'},
       {key: 'start_date', labelKey: 'fields.startDate', type: 'date'},
       {key: 'expected_end_date', labelKey: 'fields.expectedEndDate', type: 'date'},
@@ -192,17 +286,20 @@ export const phase3Resources: Record<string, ResourceConfig> = {
     titleKey: 'resources.plantations.title',
     descriptionKey: 'resources.plantations.description',
     endpoint: '/plantations',
-    listFields: [
-      'project_id',
-      'plot_id',
-      'product_id',
-      'planting_date',
-      'plant_quantity',
-      'density',
-      'category',
-      'total_cost'
-    ],
-    filterFields: ['project_id', 'category'],
+listFields: [
+  'name',
+  'plot_id',
+  'product_id',
+  'planned_plant_count',
+  'initial_planted_count',
+  'active_plant_count',
+  'survival_rate',
+  'status'
+],
+filterFields: [
+  'project_id',
+  'operation_type'
+],
 fields: [
   {
     key: 'project_id',
@@ -222,21 +319,30 @@ fields: [
     required: true
   },
   {
+    key: 'operation_type',
+    labelKey: 'fields.plantationOperationType',
+    type: 'select',
+    required: true,
+    defaultValue: 'INITIAL',
+    options: plantationOperationTypeOptions
+  },
+  {
     key: 'plant_quantity',
-    labelKey: 'fields.plantQuantity',
+    labelKey: 'fields.plantedPlantCount',
     type: 'number',
     required: true
   },
   {
-    key: 'density',
-    labelKey: 'fields.density',
+    key: 'planted_surface_ha',
+    labelKey: 'fields.plantedSurfaceHa',
     type: 'number'
   },
   {
-    key: 'category',
-    labelKey: 'fields.category',
-    type: 'select',
-    options: plantationCategoryOptions
+    key: 'density_per_ha',
+    labelKey: 'fields.actualDensityPerHa',
+    type: 'number',
+    persist: false,
+    readOnly: true
   },
   {
     key: 'total_cost',
@@ -256,6 +362,69 @@ fields: [
     type: 'text'
   }
 ]
+  },
+
+  'plant-movements': {
+    module: 'plant-movements',
+    titleKey: 'resources.plantMovements.title',
+    descriptionKey: 'resources.plantMovements.description',
+    endpoint: '/plant-movements',
+
+    listFields: [
+      'movement_date',
+      'project_id',
+      'type',
+      'plant_count',
+      'reason'
+    ],
+
+    filterFields: [
+      'project_id',
+      'type'
+    ],
+
+    fields: [
+      {
+        key: 'project_id',
+        labelKey: 'fields.projectId',
+        type: 'lookup',
+        required: true,
+        lookup: {
+          endpoint: '/agricultural-projects',
+          valueKey: 'id',
+          labelKeys: ['name', 'season']
+        }
+      },
+      {
+        key: 'movement_date',
+        labelKey: 'fields.movementDate',
+        type: 'date',
+        required: true
+      },
+      {
+        key: 'type',
+        labelKey: 'fields.plantMovementType',
+        type: 'select',
+        required: true,
+        options: plantMovementTypeOptions
+      },
+      {
+        key: 'plant_count',
+        labelKey: 'fields.affectedPlantCount',
+        type: 'number',
+        required: true
+      },
+      {
+        key: 'reason',
+        labelKey: 'fields.reason',
+        type: 'text'
+      },
+      {
+        key: 'observations',
+        labelKey: 'fields.observations',
+        type: 'text'
+      }
+    ]
   },
 
   treatments: {

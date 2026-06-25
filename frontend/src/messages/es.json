@@ -330,6 +330,7 @@
   "Navigation": {
     "dashboard": "Panel de control",
     "referential": "Referencial",
+    "plantMovements": "Población vegetal",
     "groups": "Grupos",
     "companies": "Empresas",
     "production": "Producción agrícola",
@@ -499,6 +500,10 @@
         "title": "Grupos",
         "description": "Grupos propietarios o holdings que estructuran la organización."
       },
+      "plantMovements": {
+  "title": "Seguimiento de la población vegetal",
+  "description": "Seguimiento de mortalidad, arranque, plantas no productivas, reactivaciones y ajustes."
+},
       "companies": {
         "title": "Empresas",
         "description": "Sociedades vinculadas a los grupos y utilizadas para los perímetros de acceso."
@@ -570,6 +575,21 @@
       "groupId": "Grupo",
       "parentCompanyId": "Empresa madre",
       "companyId": "Empresa",
+      "plannedPlantCount": "Número previsto de plantas",
+"initialPlantedCount": "Plantas inicialmente plantadas",
+"totalPlantedCount": "Total histórico plantado",
+"plantedPlantCount": "Número de plantas plantadas",
+"totalLossCount": "Pérdidas totales",
+"plantingCompletionRate": "Tasa de plantación (%)",
+"survivalRate": "Tasa de supervivencia (%)",
+"plannedDensityPerHa": "Densidad prevista (plantas/ha)",
+"actualDensityPerHa": "Densidad real (plantas/ha)",
+"plantedSurfaceHa": "Superficie plantada (ha)",
+"plantationOperationType": "Tipo de plantación",
+"movementDate": "Fecha del movimiento",
+"plantMovementType": "Tipo de movimiento",
+"affectedPlantCount": "Número de plantas afectadas",
+"reason": "Motivo",
       "farmId": "Finca",
       "factoryId": "Fábrica",
       "stationId": "Estación",
@@ -665,6 +685,19 @@
         "SUSPENDED": "Suspendido",
         "CANCELLED": "Cancelado"
       },
+      "plantationOperationType": {
+  "INITIAL": "Plantación inicial",
+  "REPLACEMENT": "Replantación de sustitución",
+  "ADDITIONAL": "Plantación adicional"
+},
+"plantMovementType": {
+  "MORTALITY": "Mortalidad",
+  "UPROOTING": "Arranque",
+  "NON_PRODUCTIVE": "Plantas no productivas",
+  "REACTIVATION": "Reactivación",
+  "POSITIVE_ADJUSTMENT": "Ajuste positivo",
+  "NEGATIVE_ADJUSTMENT": "Ajuste negativo"
+},
       "currency": {
   "MAD": "MAD — Dírham marroquí",
   "EUR": "EUR — Euro",

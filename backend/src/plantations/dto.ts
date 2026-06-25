@@ -6,9 +6,10 @@ import {
   IsOptional,
   IsString,
   IsUUID,
+  Min,
 } from 'class-validator';
-import {Type} from 'class-transformer';
-import {plantation_category_enum} from '@prisma/client';
+import { Type } from 'class-transformer';
+import { plantation_operation_type_enum } from '@prisma/client';
 
 export class CreatePlantationsDto {
   @IsUUID()
@@ -19,20 +20,22 @@ export class CreatePlantationsDto {
 
   @Type(() => Number)
   @IsInt()
+  @Min(1)
   plant_quantity!: number;
 
   @IsOptional()
   @Type(() => Number)
-  @IsInt()
-  density?: number;
+  @IsNumber()
+  @Min(0.01)
+  planted_surface_ha?: number;
 
-  @IsOptional()
-  @IsEnum(plantation_category_enum)
-  category?: plantation_category_enum;
+  @IsEnum(plantation_operation_type_enum)
+  operation_type!: plantation_operation_type_enum;
 
   @IsOptional()
   @Type(() => Number)
   @IsNumber()
+  @Min(0)
   total_cost?: number;
 
   @IsOptional()
@@ -56,20 +59,23 @@ export class UpdatePlantationsDto {
   @IsOptional()
   @Type(() => Number)
   @IsInt()
+  @Min(1)
   plant_quantity?: number;
 
   @IsOptional()
   @Type(() => Number)
-  @IsInt()
-  density?: number;
+  @IsNumber()
+  @Min(0.01)
+  planted_surface_ha?: number;
 
   @IsOptional()
-  @IsEnum(plantation_category_enum)
-  category?: plantation_category_enum;
+  @IsEnum(plantation_operation_type_enum)
+  operation_type?: plantation_operation_type_enum;
 
   @IsOptional()
   @Type(() => Number)
   @IsNumber()
+  @Min(0)
   total_cost?: number;
 
   @IsOptional()

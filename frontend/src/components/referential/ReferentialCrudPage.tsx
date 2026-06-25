@@ -79,10 +79,15 @@ function ReferentialCrudContent({config}: {config: ResourceConfig}) {
     [config.fields]
   );
 
-  const visibleFormFields = useMemo(
-    () => config.fields.filter((field) => isFieldVisible(field, form)),
-    [config.fields, form]
-  );
+const visibleFormFields = useMemo(
+  () =>
+    config.fields.filter(
+      (field) =>
+        !field.readOnly &&
+        isFieldVisible(field, form)
+    ),
+  [config.fields, form]
+);
 
   const defaultStatusSections = useMemo(
     () => [

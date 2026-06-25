@@ -330,6 +330,7 @@
   "Navigation": {
     "dashboard": "Dashboard",
     "referential": "Referential",
+    "plantMovements": "Plant population",
     "groups": "Groups",
     "companies": "Companies",
     "production": "Agricultural production",
@@ -499,6 +500,10 @@
         "title": "Groups",
         "description": "Owner groups or holdings structuring the organization."
       },
+      "plantMovements": {
+  "title": "Plant population monitoring",
+  "description": "Track mortality, uprooting, non-productive plants, reactivation and adjustments."
+},
       "companies": {
         "title": "Companies",
         "description": "Companies linked to groups and used for access scopes."
@@ -571,6 +576,21 @@
       "parentCompanyId": "Parent company",
       "companyId": "Company",
       "farmId": "Farm",
+      "plannedPlantCount": "Planned plant count",
+"initialPlantedCount": "Initially planted plants",
+"totalPlantedCount": "Total historically planted",
+"plantedPlantCount": "Number of plants planted",
+"totalLossCount": "Total losses",
+"plantingCompletionRate": "Planting completion rate (%)",
+"survivalRate": "Survival rate (%)",
+"plannedDensityPerHa": "Planned density (plants/ha)",
+"actualDensityPerHa": "Actual density (plants/ha)",
+"plantedSurfaceHa": "Planted area (ha)",
+"plantationOperationType": "Planting operation type",
+"movementDate": "Movement date",
+"plantMovementType": "Movement type",
+"affectedPlantCount": "Affected plant count",
+"reason": "Reason",
       "factoryId": "Factory",
       "stationId": "Station",
       "productId": "Product",
@@ -665,6 +685,19 @@
         "SUSPENDED": "Suspended",
         "CANCELLED": "Cancelled"
       },
+      "plantationOperationType": {
+  "INITIAL": "Initial planting",
+  "REPLACEMENT": "Replacement planting",
+  "ADDITIONAL": "Additional planting"
+},
+"plantMovementType": {
+  "MORTALITY": "Mortality",
+  "UPROOTING": "Uprooting",
+  "NON_PRODUCTIVE": "Non-productive plants",
+  "REACTIVATION": "Reactivation",
+  "POSITIVE_ADJUSTMENT": "Positive adjustment",
+  "NEGATIVE_ADJUSTMENT": "Negative adjustment"
+},
       "currency": {
   "MAD": "MAD — Moroccan dirham",
   "EUR": "EUR — Euro",

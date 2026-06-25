@@ -65,16 +65,28 @@ export class AgriculturalProjectsService {
       'AGRICULTURAL_PROJECT',
     );
 
-    return this.prisma.agricultural_projects.findMany({
-      where: {
-        deleted_at: null,
-        ...(Object.keys(scopedWhere).length > 0 ? { AND: [scopedWhere] } : {}),
-      },
-      include: this.includeRelations,
-      orderBy: {
-        created_at: 'desc',
-      },
-    });
+    const projects =
+      await this.prisma.agricultural_projects.findMany({
+        where: {
+          deleted_at: null,
+          ...(Object.keys(scopedWhere).length > 0
+            ? { AND: [scopedWhere] }
+            : {}),
+        },
+        include: this.includeRelations,
+        orderBy: {
+          created_at: 'desc',
+        },
+      });
+
+    return Promise.all(
+      projects.map(async (project) => ({
+        ...project,
+        ...(await this.phase3Common.calculateProjectPlantMetrics(
+          project.id,
+        )),
+      })),
+    );
   }
 
   async findOne(id: string, currentUserId: string) {
@@ -83,20 +95,30 @@ export class AgriculturalProjectsService {
       'AGRICULTURAL_PROJECT',
     );
 
-    const item = await this.prisma.agricultural_projects.findFirst({
-      where: {
-        id,
-        deleted_at: null,
-        ...(Object.keys(scopedWhere).length > 0 ? { AND: [scopedWhere] } : {}),
-      },
-      include: this.includeRelations,
-    });
+    const item =
+      await this.prisma.agricultural_projects.findFirst({
+        where: {
+          id,
+          deleted_at: null,
+          ...(Object.keys(scopedWhere).length > 0
+            ? { AND: [scopedWhere] }
+            : {}),
+        },
+        include: this.includeRelations,
+      });
 
     if (!item) {
-      throw new NotFoundException('Projet agricole introuvable.');
+      throw new NotFoundException(
+        'Projet agricole introuvable.',
+      );
     }
 
-    return item;
+    return {
+      ...item,
+      ...(await this.phase3Common.calculateProjectPlantMetrics(
+        item.id,
+      )),
+    };
   }
 
   async create(dto: CreateAgriculturalProjectsDto, currentUserId: string) {
@@ -121,8 +143,8 @@ export class AgriculturalProjectsService {
         variety_id: dto.variety_id,
         name: dto.name,
         season: dto.season,
-        plant_count: dto.plant_count,
-        active_plant_count: dto.active_plant_count,
+planned_plant_count: dto.planned_plant_count ?? 0,
+active_plant_count: 0,
         surface_ha: dto.surface_ha,
         start_date: dto.start_date ? new Date(dto.start_date) : undefined,
         expected_end_date: dto.expected_end_date
@@ -161,7 +183,7 @@ export class AgriculturalProjectsService {
       varietyId: nextVarietyId,
     });
 
-    return this.prisma.agricultural_projects.update({
+    await this.prisma.agricultural_projects.update({
       where: { id },
       data: {
         farm_id: dto.farm_id,
@@ -170,20 +192,26 @@ export class AgriculturalProjectsService {
         variety_id: dto.variety_id,
         name: dto.name,
         season: dto.season,
-        plant_count: dto.plant_count,
-        active_plant_count: dto.active_plant_count,
+        planned_plant_count: dto.planned_plant_count,
         surface_ha: dto.surface_ha,
-        start_date: dto.start_date ? new Date(dto.start_date) : undefined,
+        start_date: dto.start_date
+          ? new Date(dto.start_date)
+          : undefined,
         expected_end_date: dto.expected_end_date
           ? new Date(dto.expected_end_date)
           : undefined,
-        end_date: dto.end_date ? new Date(dto.end_date) : undefined,
+        end_date: dto.end_date
+          ? new Date(dto.end_date)
+          : undefined,
         responsible_id: dto.responsible_id,
         status: dto.status,
         updated_at: new Date(),
       },
-      include: this.includeRelations,
     });
+
+    await this.phase3Common.recalculateProjectActivePlantCount(id);
+
+    return this.findOne(id, currentUserId);
   }
 
   async remove(id: string, currentUserId: string) {

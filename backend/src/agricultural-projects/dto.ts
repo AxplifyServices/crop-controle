@@ -7,6 +7,7 @@ import {
   IsOptional,
   IsString,
   IsUUID,
+  Min,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { project_status_enum } from '@prisma/client';
@@ -37,16 +38,13 @@ export class CreateAgriculturalProjectsDto {
   @IsOptional()
   @Type(() => Number)
   @IsInt()
-  plant_count?: number;
-
-  @IsOptional()
-  @Type(() => Number)
-  @IsInt()
-  active_plant_count?: number;
+  @Min(0)
+  planned_plant_count?: number;
 
   @IsOptional()
   @Type(() => Number)
   @IsNumber()
+  @Min(0)
   surface_ha?: number;
 
   @IsOptional()
@@ -99,16 +97,13 @@ export class UpdateAgriculturalProjectsDto {
   @IsOptional()
   @Type(() => Number)
   @IsInt()
-  plant_count?: number;
-
-  @IsOptional()
-  @Type(() => Number)
-  @IsInt()
-  active_plant_count?: number;
+  @Min(0)
+  planned_plant_count?: number;
 
   @IsOptional()
   @Type(() => Number)
   @IsNumber()
+  @Min(0)
   surface_ha?: number;
 
   @IsOptional()

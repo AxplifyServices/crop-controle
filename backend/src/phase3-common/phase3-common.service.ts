@@ -395,4 +395,184 @@ async buildCompanyFromFarm(
       'Total cost is required when quantity and unit cost are not both provided.',
     );
   }
+
+    async calculateProjectPlantMetrics(projectId: string) {
+    const project = await this.prisma.agricultural_projects.findFirst({
+      where: {
+        id: projectId,
+        deleted_at: null,
+      },
+      select: {
+        id: true,
+        planned_plant_count: true,
+        surface_ha: true,
+      },
+    });
+
+    if (!project) {
+      throw new BadRequestException(
+        'Agricultural project not found or archived.',
+      );
+    }
+
+    const plantationGroups = await this.prisma.plantations.groupBy({
+      by: ['operation_type'],
+      where: {
+        project_id: projectId,
+        deleted_at: null,
+      },
+      _sum: {
+        plant_quantity: true,
+        planted_surface_ha: true,
+      },
+    });
+
+    const movementGroups = await this.prisma.plant_movements.groupBy({
+      by: ['type'],
+      where: {
+        project_id: projectId,
+        deleted_at: null,
+      },
+      _sum: {
+        plant_count: true,
+      },
+    });
+
+    const plantationTotals = new Map(
+      plantationGroups.map((group) => [
+        group.operation_type,
+        {
+          quantity: Number(group._sum.plant_quantity || 0),
+          surface: Number(group._sum.planted_surface_ha || 0),
+        },
+      ]),
+    );
+
+    const movementTotals = new Map(
+      movementGroups.map((group) => [
+        group.type,
+        Number(group._sum.plant_count || 0),
+      ]),
+    );
+
+    const initialPlantCount =
+      plantationTotals.get('INITIAL')?.quantity || 0;
+
+    const additionalPlantCount =
+      plantationTotals.get('ADDITIONAL')?.quantity || 0;
+
+    const replacementPlantCount =
+      plantationTotals.get('REPLACEMENT')?.quantity || 0;
+
+    const establishedPlantCount =
+      initialPlantCount + additionalPlantCount;
+
+    const totalPlantedCount =
+      establishedPlantCount + replacementPlantCount;
+
+    const mortalityCount =
+      movementTotals.get('MORTALITY') || 0;
+
+    const uprootingCount =
+      movementTotals.get('UPROOTING') || 0;
+
+    const nonProductiveCount =
+      movementTotals.get('NON_PRODUCTIVE') || 0;
+
+    const reactivationCount =
+      movementTotals.get('REACTIVATION') || 0;
+
+    const positiveAdjustmentCount =
+      movementTotals.get('POSITIVE_ADJUSTMENT') || 0;
+
+    const negativeAdjustmentCount =
+      movementTotals.get('NEGATIVE_ADJUSTMENT') || 0;
+
+    const totalLossCount =
+      mortalityCount +
+      uprootingCount +
+      nonProductiveCount +
+      negativeAdjustmentCount;
+
+    const totalPositiveCount =
+      reactivationCount + positiveAdjustmentCount;
+
+    const activePlantCount = Math.max(
+      0,
+      totalPlantedCount - totalLossCount + totalPositiveCount,
+    );
+
+    const plannedPlantCount = Number(
+      project.planned_plant_count || 0,
+    );
+
+    const projectSurfaceHa = Number(project.surface_ha || 0);
+
+    const plantedSurfaceHa =
+      (plantationTotals.get('INITIAL')?.surface || 0) +
+      (plantationTotals.get('ADDITIONAL')?.surface || 0);
+
+    const plannedDensityPerHa =
+      plannedPlantCount > 0 && projectSurfaceHa > 0
+        ? plannedPlantCount / projectSurfaceHa
+        : null;
+
+    const actualDensityPerHa =
+      establishedPlantCount > 0 && plantedSurfaceHa > 0
+        ? establishedPlantCount / plantedSurfaceHa
+        : null;
+
+    const plantingCompletionRate =
+      plannedPlantCount > 0
+        ? (establishedPlantCount / plannedPlantCount) * 100
+        : null;
+
+    const survivalRate =
+      totalPlantedCount > 0
+        ? (activePlantCount / totalPlantedCount) * 100
+        : null;
+
+    return {
+      planned_plant_count: plannedPlantCount,
+      initial_planted_count: initialPlantCount,
+      additional_planted_count: additionalPlantCount,
+      replacement_planted_count: replacementPlantCount,
+      established_plant_count: establishedPlantCount,
+      total_planted_count: totalPlantedCount,
+
+      mortality_count: mortalityCount,
+      uprooting_count: uprootingCount,
+      non_productive_count: nonProductiveCount,
+      reactivation_count: reactivationCount,
+      positive_adjustment_count: positiveAdjustmentCount,
+      negative_adjustment_count: negativeAdjustmentCount,
+
+      total_loss_count: totalLossCount,
+      active_plant_count: activePlantCount,
+
+      planted_surface_ha: plantedSurfaceHa,
+
+      planned_density_per_ha: plannedDensityPerHa,
+      actual_density_per_ha: actualDensityPerHa,
+
+      planting_completion_rate: plantingCompletionRate,
+      survival_rate: survivalRate,
+    };
+  }
+
+  async recalculateProjectActivePlantCount(projectId: string) {
+    const metrics = await this.calculateProjectPlantMetrics(projectId);
+
+    await this.prisma.agricultural_projects.update({
+      where: {
+        id: projectId,
+      },
+      data: {
+        active_plant_count: metrics.active_plant_count,
+        updated_at: new Date(),
+      },
+    });
+
+    return metrics;
+  }
 }

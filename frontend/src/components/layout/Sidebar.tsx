@@ -71,6 +71,13 @@ const menuGroups: MenuGroup[] = [
         href: '/production/plantations',
         module: 'plantations'
       },
+
+{
+  key: 'plantMovements',
+  href: '/production/plant-movements',
+  module: 'plant-movements'
+},    
+      
       {
         key: 'treatments',
         href: '/production/treatments',

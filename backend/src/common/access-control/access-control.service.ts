@@ -615,6 +615,54 @@ export class AccessControlService {
       return or.length > 0 ? { OR: or } : this.emptyScopeWhere();
     }
 
+    if (type === 'PLANT_MOVEMENT') {
+      this.addIfNotEmpty(
+        or,
+        {
+          agricultural_projects: {
+            farms: {
+              companies: {
+                group_id: {
+                  in: groupIds,
+                },
+              },
+            },
+          },
+        },
+        groupIds,
+      );
+
+      this.addIfNotEmpty(
+        or,
+        {
+          agricultural_projects: {
+            farms: {
+              company_id: {
+                in: companyIds,
+              },
+            },
+          },
+        },
+        companyIds,
+      );
+
+      this.addIfNotEmpty(
+        or,
+        {
+          agricultural_projects: {
+            farm_id: {
+              in: farmIds,
+            },
+          },
+        },
+        farmIds,
+      );
+
+      return or.length > 0
+        ? { OR: or }
+        : this.emptyScopeWhere();
+    }    
+
     if (type === 'TREATMENT') {
       this.addIfNotEmpty(
         or,

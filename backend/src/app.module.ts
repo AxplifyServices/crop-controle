@@ -30,6 +30,7 @@ import { ProductionsModule } from './productions/productions.module';
 import { ChargesModule } from './charges/charges.module';
 
 import { AuditLogInterceptor } from './common/interceptors/audit-log.interceptor';
+import { PlantMovementsModule } from './plant-movements/plant-movements.module';
 
 @Module({
   imports: [
@@ -63,6 +64,7 @@ import { AuditLogInterceptor } from './common/interceptors/audit-log.interceptor
     HarvestsModule,
     ProductionsModule,
     ChargesModule,
+    PlantMovementsModule,
   ],
   providers: [
     {

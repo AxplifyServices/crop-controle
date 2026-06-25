@@ -50,6 +50,7 @@ const modules = [
    */
   'agricultural-projects',
   'plantations',
+  'plant-movements',
   'treatments',
   'harvests',
   'productions',
