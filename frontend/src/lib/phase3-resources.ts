@@ -129,17 +129,17 @@ export const phase3Resources: Record<string, ResourceConfig> = {
     titleKey: 'resources.agriculturalProjects.title',
     descriptionKey: 'resources.agriculturalProjects.description',
     endpoint: '/agricultural-projects',
-    listFields: [
-      'name',
-      'farm_id',
-      'plot_id',
-      'product_id',
-      'season',
-      'plant_count',
-      'active_plant_count',
-      'surface_ha',
-      'status'
-    ],
+listFields: [
+  'name',
+  'farm_id',
+  'plot_id',
+  'product_id',
+  'season',
+  'planned_plant_count',
+  'active_plant_count',
+  'surface_ha',
+  'status'
+],
     filterFields: ['farm_id', 'plot_id', 'product_id', 'variety_id', 'status'],
     statusSections: projectStatusSections,
     fields: [
@@ -201,13 +201,6 @@ export const phase3Resources: Record<string, ResourceConfig> = {
   key: 'planned_plant_count',
   labelKey: 'fields.plannedPlantCount',
   type: 'number'
-},
-{
-  key: 'initial_planted_count',
-  labelKey: 'fields.initialPlantedCount',
-  type: 'number',
-  persist: false,
-  readOnly: true
 },
 {
   key: 'total_planted_count',
@@ -281,88 +274,89 @@ export const phase3Resources: Record<string, ResourceConfig> = {
     ]
   },
 
-  plantations: {
-    module: 'plantations',
-    titleKey: 'resources.plantations.title',
-    descriptionKey: 'resources.plantations.description',
-    endpoint: '/plantations',
-listFields: [
-  'name',
-  'plot_id',
-  'product_id',
-  'planned_plant_count',
-  'initial_planted_count',
-  'active_plant_count',
-  'survival_rate',
-  'status'
-],
-filterFields: [
-  'project_id',
-  'operation_type'
-],
-fields: [
-  {
-    key: 'project_id',
-    labelKey: 'fields.projectId',
-    type: 'lookup',
-    required: true,
-    lookup: {
-      endpoint: '/agricultural-projects',
-      valueKey: 'id',
-      labelKeys: ['name', 'season']
+plantations: {
+  module: 'plantations',
+  titleKey: 'resources.plantations.title',
+  descriptionKey: 'resources.plantations.description',
+  endpoint: '/plantations',
+
+  listFields: [
+    'project_id',
+    'plant_quantity',
+    'planted_surface_ha',
+    'density_per_ha',
+    'total_cost',
+    'currency'
+  ],
+
+  filterFields: [
+    'project_id',
+    'operation_type'
+  ],
+
+  fields: [
+    {
+      key: 'project_id',
+      labelKey: 'fields.projectId',
+      type: 'lookup',
+      required: true,
+      lookup: {
+        endpoint: '/agricultural-projects',
+        valueKey: 'id',
+        labelKeys: ['name', 'season']
+      }
+    },
+    {
+      key: 'planting_date',
+      labelKey: 'fields.plantingDate',
+      type: 'date',
+      required: true
+    },
+    {
+      key: 'operation_type',
+      labelKey: 'fields.plantationOperationType',
+      type: 'select',
+      required: true,
+      defaultValue: 'INITIAL',
+      options: plantationOperationTypeOptions
+    },
+    {
+      key: 'plant_quantity',
+      labelKey: 'fields.plantedPlantCount',
+      type: 'number',
+      required: true
+    },
+    {
+      key: 'planted_surface_ha',
+      labelKey: 'fields.plantedSurfaceHa',
+      type: 'number'
+    },
+    {
+      key: 'density_per_ha',
+      labelKey: 'fields.actualDensityPerHa',
+      type: 'number',
+      persist: false,
+      readOnly: true
+    },
+    {
+      key: 'total_cost',
+      labelKey: 'fields.totalCost',
+      type: 'number'
+    },
+    {
+      key: 'currency',
+      labelKey: 'fields.currency',
+      type: 'select',
+      options: currencyOptions,
+      defaultValue: 'MAD'
+    },
+    {
+      key: 'observations',
+      labelKey: 'fields.observations',
+      type: 'text'
     }
-  },
-  {
-    key: 'planting_date',
-    labelKey: 'fields.plantingDate',
-    type: 'date',
-    required: true
-  },
-  {
-    key: 'operation_type',
-    labelKey: 'fields.plantationOperationType',
-    type: 'select',
-    required: true,
-    defaultValue: 'INITIAL',
-    options: plantationOperationTypeOptions
-  },
-  {
-    key: 'plant_quantity',
-    labelKey: 'fields.plantedPlantCount',
-    type: 'number',
-    required: true
-  },
-  {
-    key: 'planted_surface_ha',
-    labelKey: 'fields.plantedSurfaceHa',
-    type: 'number'
-  },
-  {
-    key: 'density_per_ha',
-    labelKey: 'fields.actualDensityPerHa',
-    type: 'number',
-    persist: false,
-    readOnly: true
-  },
-  {
-    key: 'total_cost',
-    labelKey: 'fields.totalCost',
-    type: 'number'
-  },
-  {
-    key: 'currency',
-    labelKey: 'fields.currency',
-    type: 'select',
-    options: currencyOptions,
-    defaultValue: 'MAD'
-  },
-  {
-    key: 'observations',
-    labelKey: 'fields.observations',
-    type: 'text'
-  }
-]
-  },
+  ]
+},
 
   'plant-movements': {
     module: 'plant-movements',
