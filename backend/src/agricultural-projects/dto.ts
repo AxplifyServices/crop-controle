@@ -21,11 +21,7 @@ export class CreateAgriculturalProjectsDto {
   plot_id?: string;
 
   @IsUUID()
-  product_id!: string;
-
-  @IsOptional()
-  @IsUUID()
-  variety_id?: string;
+  culture_id!: string;
 
   @IsString()
   @IsNotEmpty()
@@ -41,19 +37,16 @@ export class CreateAgriculturalProjectsDto {
   @Min(0)
   planned_plant_count?: number;
 
-  @IsOptional()
   @Type(() => Number)
   @IsNumber()
-  @Min(0)
-  surface_ha?: number;
+  @Min(0.01)
+  surface_ha!: number;
 
-  @IsOptional()
   @IsDateString()
-  start_date?: string;
+  start_date!: string;
 
-  @IsOptional()
   @IsDateString()
-  expected_end_date?: string;
+  expected_end_date!: string;
 
   @IsOptional()
   @IsDateString()
@@ -79,11 +72,7 @@ export class UpdateAgriculturalProjectsDto {
 
   @IsOptional()
   @IsUUID()
-  product_id?: string;
-
-  @IsOptional()
-  @IsUUID()
-  variety_id?: string;
+  culture_id?: string;
 
   @IsOptional()
   @IsString()
@@ -103,7 +92,7 @@ export class UpdateAgriculturalProjectsDto {
   @IsOptional()
   @Type(() => Number)
   @IsNumber()
-  @Min(0)
+  @Min(0.01)
   surface_ha?: number;
 
   @IsOptional()

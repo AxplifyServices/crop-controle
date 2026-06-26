@@ -33,6 +33,13 @@ export type ResourceField = {
     fieldKey: string;
     targetKey: string;
   };
+
+lookupOptionsFromParentMeta?: {
+  fieldKey: string;
+  arrayKey: string;
+  itemKey?: string;
+};
+
   dependsOn?: {
     fieldKey: string;
     optionsByValue: Record<string, ResourceOption[]>;
@@ -41,6 +48,14 @@ export type ResourceField = {
     fieldKey: string;
     values: string[];
   };
+
+visibleWhenLookupMeta?: {
+  fieldKey: string;
+  metaKey: string;
+  isNull?: boolean;
+  values?: string[];
+};
+  
   labelKeyByValue?: {
     fieldKey: string;
     labelsByValue: Record<string, string>;

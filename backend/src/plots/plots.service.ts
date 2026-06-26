@@ -44,6 +44,69 @@ export class PlotsService {
     };
   }
 
+private async validateFarmSurfaceCapacity(
+  farmId: string,
+  requestedPlotSurface: number | undefined,
+  excludedPlotId?: string,
+) {
+  if (
+    requestedPlotSurface === undefined ||
+    requestedPlotSurface === null
+  ) {
+    return;
+  }
+
+  const farm = await this.prisma.farms.findFirst({
+    where: {
+      id: farmId,
+      deleted_at: null,
+    },
+    select: {
+      id: true,
+      surface_ha: true,
+    },
+  });
+
+  if (!farm) {
+    throw new NotFoundException('Ferme introuvable.');
+  }
+
+  if (farm.surface_ha === null) {
+    throw new BadRequestException(
+      'La surface totale de la ferme doit être renseignée avant de créer des parcelles.',
+    );
+  }
+
+  const aggregate = await this.prisma.plots.aggregate({
+    where: {
+      farm_id: farmId,
+      deleted_at: null,
+      ...(excludedPlotId
+        ? {
+            id: {
+              not: excludedPlotId,
+            },
+          }
+        : {}),
+    },
+    _sum: {
+      surface_ha: true,
+    },
+  });
+
+  const existingSurface = Number(
+    aggregate._sum.surface_ha ?? 0,
+  );
+
+  const farmSurface = Number(farm.surface_ha);
+
+  if (existingSurface + requestedPlotSurface > farmSurface) {
+    throw new BadRequestException(
+      `La somme des surfaces des parcelles ne peut pas dépasser la surface de la ferme (${farmSurface} ha).`,
+    );
+  }
+}  
+
   async findAll(currentUserId: string) {
     const scopedWhere = await this.accessControl.getScopedWhere(
       currentUserId,
@@ -110,6 +173,11 @@ export class PlotsService {
       );
     }
 
+await this.validateFarmSurfaceCapacity(
+  dto.farm_id,
+  dto.surface_ha,
+);    
+
     return this.model.create({
       data: {
         farm_id: dto.farm_id,
@@ -126,8 +194,21 @@ export class PlotsService {
     });
   }
 
-  async update(id: string, dto: UpdatePlotsDto, currentUserId: string) {
-    await this.findOne(id, currentUserId);
+async update(
+  id: string,
+  dto: UpdatePlotsDto,
+  currentUserId: string,
+) {
+  const existing = await this.findOne(id, currentUserId);
+
+  const nextFarmId = dto.farm_id ?? existing.farm_id;
+
+  const nextSurface =
+    dto.surface_ha !== undefined
+      ? dto.surface_ha
+      : existing.surface_ha !== null
+        ? Number(existing.surface_ha)
+        : undefined;
 
     if (dto.farm_id) {
       await this.accessControl.assertCanAccessRecord(
@@ -138,6 +219,12 @@ export class PlotsService {
         { deleted_at: null },
       );
     }
+
+  await this.validateFarmSurfaceCapacity(
+    nextFarmId,
+    nextSurface,
+    id,
+  );
 
     if (dto.culture_id) {
       await this.accessControl.assertCanAccessRecord(

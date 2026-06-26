@@ -133,14 +133,14 @@ listFields: [
   'name',
   'farm_id',
   'plot_id',
-  'product_id',
+  'culture_id',
   'season',
   'planned_plant_count',
   'active_plant_count',
   'surface_ha',
   'status'
 ],
-    filterFields: ['farm_id', 'plot_id', 'product_id', 'variety_id', 'status'],
+    filterFields: ['farm_id', 'plot_id', 'culture_id',  'status'],
     statusSections: projectStatusSections,
     fields: [
       {
@@ -171,30 +171,17 @@ listFields: [
         }
       },
       {
-        key: 'product_id',
-        labelKey: 'fields.productId',
-        type: 'lookup',
-        required: true,
-        lookup: {
-          endpoint: '/products',
-          valueKey: 'id',
-          labelKeys: ['name', 'code']
-        }
-      },
-      {
-        key: 'variety_id',
-        labelKey: 'fields.varietyId',
-        type: 'lookup',
-        lookup: {
-          endpoint: '/product-varieties',
-          valueKey: 'id',
-          labelKeys: ['name', 'code']
-        },
-        lookupFilter: {
-          fieldKey: 'product_id',
-          targetKey: 'product_id'
-        }
-      },
+  key: 'culture_id',
+  labelKey: 'fields.cultureId',
+  type: 'lookup',
+  required: true,
+  lookup: {
+    endpoint: '/cultures',
+    valueKey: 'id',
+    labelKeys: ['name', 'code'],
+    scopeEntityType: 'CULTURE'
+  }
+},
       {key: 'name', labelKey: 'fields.name', type: 'text', required: true},
       {key: 'season', labelKey: 'fields.season', type: 'text'},
 {
@@ -306,6 +293,33 @@ plantations: {
         labelKeys: ['name', 'season']
       }
     },
+
+{
+  key: 'plot_id',
+  labelKey: 'fields.selectProjectPlot',
+  type: 'lookup',
+  required: true,
+
+  visibleWhenLookupMeta: {
+    fieldKey: 'project_id',
+    metaKey: 'plot_id',
+    isNull: true
+  },
+
+  lookupOptionsFromParentMeta: {
+    fieldKey: 'project_id',
+    arrayKey: 'agricultural_project_plots',
+    itemKey: 'plots'
+  },
+
+  lookup: {
+    endpoint: '/plots',
+    valueKey: 'id',
+    labelKeys: ['name', 'code'],
+    scopeEntityType: 'PLOT'
+  }
+},
+    
     {
       key: 'planting_date',
       labelKey: 'fields.plantingDate',

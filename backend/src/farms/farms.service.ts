@@ -47,6 +47,38 @@ export class FarmsService {
     };
   }
 
+private async validateFarmSurface(
+  farmId: string,
+  requestedSurface: number | undefined,
+) {
+  if (
+    requestedSurface === undefined ||
+    requestedSurface === null
+  ) {
+    return;
+  }
+
+  const aggregate = await this.prisma.plots.aggregate({
+    where: {
+      farm_id: farmId,
+      deleted_at: null,
+    },
+    _sum: {
+      surface_ha: true,
+    },
+  });
+
+  const plotsSurface = Number(
+    aggregate._sum.surface_ha ?? 0,
+  );
+
+  if (requestedSurface < plotsSurface) {
+    throw new BadRequestException(
+      `La surface de la ferme ne peut pas être inférieure à la surface cumulée de ses parcelles (${plotsSurface} ha).`,
+    );
+  }
+}  
+
   async findAll(currentUserId: string) {
     const scopedWhere = await this.accessControl.getScopedWhere(
       currentUserId,
@@ -111,6 +143,11 @@ export class FarmsService {
 
   async update(id: string, dto: UpdateFarmsDto, currentUserId: string) {
     await this.findOne(id, currentUserId);
+
+await this.validateFarmSurface(
+  id,
+  dto.surface_ha,
+);
 
     if (dto.company_id) {
       await this.accessControl.assertCanAccessRecord(

@@ -15,6 +15,10 @@ export class CreatePlantationsDto {
   @IsUUID()
   project_id!: string;
 
+@IsOptional()
+@IsUUID()
+plot_id?: string;
+
   @IsDateString()
   planting_date!: string;
 
@@ -51,6 +55,10 @@ export class UpdatePlantationsDto {
   @IsOptional()
   @IsUUID()
   project_id?: string;
+
+@IsOptional()
+@IsUUID()
+plot_id?: string;
 
   @IsOptional()
   @IsDateString()

@@ -36,4 +36,4 @@ git commit --allow-empty -m "trigger deploy"
 ** Nom base de données local :
 gam_erp_db
 
-psql -U postgres -d gam_erp_db -f database/schema/019_plant_population_tracking.sql
+psql -U postgres -d gam_erp_db -f database/schema/020_phase3_project_cultures_and_plots.sql

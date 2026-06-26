@@ -14,7 +14,10 @@ import {
   User,
   X
 } from 'lucide-react';
-import {useTranslations} from 'next-intl';
+import {
+  useLocale,
+  useTranslations
+} from 'next-intl';
 import {apiFetch} from '@/lib/api';
 import {RequirePermission} from '@/components/auth/RequirePermission';
 
@@ -54,18 +57,51 @@ export default function AuditLogsPage() {
 }
 
 function AuditLogsContent() {
-  const t = useTranslations('AuditLogs');
+const t = useTranslations('AuditLogs');
+const locale = useLocale();
 
-  const safeT = useCallback(
-    (key: string, fallback: string, values?: Record<string, string | number>) => {
-      try {
-        return values ? (t as any)(key, values) : t(key);
-      } catch {
+const safeT = useCallback(
+  (
+    key: string,
+    fallback: string,
+    values?: Record<string, string | number>
+  ) => {
+    try {
+      const translator = t as typeof t & {
+        has?: (translationKey: string) => boolean;
+      };
+
+      if (
+        typeof translator.has === 'function' &&
+        !translator.has(key)
+      ) {
         return fallback;
       }
-    },
-    [t]
-  );
+
+      const translatedValue = values
+        ? translator(key, values)
+        : translator(key);
+
+      /*
+       * Sécurité supplémentaire :
+       * selon la configuration next-intl, une clé absente peut
+       * être retournée sous la forme :
+       * AuditLogs.entitySentenceTypes.plantations
+       */
+      if (
+        translatedValue === key ||
+        translatedValue === `AuditLogs.${key}`
+      ) {
+        return fallback;
+      }
+
+      return translatedValue;
+    } catch {
+      return fallback;
+    }
+  },
+  [t]
+);
 
   const [logs, setLogs] = useState<AuditLog[]>([]);
   const [selectedLog, setSelectedLog] = useState<AuditLog | null>(null);
@@ -117,13 +153,18 @@ function AuditLogsContent() {
     }
   }
 
-  function formatDate(date: string) {
-    try {
-      return new Date(date).toLocaleString();
-    } catch {
-      return date;
-    }
+function formatDate(date: string) {
+  const parsedDate = new Date(date);
+
+  if (Number.isNaN(parsedDate.getTime())) {
+    return date;
   }
+
+  return parsedDate.toLocaleString(locale, {
+    dateStyle: 'medium',
+    timeStyle: 'short'
+  });
+}
 
   function getActionLabel(value: string) {
     const isFailed = String(value || '').includes('_FAILED');
@@ -413,17 +454,20 @@ function AuditLogsContent() {
           return null;
         }
 
-        return {
-          label: humanize(key),
-          value: safeT(
-            'detailLabels.changeValue',
-            `${oldText || '-'} → ${newText || '-'}`,
-            {
-              oldValue: oldText || '-',
-              newValue: newText || '-'
-            }
-          )
-        };
+return {
+  label: safeT(
+    `changeFields.${key}`,
+    humanize(key)
+  ),
+  value: safeT(
+    'detailLabels.changeValue',
+    `${oldText || '-'} → ${newText || '-'}`,
+    {
+      oldValue: oldText || '-',
+      newValue: newText || '-'
+    }
+  )
+};
       })
       .filter(Boolean) as DetailRow[];
   }

@@ -49,10 +49,22 @@ function ReferentialCrudContent({config}: {config: ResourceConfig}) {
   const [form, setForm] = useState<RecordItem>({});
   const [editingId, setEditingId] = useState<string | null>(null);
   const [openForm, setOpenForm] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState('');
-  const [user, setUser] = useState<AuthUser | null>(null);
+const [loading, setLoading] = useState(true);
+const [saving, setSaving] = useState(false);
+
+/*
+ * Erreurs générales de la page :
+ * chargement, suppression, lookups, géographie...
+ */
+const [error, setError] = useState('');
+
+/*
+ * Erreurs de création ou de modification.
+ * Elles doivent rester visibles à l’intérieur de la modale.
+ */
+const [formError, setFormError] = useState('');
+
+const [user, setUser] = useState<AuthUser | null>(null);
   const [lookupOptions, setLookupOptions] = useState<LookupOptionsMap>({});
   const [geographyOptions, setGeographyOptions] =
     useState<GeographyOptions>(emptyGeographyOptions);
@@ -84,9 +96,17 @@ const visibleFormFields = useMemo(
     config.fields.filter(
       (field) =>
         !field.readOnly &&
-        isFieldVisible(field, form)
+        isFieldVisible(
+          field,
+          form,
+          lookupOptions
+        )
     ),
-  [config.fields, form]
+  [
+    config.fields,
+    form,
+    lookupOptions
+  ]
 );
 
   const defaultStatusSections = useMemo(
@@ -275,13 +295,11 @@ useEffect(() => {
     return;
   }
 
-  function handleEscape(event: KeyboardEvent) {
-    if (event.key === 'Escape' && !saving) {
-      setForm({});
-      setEditingId(null);
-      setOpenForm(false);
-    }
+function handleEscape(event: KeyboardEvent) {
+  if (event.key === 'Escape' && !saving) {
+    resetForm();
   }
+}
 
   window.addEventListener('keydown', handleEscape);
 
@@ -290,11 +308,12 @@ useEffect(() => {
   };
 }, [openForm, saving]);
 
-  function resetForm() {
-    setForm({});
-    setEditingId(null);
-    setOpenForm(false);
-  }
+function resetForm() {
+  setForm({});
+  setEditingId(null);
+  setFormError('');
+  setOpenForm(false);
+}
 
   function buildDefaultForm(config: ResourceConfig) {
     const initialForm: RecordItem = {};
@@ -308,19 +327,22 @@ useEffect(() => {
     return initialForm;
   }
 
-  function startCreate() {
-    setForm(buildDefaultForm(config));
-    setEditingId(null);
-    setOpenForm(true);
-  }
+function startCreate() {
+  setForm(buildDefaultForm(config));
+  setEditingId(null);
+  setFormError('');
+  setOpenForm(true);
+}
 
-  function startEdit(item: RecordItem) {
-    setForm(buildEditForm(config, item));
-    setEditingId(item.id);
-    setOpenForm(true);
-  }
+function startEdit(item: RecordItem) {
+  setForm(buildEditForm(config, item));
+  setEditingId(item.id);
+  setFormError('');
+  setOpenForm(true);
+}
 
   function setFieldValue(field: ResourceField, value: string | string[]) {
+   setFormError('');
     setForm((current) => {
       const nextValue =
         field.type === 'number'
@@ -346,7 +368,13 @@ useEffect(() => {
       }
 
       for (const childField of config.fields) {
-        if (!isFieldVisible(childField, next)) {
+        if (
+          !isFieldVisible(
+            childField,
+            next,
+            lookupOptions
+          )
+        ) {
           next[childField.key] =
             childField.type === 'multiselect' ? [] : null;
         }
@@ -388,7 +416,13 @@ useEffect(() => {
         continue;
       }
 
-      if (!isFieldVisible(field, payload)) {
+if (
+  !isFieldVisible(
+    field,
+    payload,
+    lookupOptions
+  )
+) {
         continue;
       }
 
@@ -402,35 +436,44 @@ useEffect(() => {
     return cleaned;
   }
 
-  async function submitForm(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+async function submitForm(
+  event: React.FormEvent<HTMLFormElement>
+) {
+  event.preventDefault();
 
-    setSaving(true);
-    setError('');
+  setSaving(true);
+  setFormError('');
 
-    try {
-      const payload = cleanPayload(form);
+  try {
+    const payload = cleanPayload(form);
 
-      if (editingId) {
-        await apiFetch(`${config.endpoint}/${editingId}`, {
+    if (editingId) {
+      await apiFetch(
+        `${config.endpoint}/${editingId}`,
+        {
           method: 'PATCH',
           body: JSON.stringify(payload)
-        });
-      } else {
-        await apiFetch(config.endpoint, {
-          method: 'POST',
-          body: JSON.stringify(payload)
-        });
-      }
-
-      resetForm();
-      await loadItems();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : t('messages.saveError'));
-    } finally {
-      setSaving(false);
+        }
+      );
+    } else {
+      await apiFetch(config.endpoint, {
+        method: 'POST',
+        body: JSON.stringify(payload)
+      });
     }
+
+    resetForm();
+    await loadItems();
+  } catch (err) {
+    setFormError(
+      err instanceof Error
+        ? err.message
+        : t('messages.saveError')
+    );
+  } finally {
+    setSaving(false);
   }
+}
 
   async function deleteItem(item: RecordItem) {
     const confirmed = window.confirm(t('messages.confirmDelete'));
@@ -601,28 +644,56 @@ useEffect(() => {
         </button>
       </div>
 
-      <form
-        onSubmit={submitForm}
-        className="flex min-h-0 flex-1 flex-col"
+<form
+  onSubmit={submitForm}
+  className="flex min-h-0 flex-1 flex-col"
+>
+  <div className="min-h-0 flex-1 overflow-y-auto px-4 py-5 sm:px-6">
+    {formError ? (
+      <div
+        role="alert"
+        aria-live="assertive"
+        className="
+          mb-5 rounded-xl border border-red-200
+          bg-red-50 px-4 py-3 text-sm text-red-700
+        "
       >
-        <div className="min-h-0 flex-1 overflow-y-auto px-4 py-5 sm:px-6">
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {visibleFormFields.map((field) => (
-              <FieldInput
-                key={field.key}
-                field={field}
-                value={form[field.key]}
-                form={form}
-                currentRecordId={editingId}
-                lookupOptions={lookupOptions}
-                geographyOptions={geographyOptions}
-                onChange={(value) =>
-                  setFieldValue(field, value)
-                }
-              />
-            ))}
+        <div className="flex items-start gap-3">
+          <div
+            className="
+              mt-0.5 flex h-5 w-5 shrink-0
+              items-center justify-center rounded-full
+              bg-red-100 font-semibold text-red-700
+            "
+            aria-hidden="true"
+          >
+            !
           </div>
+
+          <p className="min-w-0 whitespace-pre-line break-words">
+            {formError}
+          </p>
         </div>
+      </div>
+    ) : null}
+
+    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+      {visibleFormFields.map((field) => (
+        <FieldInput
+          key={field.key}
+          field={field}
+          value={form[field.key]}
+          form={form}
+          currentRecordId={editingId}
+          lookupOptions={lookupOptions}
+          geographyOptions={geographyOptions}
+          onChange={(value) =>
+            setFieldValue(field, value)
+          }
+        />
+      ))}
+    </div>
+  </div>
 
         <div className="flex shrink-0 flex-col-reverse gap-2 border-t border-slate-200 bg-white px-4 py-4 sm:flex-row sm:justify-end sm:px-6">
           <button
@@ -1575,18 +1646,76 @@ function normalizeDateInputValue(value: unknown) {
   return String(value).slice(0, 10);
 }
 
-function isFieldVisible(field: ResourceField, form: RecordItem) {
-  if (!field.visibleWhen) {
-    return true;
+function isFieldVisible(
+  field: ResourceField,
+  form: RecordItem,
+  lookupOptions?: LookupOptionsMap
+) {
+  if (field.visibleWhen) {
+    const parentValue =
+      form[field.visibleWhen.fieldKey];
+
+    if (!parentValue) {
+      return false;
+    }
+
+    if (
+      !field.visibleWhen.values.includes(
+        String(parentValue)
+      )
+    ) {
+      return false;
+    }
   }
 
-  const parentValue = form[field.visibleWhen.fieldKey];
+  if (field.visibleWhenLookupMeta) {
+    const condition =
+      field.visibleWhenLookupMeta;
 
-  if (!parentValue) {
-    return false;
+    const selectedValue =
+      form[condition.fieldKey];
+
+    if (!selectedValue || !lookupOptions) {
+      return false;
+    }
+
+    const selectedOption =
+      lookupOptions[condition.fieldKey]?.find(
+        (option) =>
+          option.value === String(selectedValue)
+      );
+
+    if (!selectedOption) {
+      return false;
+    }
+
+    const metaValue =
+      selectedOption.meta?.[condition.metaKey];
+
+    if (condition.isNull === true) {
+      return (
+        metaValue === null ||
+        metaValue === undefined ||
+        metaValue === ''
+      );
+    }
+
+    if (condition.isNull === false) {
+      return (
+        metaValue !== null &&
+        metaValue !== undefined &&
+        metaValue !== ''
+      );
+    }
+
+    if (condition.values) {
+      return condition.values.includes(
+        String(metaValue)
+      );
+    }
   }
 
-  return field.visibleWhen.values.includes(String(parentValue));
+  return true;
 }
 
 function getInputLabel(
@@ -1684,6 +1813,58 @@ function getFieldOptions(
 
   if (field.type === 'lookup') {
     let options = lookupOptions[field.key] || [];
+
+    if (field.lookupOptionsFromParentMeta) {
+  const source =
+    field.lookupOptionsFromParentMeta;
+
+  const parentValue =
+    form[source.fieldKey];
+
+  if (!parentValue) {
+    return [];
+  }
+
+  const parentOption =
+    lookupOptions[source.fieldKey]?.find(
+      (option) =>
+        option.value === String(parentValue)
+    );
+
+  const sourceRows =
+    parentOption?.meta?.[source.arrayKey];
+
+  if (!Array.isArray(sourceRows)) {
+    return [];
+  }
+
+  const allowedIds = sourceRows
+    .map((row) => {
+      if (!row || typeof row !== 'object') {
+        return null;
+      }
+
+      const record =
+        row as Record<string, unknown>;
+
+      const nested = source.itemKey
+        ? record[source.itemKey]
+        : record;
+
+      if (!nested || typeof nested !== 'object') {
+        return null;
+      }
+
+      return String(
+        (nested as Record<string, unknown>).id ?? ''
+      );
+    })
+    .filter(Boolean);
+
+  options = options.filter((option) =>
+    allowedIds.includes(option.value)
+  );
+}
 
     if (field.lookupFilter) {
       const parentValue = form[field.lookupFilter.fieldKey];
